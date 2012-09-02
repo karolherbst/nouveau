@@ -4,6 +4,7 @@ libtherm_la_SOURCES = base.c \
 		      fan.c \
 		      fannil.c \
 		      fanpwm.c \
+		      fantog.c \
 		      ic.c \
 		      temp.c \
 		      nv40.c \
