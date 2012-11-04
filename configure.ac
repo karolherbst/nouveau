@@ -70,6 +70,7 @@ AC_OUTPUT( Makefile \
 	   nvkm/subdev/Makefile \
 	   nvkm/subdev/bar/Makefile \
 	   nvkm/subdev/bios/Makefile \
+	   nvkm/subdev/bus/Makefile \
 	   nvkm/subdev/clock/Makefile \
 	   nvkm/subdev/device/Makefile \
 	   nvkm/subdev/devinit/Makefile \
