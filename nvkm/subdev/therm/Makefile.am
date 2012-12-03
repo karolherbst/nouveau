@@ -5,6 +5,7 @@ libtherm_la_SOURCES = base.c \
 		      ic.c \
 		      temp.c \
 		      nv40.c \
-		      nv50.c
+		      nv50.c \
+		      nvd0.c
 
 include $(srcdir)/../Makefile.subdev
