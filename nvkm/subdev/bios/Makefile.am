@@ -13,6 +13,7 @@ libbios_la_SOURCES = base.c \
 		     mxm.c \
 		     perf.c \
 		     pll.c \
-		     therm.c
+		     therm.c \
+		     xpio.c
 
 include $(srcdir)/../Makefile.subdev
