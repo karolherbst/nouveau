@@ -66,6 +66,7 @@ void os_backtrace(void);
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #define __acquires(a)
 #define __releases(a)
+#define __printf(a,b)
 
 /******************************************************************************
  * types
