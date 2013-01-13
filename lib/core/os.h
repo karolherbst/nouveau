@@ -226,9 +226,33 @@ struct kref {
  * string
  *****************************************************************************/
 #include <string.h>
+#include <stdlib.h>
+#include <errno.h>
 
 #define kstrdup(a,b) strdup((a))
 #define kstrndup(a,b,c) strndup((a), (b))
+
+static inline int
+kstrtol(const char *s, unsigned int base, long *res)
+{
+	*res = strtol(s, NULL, base);
+	if (errno && *res == LONG_MAX)
+		return errno;
+	if (errno && *res == 0)
+		return errno;
+	return 0;
+}
+
+static inline int
+kstrtoul(const char *s, unsigned int base, unsigned long *res)
+{
+	*res = strtoul(s, NULL, base);
+	if (errno && *res == ULONG_MAX)
+		return errno;
+	if (errno && *res == 0)
+		return errno;
+	return 0;
+}
 
 /******************************************************************************
  * printk
@@ -249,8 +273,6 @@ struct kref {
 /******************************************************************************
  * memory
  *****************************************************************************/
-#include <stdlib.h>
-
 #define GFP_KERNEL 1
 #define __GFP_ZERO 2
 #define GFP_DMA32  4
@@ -293,7 +315,6 @@ __free_page(struct page *page)
 /******************************************************************************
  * assertions
  *****************************************************************************/
-#include <errno.h>
 #include <assert.h>
 #include <execinfo.h>
 
