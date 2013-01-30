@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libdisp.la
 
-libdisp_la_SOURCES = nv04.c \
+libdisp_la_SOURCES = base.c \
+		     nv04.c \
 		     nv50.c \
 		     nv84.c \
 		     nv94.c \
