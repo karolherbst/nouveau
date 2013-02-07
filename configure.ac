@@ -85,6 +85,7 @@ AC_OUTPUT( Makefile \
 	   nvkm/subdev/therm/Makefile \
 	   nvkm/subdev/timer/Makefile \
 	   nvkm/subdev/vm/Makefile \
+	   nvkm/subdev/volt/Makefile \
 	   nvkm/engine/Makefile \
 	   nvkm/engine/bsp/Makefile \
 	   nvkm/engine/copy/Makefile \
