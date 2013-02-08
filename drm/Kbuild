@@ -240,5 +240,6 @@ nouveau-y += nouveau_mem.o
 nouveau-$(CONFIG_COMPAT) += nouveau_ioc32.o
 nouveau-$(CONFIG_ACPI) += nouveau_acpi.o
 nouveau-$(CONFIG_DRM_NOUVEAU_BACKLIGHT) += nouveau_backlight.o
+nouveau-$(CONFIG_DEBUG_FS) += nouveau_debugfs.o
 
 obj-$(CONFIG_DRM_NOUVEAU)+= nouveau.o
