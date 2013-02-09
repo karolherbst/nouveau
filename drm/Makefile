@@ -15,10 +15,10 @@ KBUILD_OPTS += KCPPFLAGS="$(shell cat nouveau.config)"
 all: modules
 
 modules:
-	make -C $(LINUXDIR) $(KBUILD_OPTS) modules
+	$(MAKE) -C $(LINUXDIR) $(KBUILD_OPTS) modules
 
 install:
-	make -C $(LINUXDIR) $(KBUILD_OPTS) modules_install
+	$(MAKE) -C $(LINUXDIR) $(KBUILD_OPTS) modules_install
 
 clean:
-	make -C $(LINUXDIR) $(KBUILD_OPTS) clean
+	$(MAKE) -C $(LINUXDIR) $(KBUILD_OPTS) clean
