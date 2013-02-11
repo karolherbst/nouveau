@@ -674,6 +674,7 @@ struct i2c_algo_bit_data {
 	void (*setscl) (void *data, int state);
 	int  (*getsda) (void *data);
 	int  (*getscl) (void *data);
+	int  (*pre_xfer)(struct i2c_adapter *);
 };
 
 static inline int
