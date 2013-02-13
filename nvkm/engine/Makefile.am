@@ -1,4 +1,5 @@
-SUBDIRS = dmaobj bsp copy crypt device disp fifo graph mpeg ppp software vp
+SUBDIRS = dmaobj bsp copy crypt device disp fifo graph mpeg perfmon ppp \
+	  software vp
 
 noinst_LTLIBRARIES = libengine.la
 
@@ -14,6 +15,7 @@ libengine_la_LIBADD  = bsp/libbsp.la \
 		       fifo/libfifo.la \
 		       graph/libgraph.la \
 		       mpeg/libmpeg.la \
+		       perfmon/libperfmon.la \
 		       ppp/libppp.la \
 		       software/libsoftware.la \
 		       vp/libvp.la

@@ -84,6 +84,7 @@ void os_backtrace(void);
 #define __acquires(a)
 #define __releases(a)
 #define __printf(a,b)
+#define __user
 
 static inline int
 order_base_2(u64 base)

@@ -95,6 +95,7 @@ AC_OUTPUT( Makefile \
 	   nvkm/engine/fifo/Makefile \
 	   nvkm/engine/graph/Makefile \
 	   nvkm/engine/mpeg/Makefile \
+	   nvkm/engine/perfmon/Makefile \
 	   nvkm/engine/ppp/Makefile \
 	   nvkm/engine/software/Makefile \
 	   nvkm/engine/vp/Makefile \
