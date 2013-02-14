@@ -4,7 +4,7 @@ bin_PROGRAMS = \
 	       nv_ri08 nv_ri16 nv_ri32 nv_wi08 nv_wi16 nv_wi32 \
 	       nv_rv08 nv_rv16 nv_rv32 nv_wv08 nv_wv16 nv_wv32 \
 	       nv_rs08 nv_rs16 nv_rs32 nv_ws08 nv_ws16 nv_ws32 \
-	       nv_disp
+	       nv_disp nv_i2c
 
 AM_CPPFLAGS = -I$(top_srcdir)/nvkm/include \
 	      -I$(top_srcdir)/nvkm \
