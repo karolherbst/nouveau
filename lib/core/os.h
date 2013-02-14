@@ -666,6 +666,10 @@ i2c_transfer(struct i2c_adapter *a, struct i2c_msg *m, int num)
  * i2c bit-bang
  *****************************************************************************/
 
+static struct i2c_algorithm
+i2c_bit_algo = {
+};
+
 struct i2c_algo_bit_data {
 	int udelay;
 	int timeout;
@@ -680,6 +684,7 @@ struct i2c_algo_bit_data {
 static inline int
 i2c_bit_add_bus(struct i2c_adapter *a)
 {
+	(void)i2c_bit_algo;
 	return 0;
 }
 

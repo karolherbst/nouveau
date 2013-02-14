@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libi2c.la
 
 libi2c_la_SOURCES = base.c \
+		    anx9805.c \
 		    aux.c \
 		    bit.c \
 		    nv04.c \
