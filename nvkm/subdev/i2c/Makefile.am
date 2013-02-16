@@ -3,6 +3,10 @@ noinst_LTLIBRARIES = libi2c.la
 libi2c_la_SOURCES = base.c \
 		    aux.c \
 		    bit.c \
-		    nv94.c
+		    nv04.c \
+		    nv4e.c \
+		    nv50.c \
+		    nv94.c \
+		    nvd0.c
 
 include $(srcdir)/../Makefile.subdev
