@@ -10,6 +10,7 @@ libdisp_la_SOURCES = base.c \
 		     nvd0.c \
 		     nve0.c \
 		     dacnv50.c \
+		     dport.c \
 		     hdanva3.c \
 		     hdanvd0.c \
 		     hdminv84.c \
