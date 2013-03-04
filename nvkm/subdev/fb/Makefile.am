@@ -7,6 +7,17 @@ libfb_la_SOURCES = base.c \
 		   nv30.c nv35.c nv36.c \
 		   nv40.c nv41.c nv44.c nv46.c nv47.c nv49.c nv4e.c \
 		   nv50.c \
-		   nvc0.c
+		   nvc0.c \
+		   ramnv04.c \
+		   ramnv10.c \
+		   ramnv1a.c \
+		   ramnv20.c \
+		   ramnv40.c \
+		   ramnv41.c \
+		   ramnv44.c \
+		   ramnv49.c \
+		   ramnv4e.c \
+		   ramnv50.c \
+		   ramnvc0.c
 
 include $(srcdir)/../Makefile.subdev
