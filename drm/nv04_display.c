@@ -156,7 +156,7 @@ nv04_display_destroy(struct drm_device *dev)
 			.crtc = crtc,
 		};
 
-		crtc->funcs->set_config(&modeset);
+		drm_mode_set_config_internal(&modeset);
 	}
 
 	/* Restore state */
