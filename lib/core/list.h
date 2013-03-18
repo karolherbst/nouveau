@@ -335,9 +335,19 @@ list_empty(struct list_head *head)
 	     &pos->member != (head);					\
 	     pos = __container_of(pos->member.prev, pos, member))
 
+#define list_for_each_entry_continue(pos, head, member)			\
+	for (pos = __container_of(pos->member.next, pos, member);	\
+	     &pos->member != (head);					\
+	     pos = __container_of(pos->member.next, pos, member))
+
 #define list_for_each_entry_continue_reverse(pos, head, member)		\
 	for (pos = __container_of(pos->member.prev, pos, member);	\
 	     &pos->member != (head);					\
 	     pos = __container_of(pos->member.prev, pos, member))
+
+#define list_for_each_entry_from(pos, head, member)			\
+	for (;								\
+	     &pos->member != (head);					\
+	     pos = __container_of(pos->member.next, pos, member))
 
 #endif
