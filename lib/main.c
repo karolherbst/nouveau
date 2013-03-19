@@ -23,7 +23,6 @@
  */
 
 #include <core/os.h>
-#include <signal.h>
 
 #include <core/object.h>
 #include <core/client.h>
@@ -34,79 +33,11 @@
 #include <engine/device.h>
 #include <subdev/mc.h>
 
-struct os_device {
-	struct nouveau_device base;
-	struct list_head head;
-	char *name;
-	char *cfg;
-	char *dbg;
-};
-
-struct os_client {
-	struct nouveau_client base;
-	struct list_head head;
-};
+#include "priv.h"
 
 static LIST_HEAD(os_device_list);
 static LIST_HEAD(os_client_list);
 static int os_client_id = 0;
-
-/******************************************************************************
- * "interrupt" handling
- *****************************************************************************/
-#define INTR_FREQ 10000
-
-struct os_intr {
-	struct list_head head;
-	irq_handler_t handler;
-	int irq;
-	void *dev;
-};
-static LIST_HEAD(os_intr_list);
-
-int
-os_intr_init(unsigned int irq, irq_handler_t handler, unsigned long flags,
-	     const char *name, void *dev)
-{
-	struct os_intr *intr = malloc(sizeof(*intr));
-	if (!intr)
-		return -ENOMEM;
-	intr->handler = handler;
-	intr->irq = irq;
-	intr->dev = dev;
-	list_add(&intr->head, &os_intr_list);
-	return 0;
-}
-
-void
-os_intr_free(unsigned int irq, void *dev)
-{
-	struct os_intr *intr;
-
-	list_for_each_entry(intr, &os_intr_list, head) {
-		if (intr->irq == irq && intr->dev == dev) {
-			list_del(&intr->head);
-			free(intr);
-			break;
-		}
-	}
-}
-
-static void
-os_intr(int signal)
-{
-	struct os_intr *intr;
-
-	list_for_each_entry(intr, &os_intr_list, head) {
-		intr->handler(intr->irq, intr->dev);
-	}
-
-	ualarm(INTR_FREQ, 0);
-}
-
-static struct sigaction intr = {
-	.sa_handler = os_intr,
-};
 
 /******************************************************************************
  * horrific stuff to implement linux's ioremap interface on top of pciaccess
@@ -248,9 +179,7 @@ os_init(char *cfg, char *dbg, bool init)
 		os_init_device(pdev, cfg, dbg);
 	}
 
-	sigaction(SIGALRM, &intr, 0);
-	ualarm(INTR_FREQ, 0);
-	return 0;
+	return pthread_create(&os_intr_thread, NULL, os_intr, NULL);
 }
 
 static void
