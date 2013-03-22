@@ -56,18 +56,50 @@ static int os_client_id = 0;
  *****************************************************************************/
 #define INTR_FREQ 10000
 
+struct os_intr {
+	struct list_head head;
+	irq_handler_t handler;
+	int irq;
+	void *dev;
+};
+static LIST_HEAD(os_intr_list);
+
+int
+os_intr_init(unsigned int irq, irq_handler_t handler, unsigned long flags,
+	     const char *name, void *dev)
+{
+	struct os_intr *intr = malloc(sizeof(*intr));
+	if (!intr)
+		return -ENOMEM;
+	intr->handler = handler;
+	intr->irq = irq;
+	intr->dev = dev;
+	list_add(&intr->head, &os_intr_list);
+	return 0;
+}
+
+void
+os_intr_free(unsigned int irq, void *dev)
+{
+	struct os_intr *intr;
+
+	list_for_each_entry(intr, &os_intr_list, head) {
+		if (intr->irq == irq && intr->dev == dev) {
+			list_del(&intr->head);
+			free(intr);
+			break;
+		}
+	}
+}
+
 static void
 os_intr(int signal)
 {
-	struct nouveau_subdev *pmc;
-	struct os_device *odev;
+	struct os_intr *intr;
 
-	list_for_each_entry(odev, &os_device_list, head) {
-		pmc = nouveau_subdev(odev, NVDEV_SUBDEV_MC);
-		if (pmc && pmc->intr)
-			pmc->intr(pmc);
+	list_for_each_entry(intr, &os_intr_list, head) {
+		intr->handler(intr->irq, intr->dev);
 	}
-
 
 	ualarm(INTR_FREQ, 0);
 }

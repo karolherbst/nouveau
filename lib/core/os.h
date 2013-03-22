@@ -271,6 +271,25 @@ nvos_backtrace(void)
 #define WARN_ON(c) (c)
 
 /******************************************************************************
+ * interrupts
+ *****************************************************************************/
+#define IRQF_SHARED 0
+
+typedef enum irqreturn {
+	IRQ_NONE,
+	IRQ_HANDLED
+} irqreturn_t;
+
+typedef irqreturn_t (*irq_handler_t)(int, void *);
+
+extern int  os_intr_init(unsigned int, irq_handler_t, unsigned long,
+			 const char *, void *);
+extern void os_intr_free(unsigned int, void *);
+
+#define request_irq os_intr_init
+#define free_irq os_intr_free
+
+/******************************************************************************
  * spinlocks - using pthread mutex due to no static spinlock initialiser
  *****************************************************************************/
 #include <pthread.h>
@@ -419,6 +438,7 @@ struct pci_dev {
 	u16 device;
 	u16 subsystem_vendor;
 	u16 subsystem_device;
+	int irq;
 };
 
 static inline int
