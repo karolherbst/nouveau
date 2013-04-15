@@ -490,6 +490,12 @@ pci_unmap_rom(struct pci_dev *pdev, void __iomem *rom)
 	free(rom);
 }
 
+static inline void __iomem *
+pci_platform_rom(struct pci_dev *pdev, size_t *size)
+{
+	return NULL;
+}
+
 static inline void *
 pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
 		     dma_addr_t *dma_handle)
