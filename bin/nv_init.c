@@ -14,10 +14,17 @@ struct nouveau_object *device;
 int
 main(int argc, char **argv)
 {
+	bool suspend = false, wait = false;
 	int ret, c;
 
-	while ((c = getopt(argc, argv, "-")) != -1) {
+	while ((c = getopt(argc, argv, "-sw")) != -1) {
 		switch (c) {
+		case 's':
+			suspend = true;
+			break;
+		case 'w':
+			wait = true;
+			break;
 		case 1:
 			return -EINVAL;
 		}
@@ -35,6 +42,15 @@ main(int argc, char **argv)
 				}, sizeof(struct nv_device_class), &device);
 	if (ret)
 		return ret;
+
+	if (suspend) {
+		os_suspend();
+		os_resume();
+	}
+
+	while (wait && (c = getchar()) == EOF) {
+		sched_yield();
+	}
 
 	os_client_del(&client);
 	nouveau_object_debug();
