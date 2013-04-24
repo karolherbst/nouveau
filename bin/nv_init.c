@@ -30,7 +30,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	ret = os_client_new(NULL, "trace", argc, argv, &client);
+	ret = os_client_new(NULL, "info", argc, argv, &client);
 	if (ret)
 		return ret;
 
@@ -52,7 +52,9 @@ main(int argc, char **argv)
 		sched_yield();
 	}
 
+	printf("shutting down...\n");
 	os_client_del(&client);
 	nouveau_object_debug();
+	printf("done!\n");
 	return ret;
 }
