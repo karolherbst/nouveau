@@ -10,4 +10,4 @@ libdevice_la_SOURCES = base.c \
 		       nvc0.c \
 		       nve0.c
 
-include $(srcdir)/../Makefile.subdev
+include $(srcdir)/../Makefile.engine

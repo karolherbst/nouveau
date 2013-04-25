@@ -72,7 +72,6 @@ AC_OUTPUT( Makefile \
 	   nvkm/subdev/bios/Makefile \
 	   nvkm/subdev/bus/Makefile \
 	   nvkm/subdev/clock/Makefile \
-	   nvkm/subdev/device/Makefile \
 	   nvkm/subdev/devinit/Makefile \
 	   nvkm/subdev/fb/Makefile \
 	   nvkm/subdev/gpio/Makefile \
@@ -86,11 +85,12 @@ AC_OUTPUT( Makefile \
 	   nvkm/subdev/timer/Makefile \
 	   nvkm/subdev/vm/Makefile \
 	   nvkm/engine/Makefile \
-	   nvkm/engine/dmaobj/Makefile \
 	   nvkm/engine/bsp/Makefile \
 	   nvkm/engine/copy/Makefile \
 	   nvkm/engine/crypt/Makefile \
+	   nvkm/engine/device/Makefile \
 	   nvkm/engine/disp/Makefile \
+	   nvkm/engine/dmaobj/Makefile \
 	   nvkm/engine/fifo/Makefile \
 	   nvkm/engine/graph/Makefile \
 	   nvkm/engine/mpeg/Makefile \

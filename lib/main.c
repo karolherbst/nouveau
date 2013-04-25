@@ -31,7 +31,7 @@
 #include <core/intr.h>
 #include <core/class.h>
 
-#include <subdev/device.h>
+#include <engine/device.h>
 #include <subdev/mc.h>
 
 struct os_device {
