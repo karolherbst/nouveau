@@ -23,7 +23,6 @@ missing
 stamp-h1
 *.swp
 *.in
-*.fuc.h
 
 *.cmd
 *.mod.c
