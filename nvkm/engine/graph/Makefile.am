@@ -24,24 +24,8 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      nvc0.c \
 		      nve0.c
 
-fuc/hubnvc0.fuc.h: fuc/nvc0.fuc fuc/hubnvc0.fuc
-	cd fuc && \
-	m4 hubnvc0.fuc | envyas -a -w -m fuc -V fuc3 -o hubnvc0.fuc.h && \
-	cd ..
-
-fuc/gpcnvc0.fuc.h: fuc/nvc0.fuc fuc/gpcnvc0.fuc
-	cd fuc && \
-	m4 gpcnvc0.fuc | envyas -a -w -m fuc -V fuc3 -o gpcnvc0.fuc.h && \
-	cd ..
-
-fuc/hubnve0.fuc.h: fuc/nve0.fuc fuc/hubnve0.fuc
-	cd fuc && \
-	m4 hubnve0.fuc | envyas -a -w -m fuc -V fuc3 -o hubnve0.fuc.h && \
-	cd ..
-
-fuc/gpcnve0.fuc.h: fuc/nve0.fuc fuc/gpcnve0.fuc
-	cd fuc && \
-	m4 gpcnve0.fuc | envyas -a -w -m fuc -V fuc3 -o gpcnve0.fuc.h && \
-	cd ..
+$(filter %.fuc.h,$(BUILT_SOURCES)): %.fuc.h: %.fuc fuc/com.fuc fuc/hub.fuc fuc/gpc.fuc
+	cpp -Ifuc -CC $< | cpp | sed -e '/^#/d' \
+	| envyas -a -w -m fuc -V fuc3 -o $@
 
 include $(srcdir)/../Makefile.engine
