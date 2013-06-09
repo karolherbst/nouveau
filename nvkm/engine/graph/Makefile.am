@@ -10,7 +10,12 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      ctxnv40.c \
 		      ctxnv50.c \
 		      ctxnvc0.c \
-		      ctxnve0.c \
+		      ctxnvc1.c \
+		      ctxnvc3.c \
+		      ctxnvc8.c \
+		      ctxnvd9.c \
+		      ctxnve4.c \
+		      ctxnvf0.c \
 		      nv04.c \
 		      nv10.c \
 		      nv20.c \
@@ -22,7 +27,12 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      nv40.c \
 		      nv50.c \
 		      nvc0.c \
-		      nve0.c
+		      nvc1.c \
+		      nvc3.c \
+		      nvc8.c \
+		      nvd9.c \
+		      nve4.c \
+		      nvf0.c
 
 $(filter %.fuc.h,$(BUILT_SOURCES)): %.fuc.h: %.fuc fuc/com.fuc fuc/hub.fuc fuc/gpc.fuc
 	cpp -Ifuc -CC $< | cpp | sed -e '/^#/d' \
