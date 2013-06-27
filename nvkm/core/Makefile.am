@@ -9,7 +9,6 @@ libcore_la_SOURCES = client.c \
 		     engine.c \
 		     enum.c \
 		     event.c \
-		     falcon.c \
 		     gpuobj.c \
 		     handle.c \
 		     mm.c \
