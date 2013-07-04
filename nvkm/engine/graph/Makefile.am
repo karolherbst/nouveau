@@ -2,6 +2,8 @@ noinst_LTLIBRARIES = libgraph.la
 
 BUILT_SOURCES = fuc/hubnvc0.fuc.h \
 		fuc/gpcnvc0.fuc.h \
+		fuc/hubnvd7.fuc.h \
+		fuc/gpcnvd7.fuc.h \
 		fuc/hubnve0.fuc.h \
 		fuc/gpcnve0.fuc.h
 CLEANFILES = ${BUILT_SOURCES}
@@ -13,6 +15,7 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      ctxnvc1.c \
 		      ctxnvc3.c \
 		      ctxnvc8.c \
+		      ctxnvd7.c \
 		      ctxnvd9.c \
 		      ctxnve4.c \
 		      ctxnvf0.c \
@@ -30,6 +33,7 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      nvc1.c \
 		      nvc3.c \
 		      nvc8.c \
+		      nvd7.c \
 		      nvd9.c \
 		      nve4.c \
 		      nvf0.c
