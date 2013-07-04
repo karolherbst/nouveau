@@ -5,7 +5,9 @@ BUILT_SOURCES = fuc/hubnvc0.fuc.h \
 		fuc/hubnvd7.fuc.h \
 		fuc/gpcnvd7.fuc.h \
 		fuc/hubnve0.fuc.h \
-		fuc/gpcnve0.fuc.h
+		fuc/gpcnve0.fuc.h \
+		fuc/hubnvf0.fuc.h \
+		fuc/gpcnvf0.fuc.h
 CLEANFILES = ${BUILT_SOURCES}
 
 libgraph_la_SOURCES = ${BUILT_SOURCES} \
