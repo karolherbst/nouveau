@@ -44,6 +44,8 @@ static int os_client_id = 0;
  *****************************************************************************/
 static struct os_ioremap_info {
        struct pci_device *pdev;
+       int refs;
+       u64 addr;
        u64 size;
        void *ptr;
 } os_ioremap[32];
@@ -52,32 +54,49 @@ void __iomem *
 nvos_ioremap(u64 addr, u64 size)
 {
 	struct pci_device *pdev = NULL;
+	struct os_ioremap_info *info;
 	struct os_device *odev;
+	u64 m_page = addr &  0xfff;
+	u64 m_addr = addr & ~0xfff;
+	u64 m_size = (size + 0xfff) & ~0xfff;
 	int i;
 
 	list_for_each_entry(odev, &os_device_list, head) {
 		for (i = 0; i < 6; i++) {
 			pdev = odev->base.pdev->pdev;
-			if (addr        >= pdev->regions[i].base_addr &&
-			    addr + size <= pdev->regions[i].base_addr +
-					   pdev->regions[i].size)
+			if (m_addr          >= pdev->regions[i].base_addr &&
+			    m_addr + m_size <= pdev->regions[i].base_addr +
+					       pdev->regions[i].size)
 				break;
 			pdev = NULL;
 		}
 	}
 
-	for (i = 0; pdev && i < ARRAY_SIZE(os_ioremap); i++) {
-		if (os_ioremap[i].ptr)
+	for (i = 0, info = NULL; pdev && i < ARRAY_SIZE(os_ioremap); i++) {
+		if (os_ioremap[i].refs) {
+			if (os_ioremap[i].addr != m_addr ||
+			    os_ioremap[i].size != m_size)
+				continue;
+		} else {
+			info = &os_ioremap[i];
 			continue;
+		}
 
-		if (pci_device_map_range(pdev, addr, size,
+		os_ioremap[i].refs++;
+		return os_ioremap[i].ptr + m_page;
+	}
+
+	if (info) {
+		if (pci_device_map_range(pdev, m_addr, m_size,
 					 PCI_DEV_MAP_FLAG_WRITABLE,
-					 &os_ioremap[i].ptr))
+					 &info->ptr))
 			return NULL;
 
-		os_ioremap[i].pdev = pdev;
-		os_ioremap[i].size = size;
-		return os_ioremap[i].ptr;
+		info->pdev = pdev;
+		info->refs = 1;
+		info->addr = m_addr;
+		info->size = m_size;
+		return info->ptr + m_page;
 	}
 
 	return NULL;
@@ -88,11 +107,14 @@ nvos_iounmap(void __iomem *ptr)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(os_ioremap); i++) {
-		if (ptr && os_ioremap[i].ptr == ptr) {
-			pci_device_unmap_range(os_ioremap[i].pdev, ptr,
-					       os_ioremap[i].size);
-			os_ioremap[i].ptr = NULL;
+	for (i = 0; ptr && i < ARRAY_SIZE(os_ioremap); i++) {
+		if (os_ioremap[i].refs &&
+		    ptr >= os_ioremap[i].ptr &&
+		    ptr <  os_ioremap[i].ptr + os_ioremap[i].size) {
+			if (!--os_ioremap[i].refs) {
+				pci_device_unmap_range(os_ioremap[i].pdev, ptr,
+						       os_ioremap[i].size);
+			}
 			break;
 		}
 	}
