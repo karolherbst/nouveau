@@ -29,7 +29,7 @@
 #define GK100 0xe0
 #define GK110 0xf0
 
-#define NV_PGRAPH_FECS_SIGNAL                                          0x409400 
+#define NV_PGRAPH_FECS_SIGNAL                                          0x409400
 #if CHIPSET < GK110
 #define NV_PGRAPH_FECS_CC_SCRATCH_VAL(n)                    ((n) * 4 + 0x409800)
 #define NV_PGRAPH_FECS_CC_SCRATCH_SET(n)                    ((n) * 4 + 0x409820)
@@ -39,7 +39,7 @@
 #define NV_PGRAPH_FECS_CC_SCRATCH_CLR(n)                    ((n) * 4 + 0x409840)
 #define NV_PGRAPH_FECS_CC_SCRATCH_SET(n)                    ((n) * 4 + 0x4098c0)
 #endif
-#define NV_PGRAPH_FECS_INTR_UP_SET                                     0x409c1c 
+#define NV_PGRAPH_FECS_INTR_UP_SET                                     0x409c1c
 
 #if CHIPSET < GK110
 #define NV_PGRAPH_GPCX_GPCCS_CC_SCRATCH_VAL(n)              ((n) * 4 + 0x41a800)

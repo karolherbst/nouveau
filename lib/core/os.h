@@ -209,6 +209,9 @@ typedef unsigned gfp_t;
 #define kcalloc(a,b,c) calloc((a), (b))
 #define kfree free
 
+#define vzalloc(a) calloc(1, (a))
+#define vfree free
+
 static inline void *
 kmemdup(const void *src, size_t len, gfp_t gfp)
 {
