@@ -70,6 +70,8 @@ nvos_ioremap(u64 addr, u64 size)
 				break;
 			pdev = NULL;
 		}
+		if (pdev)
+			break;
 	}
 
 	for (i = 0, info = NULL; pdev && i < ARRAY_SIZE(os_ioremap); i++) {
@@ -124,12 +126,11 @@ nvos_iounmap(void __iomem *ptr)
  * client interfaces
  *****************************************************************************/
 static int
-os_init_device(struct pci_device *pdev, char *cfg, char *dbg)
+os_init_device(struct pci_device *pdev, u64 handle, char *cfg, char *dbg)
 {
 	struct os_device *odev;
 	struct pci_dev *ldev;
 	char *name, _name[64];
-	u64 handle;
 	int ret;
 
 	ret = pci_device_probe(pdev);
@@ -140,8 +141,6 @@ os_init_device(struct pci_device *pdev, char *cfg, char *dbg)
 
 	snprintf(_name, sizeof(_name), "%04x:%02x:%02x.%1x",
 		 pdev->domain, pdev->bus, pdev->dev, pdev->func);
-	handle = ((u64)pdev->domain << 32) | (pdev->bus << 16) |
-		 (pdev->dev << 8) | pdev->func;
 
 	list_for_each_entry(odev, &os_device_list, head) {
 		if (odev->base.handle == handle)
@@ -164,7 +163,7 @@ os_init_device(struct pci_device *pdev, char *cfg, char *dbg)
 		return ret;
 	}
 
-	list_add(&odev->head, &os_device_list);
+	list_add_tail(&odev->head, &os_device_list);
 	odev->name = name;
 	odev->cfg = cfg;
 	odev->dbg = dbg;
@@ -176,6 +175,7 @@ os_init(char *cfg, char *dbg, bool init)
 {
 	struct pci_device_iterator *iter;
 	struct pci_device *pdev;
+	u64 handle;
 	int ret, n = 0;
 
 	ret = pci_system_init();
@@ -191,14 +191,18 @@ os_init(char *cfg, char *dbg, bool init)
 		if (pdev->vendor_id != 0x10de)
 			continue;
 
+		handle = ((u64)pdev->domain << 32) | (pdev->bus << 16) |
+			 (pdev->dev << 8) | pdev->func;
+
 		if (!init) {
-			printf("%d: PCI:%04x:%02x:%02x:%02x (%04x:%04x)\n",
-			       n++, pdev->domain, pdev->bus, pdev->dev,
-			       pdev->func, pdev->vendor_id, pdev->device_id);
+			printf("%d: 0x%010"PRIx64" PCI:%04x:%02x:%02x:%02x "
+			       "(%04x:%04x)\n", n++, handle, pdev->domain,
+			       pdev->bus, pdev->dev, pdev->func,
+			       pdev->vendor_id, pdev->device_id);
 			continue;
 		}
 
-		os_init_device(pdev, cfg, dbg);
+		os_init_device(pdev, handle, cfg, dbg);
 	}
 
 	return pthread_create(&os_intr_thread, NULL, os_intr, NULL);
@@ -223,16 +227,17 @@ int
 os_client_new(char *cfg, char *dbg, int argc, char **argv,
 	      struct nouveau_object **pclient)
 {
+	struct os_device *device = NULL, *odev;
 	struct os_client *client;
-	u64 device = ~0ULL;
+	u64 handle = ~0ULL;
 	int ret, c;
 
-	while ((c = getopt(argc, argv, "la:c:d:")) != -1) {
+	while ((c = getopt(argc, argv, "la:i:c:d:")) != -1) {
 		switch (c) {
 		case 'l':
 			return os_init(NULL, NULL, false);
 		case 'a':
-			sscanf(optarg, "0x%llx", &device);
+			handle = strtoull(optarg, NULL, 0);
 			break;
 		case 'c':
 			cfg = optarg;
@@ -253,14 +258,21 @@ os_client_new(char *cfg, char *dbg, int argc, char **argv,
 			return ret;
 	}
 
-	if (!list_empty(&os_device_list)) {
-		struct os_device *odev =
-			list_first_entry(&os_device_list, typeof(*odev), head);
+	c = 0;
+	list_for_each_entry(odev, &os_device_list, head) {
+		if (handle == ~0ULL || handle == c++ ||
+		    handle == odev->base.handle) {
+			device = odev;
+			break;
+		}
+	}
+
+	if (device) {
 		char name[16];
 
 		snprintf(name, sizeof(name), "CLIENT%2d", os_client_id++);
 
-		ret = nouveau_client_create(name, odev->base.handle,
+		ret = nouveau_client_create(name, device->base.handle,
 					    cfg, dbg, &client);
 		*pclient = nv_object(client);
 		if (ret)
