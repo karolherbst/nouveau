@@ -18,6 +18,7 @@
 #include <linux/dmi.h>
 #include <linux/reboot.h>
 #include <linux/interrupt.h>
+#include <linux/log2.h>
 
 #include <asm/unaligned.h>
 

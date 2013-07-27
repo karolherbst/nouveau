@@ -38,6 +38,23 @@ void os_resume(void);
 void os_backtrace(void);
 
 /******************************************************************************
+ * types
+ *****************************************************************************/
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <limits.h>
+
+#define u64 uint64_t
+#define u32 uint32_t
+#define u16 uint16_t
+#define u8 uint8_t
+
+#define s32 int32_t
+#define s16 int16_t
+#define s8 int8_t
+
+/******************************************************************************
  * various random macros
  *****************************************************************************/
 #define max(a,b) ((a) > (b) ? (a) : (b))
@@ -68,22 +85,17 @@ void os_backtrace(void);
 #define __releases(a)
 #define __printf(a,b)
 
-/******************************************************************************
- * types
- *****************************************************************************/
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <limits.h>
+static inline int
+order_base_2(u64 base)
+{
+	u64 temp = base >> 1;
+	int log2;
 
-#define u64 uint64_t
-#define u32 uint32_t
-#define u16 uint16_t
-#define u8 uint8_t
+	for (log2 = 0; temp; log2++, temp >>= 1) {
+	}
 
-#define s32 int32_t
-#define s16 int16_t
-#define s8 int8_t
+	return (base & (base - 1)) ? log2 + 1: log2;
+}
 
 /******************************************************************************
  * endianness
