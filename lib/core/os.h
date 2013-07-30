@@ -168,6 +168,17 @@ typedef struct atomic {
 				  atomic_read((a)))
 
 /******************************************************************************
+ * krefs
+ *****************************************************************************/
+struct kref {
+	atomic_t refcount;
+};
+
+#define kref_init(a) atomic_set(&(a)->refcount, 1)
+#define kref_get(a) atomic_inc(&(a)->refcount)
+#define kref_put(a,b) if (atomic_dec_and_test(&(a)->refcount)) b(a)
+
+/******************************************************************************
  * string
  *****************************************************************************/
 #include <string.h>
