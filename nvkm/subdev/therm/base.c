@@ -101,6 +101,7 @@ nouveau_therm_update(struct nouveau_therm *therm, int mode)
 
 	switch (mode) {
 	case NOUVEAU_THERM_CTRL_MANUAL:
+		ptimer->alarm_cancel(ptimer, &priv->alarm);
 		duty = nouveau_therm_fan_get(therm);
 		if (duty < 0)
 			duty = 100;
@@ -113,6 +114,7 @@ nouveau_therm_update(struct nouveau_therm *therm, int mode)
 		break;
 	case NOUVEAU_THERM_CTRL_NONE:
 	default:
+		ptimer->alarm_cancel(ptimer, &priv->alarm);
 		goto done;
 	}
 
@@ -274,7 +276,8 @@ _nouveau_therm_init(struct nouveau_object *object)
 
 		nouveau_therm_fan_mode(therm, priv->suspend);
 	}
-	priv->sensor.program_alarms(therm);
+	nouveau_therm_sensor_init(therm);
+	nouveau_therm_fan_init(therm);
 	return 0;
 }
 
@@ -284,6 +287,8 @@ _nouveau_therm_fini(struct nouveau_object *object, bool suspend)
 	struct nouveau_therm *therm = (void *)object;
 	struct nouveau_therm_priv *priv = (void *)therm;
 
+	nouveau_therm_fan_fini(therm, suspend);
+	nouveau_therm_sensor_fini(therm, suspend);
 	if (suspend) {
 		priv->suspend = priv->mode;
 		priv->mode = NOUVEAU_THERM_CTRL_NONE;
