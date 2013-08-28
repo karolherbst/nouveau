@@ -555,6 +555,17 @@ pci_free_consistent(struct pci_dev *hwdev, size_t size,
 {
 }
 
+static inline int
+pci_enable_msi(struct pci_dev *pdev)
+{
+	return -ENOSYS;
+}
+
+static inline void
+pci_disable_msi(struct pci_dev *pdev)
+{
+}
+
 #define PCI_DEVFN(a,b) 0
 #define pci_get_bus_and_slot(a, b) NULL
 #define pci_read_config_dword(a,b,c) *(c) = 0
