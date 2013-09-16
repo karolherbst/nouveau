@@ -68,4 +68,3 @@ nv04_cursor_init(struct nouveau_crtc *crtc)
 	crtc->cursor.show = nv04_cursor_show;
 	return 0;
 }
-

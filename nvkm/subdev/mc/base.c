@@ -30,10 +30,13 @@ nouveau_mc_intr(int irq, void *arg)
 {
 	struct nouveau_mc *pmc = arg;
 	const struct nouveau_mc_intr *map = pmc->intr_map;
+	struct nouveau_device *device = nv_device(pmc);
 	struct nouveau_subdev *unit;
 	u32 stat, intr;
 
 	intr = stat = nv_rd32(pmc, 0x000100);
+	if (intr == 0xffffffff)
+		return IRQ_NONE;
 	while (stat && map->stat) {
 		if (stat & map->stat) {
 			unit = nouveau_subdev(pmc, map->unit);
@@ -51,6 +54,8 @@ nouveau_mc_intr(int irq, void *arg)
 		nv_error(pmc, "unknown intr 0x%08x\n", stat);
 	}
 
+	if (stat == IRQ_HANDLED)
+		pm_runtime_mark_last_busy(&device->pdev->dev);
 	return stat ? IRQ_HANDLED : IRQ_NONE;
 }
 

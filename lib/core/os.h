@@ -445,6 +445,20 @@ dmi_check_system(const struct dmi_system_id *list)
 }
 
 /******************************************************************************
+ * Device
+ *****************************************************************************/
+struct device {
+};
+
+/******************************************************************************
+ * PM runtime
+ *****************************************************************************/
+static inline void
+pm_runtime_mark_last_busy(struct device *dev)
+{
+}
+
+/******************************************************************************
  * PCI
  *****************************************************************************/
 #include <pciaccess.h>
@@ -454,9 +468,6 @@ dmi_check_system(const struct dmi_system_id *list)
 #define PCI_CAP_ID_AGP 0x02
 
 typedef u64 dma_addr_t;
-
-struct device {
-};
 
 struct pci_dev {
 	struct pci_device *pdev;
