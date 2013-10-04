@@ -159,6 +159,40 @@ hweight32(u32 v) {
 	return i;
 }
 
+static inline int
+test_bit(int bit, volatile unsigned long *ptr)
+{
+	return !!(*ptr & (1 << bit));
+}
+
+static inline int
+__test_and_clear_bit(int bit, volatile unsigned long *ptr)
+{
+	int ret = test_bit(bit, ptr);
+	*ptr &= ~(1L << bit);
+	return ret;
+}
+
+static inline int
+test_and_clear_bit(int bit, volatile unsigned long *ptr)
+{
+	return !!(__sync_fetch_and_and(ptr, ~(1L << bit)) & (1L << bit));
+}
+
+static inline int
+__test_and_set_bit(int bit, volatile unsigned long *ptr)
+{
+	int ret = test_bit(bit, ptr);
+	*ptr |= (1L << bit);
+	return ret;
+}
+
+static inline int
+test_and_set_bit(int bit, volatile unsigned long *ptr)
+{
+	 return !(__sync_fetch_and_or(ptr, (1L << bit)) & (1L << bit));
+}
+
 /******************************************************************************
  * atomics
  *****************************************************************************/
@@ -170,14 +204,11 @@ typedef struct atomic {
 #define atomic_set(a,b) ((a)->value = (b))
 #define atomic_inc(a) ((void) __sync_fetch_and_add (&(a)->value, 1))
 #define atomic_dec(a) ((void) __sync_fetch_and_add (&(a)->value, -1))
-#define atomic_dec_and_test(a) (__sync_fetch_and_add (&(a)->value, -1) == 1)
 #define atomic_add(a,b) ((void) __sync_add_and_fetch(&(a)->value, (b)))
 #define atomic_add_return(b,a) (__sync_add_and_fetch(&(a)->value, (b)))
-
-/*XXX*/
-#define atomic_add_unless(a,b,c) (atomic_read((a)) != (c) ?                    \
-				  atomic_add_return((b), (a)) :                \
-				  atomic_read((a)))
+#define atomic_inc_return(a) atomic_add_return(1, (a))
+#define atomic_dec_return(a) atomic_add_return(-1, (a))
+#define atomic_dec_and_test(a) (atomic_dec_return(a) == 0)
 
 /******************************************************************************
  * krefs
