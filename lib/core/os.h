@@ -515,6 +515,12 @@ pci_find_capability(struct pci_dev *pdev, int cap)
 	return 0;
 }
 
+static inline int
+pci_write_config_byte(struct pci_dev *pdev, int addr, u8 data)
+{
+	return pci_device_cfg_write_u8(pdev->pdev, data, addr);
+}
+
 static inline u64
 pci_resource_start(struct pci_dev *pdev, int bar)
 {

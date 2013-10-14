@@ -5,6 +5,7 @@ libmc_la_SOURCES = base.c \
 		   nv40.c \
 		   nv44.c \
 		   nv50.c \
+		   nv94.c \
 		   nv98.c \
 		   nvc0.c \
 		   nvc3.c
