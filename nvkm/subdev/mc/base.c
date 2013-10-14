@@ -117,7 +117,7 @@ nouveau_mc_create_(struct nouveau_object *parent, struct nouveau_object *engine,
 		pmc->use_msi = false;
 		break;
 	default:
-		pmc->use_msi = nouveau_boolopt(device->cfgopt, "NvMSI", false);
+		pmc->use_msi = nouveau_boolopt(device->cfgopt, "NvMSI", true);
 		if (pmc->use_msi) {
 			pmc->use_msi = pci_enable_msi(device->pdev) == 0;
 			if (pmc->use_msi) {
