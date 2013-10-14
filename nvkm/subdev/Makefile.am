@@ -1,5 +1,5 @@
-SUBDIRS = bar bus bios clock devinit fb gpio i2c ibus instmem ltcg \
-	  mc mxm therm timer vm
+SUBDIRS = bar bus bios clock devinit fb gpio i2c ibus instmem \
+	  ltcg mc mxm pwr therm timer vm
 
 noinst_LTLIBRARIES = libsubdev.la
 
@@ -17,6 +17,7 @@ libsubdev_la_LIBADD   = bar/libbar.la \
 			ltcg/libltcg.la \
 			mc/libmc.la \
 			mxm/libmxm.la \
+			pwr/libpwr.la \
 			therm/libtherm.la \
 			timer/libtimer.la \
 			vm/libvm.la

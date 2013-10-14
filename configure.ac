@@ -81,6 +81,7 @@ AC_OUTPUT( Makefile \
 	   nvkm/subdev/ltcg/Makefile \
 	   nvkm/subdev/mc/Makefile \
 	   nvkm/subdev/mxm/Makefile \
+	   nvkm/subdev/pwr/Makefile \
 	   nvkm/subdev/therm/Makefile \
 	   nvkm/subdev/timer/Makefile \
 	   nvkm/subdev/vm/Makefile \

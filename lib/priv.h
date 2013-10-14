@@ -1,6 +1,9 @@
 #ifndef __OS_PRIV_H__
 #define __OS_PRIV_H__
 
+#include <core/os.h>
+#include <core/client.h>
+
 #include <pthread.h>
 #include <unistd.h>
 

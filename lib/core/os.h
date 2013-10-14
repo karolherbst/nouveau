@@ -678,11 +678,35 @@ typedef void (*work_func_t)(struct work_struct *);
 
 struct work_struct {
 	work_func_t func;
+	pthread_t thread;
 };
 
 #define INIT_WORK(a, b) (a)->func = (b)
-#define schedule_work(a)
+#define schedule_work(a) do {                                                  \
+	int ret = pthread_create(&(a)->thread, NULL, os_work, (a));            \
+	assert(ret == 0);                                                      \
+} while(0)
 #define flush_work(a)
+
+static inline void *
+os_work(void *arg)
+{
+	struct work_struct *work = arg;
+	work->func(work);
+	return NULL;
+}
+
+/******************************************************************************
+ * waitqueues
+ *****************************************************************************/
+typedef struct __wait_queue_head {
+} wait_queue_head_t;
+
+#define wake_up(wq)
+#define wait_event(wq,cond) do {                                               \
+	usleep(1);                                                             \
+} while (!(cond))
+#define init_waitqueue_head(wq)
 
 /******************************************************************************
  * i2c
