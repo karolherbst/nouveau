@@ -6,7 +6,7 @@ libfb_la_SOURCES = base.c \
 		   nv20.c nv25.c \
 		   nv30.c nv35.c nv36.c \
 		   nv40.c nv41.c nv44.c nv46.c nv47.c nv49.c nv4e.c \
-		   nv50.c \
+		   nv50.c nv84.c nva3.c nvaa.c nvaf.c \
 		   nvc0.c \
 		   ramnv04.c \
 		   ramnv10.c \
