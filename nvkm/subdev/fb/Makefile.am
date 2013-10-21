@@ -18,6 +18,8 @@ libfb_la_SOURCES = base.c \
 		   ramnv49.c \
 		   ramnv4e.c \
 		   ramnv50.c \
+		   ramnva3.c \
+		   ramnvaa.c \
 		   ramnvc0.c
 
 include $(srcdir)/../Makefile.subdev
