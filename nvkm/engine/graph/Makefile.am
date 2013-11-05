@@ -7,7 +7,9 @@ BUILT_SOURCES = fuc/hubnvc0.fuc.h \
 		fuc/hubnve0.fuc.h \
 		fuc/gpcnve0.fuc.h \
 		fuc/hubnvf0.fuc.h \
-		fuc/gpcnvf0.fuc.h
+		fuc/gpcnvf0.fuc.h \
+		fuc/hubnv108.fuc5.h \
+		fuc/gpcnv108.fuc5.h
 CLEANFILES = ${BUILT_SOURCES}
 
 libgraph_la_SOURCES = ${BUILT_SOURCES} \
@@ -21,6 +23,7 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      ctxnvd9.c \
 		      ctxnve4.c \
 		      ctxnvf0.c \
+		      ctxnv108.c \
 		      nv04.c \
 		      nv10.c \
 		      nv20.c \
@@ -38,10 +41,14 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      nvd7.c \
 		      nvd9.c \
 		      nve4.c \
-		      nvf0.c
+		      nvf0.c \
+		      nv108.c
 
 $(filter %.fuc.h,$(BUILT_SOURCES)): %.fuc.h: %.fuc fuc/com.fuc fuc/hub.fuc fuc/gpc.fuc fuc/macros.fuc
 	cpp -Ifuc -CC $< | cpp | sed -e '/^#/d' \
 	| envyas -a -w -m fuc -V fuc3 -o $@
+$(filter %.fuc5.h,$(BUILT_SOURCES)): %.fuc5.h: %.fuc5 fuc/com.fuc fuc/hub.fuc fuc/gpc.fuc
+	cpp -Ifuc -CC $< | cpp | sed -e '/^#/d' \
+	| envyas -a -w -m fuc -V fuc5 -o $@
 
 include $(srcdir)/../Makefile.engine
