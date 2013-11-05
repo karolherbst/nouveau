@@ -8,6 +8,7 @@ libfifo_la_SOURCES = base.c \
 		     nv50.c \
 		     nv84.c \
 		     nvc0.c \
-		     nve0.c
+		     nve0.c \
+		     nv108.c
 
 include $(srcdir)/../Makefile.engine
