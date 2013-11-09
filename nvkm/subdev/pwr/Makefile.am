@@ -19,6 +19,8 @@ FUC_COMMON = fuc/os.h \
 	     fuc/idle.fuc \
 	     fuc/host.fuc \
 	     fuc/memx.fuc \
+	     fuc/perf.fuc \
+	     fuc/i2c_.fuc \
 	     fuc/test.fuc
 
 fuc/nva3.fuc.h: fuc/nva3.fuc ${FUC_COMMON}
