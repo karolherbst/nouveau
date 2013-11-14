@@ -50,6 +50,7 @@ void os_backtrace(void);
 #define u16 uint16_t
 #define u8 uint8_t
 
+#define s64 int64_t
 #define s32 int32_t
 #define s16 int16_t
 #define s8 int8_t
@@ -211,6 +212,33 @@ typedef struct atomic {
 #define atomic_inc_return(a) atomic_add_return(1, (a))
 #define atomic_dec_return(a) atomic_add_return(-1, (a))
 #define atomic_dec_and_test(a) (atomic_dec_return(a) == 0)
+
+/******************************************************************************
+ * ktime
+ *****************************************************************************/
+#include <sys/time.h>
+
+typedef struct timeval ktime_t;
+
+static inline ktime_t
+ktime_get(void)
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv;
+}
+
+static inline s64
+ktime_to_us(ktime_t kt)
+{
+	return kt.tv_sec * 1000000 + kt.tv_usec;
+}
+
+static inline s64
+ktime_to_ns(ktime_t kt)
+{
+	return ktime_to_us(kt) * 1000;
+}
 
 /******************************************************************************
  * krefs
