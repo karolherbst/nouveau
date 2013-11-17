@@ -6,6 +6,7 @@ libclock_la_SOURCES = base.c \
 		      nv50.c \
 		      nv84.c \
 		      nva3.c \
+		      nvaa.c \
 		      nvc0.c \
 		      nve0.c \
 		      pllnv04.c \
