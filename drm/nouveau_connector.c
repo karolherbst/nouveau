@@ -217,8 +217,8 @@ nouveau_connector_set_encoder(struct drm_connector *connector,
 		if (nv_device(drm->device)->card_type == NV_20 ||
 		    ((nv_device(drm->device)->card_type == NV_10 ||
 		      nv_device(drm->device)->card_type == NV_11) &&
-		     (dev->pci_device & 0x0ff0) != 0x0100 &&
-		     (dev->pci_device & 0x0ff0) != 0x0150))
+		     (dev->pdev->device & 0x0ff0) != 0x0100 &&
+		     (dev->pdev->device & 0x0ff0) != 0x0150))
 			/* HW is broken */
 			connector->interlace_allowed = false;
 		else

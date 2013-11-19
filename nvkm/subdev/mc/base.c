@@ -40,7 +40,6 @@ nouveau_mc_intr(int irq, void *arg)
 	struct nouveau_mc *pmc = arg;
 	const struct nouveau_mc_oclass *oclass = (void *)nv_object(pmc)->oclass;
 	const struct nouveau_mc_intr *map = oclass->intr;
-	struct nouveau_device *device = nv_device(pmc);
 	struct nouveau_subdev *unit;
 	u32 intr;
 
@@ -64,7 +63,6 @@ nouveau_mc_intr(int irq, void *arg)
 
 		if (stat)
 			nv_error(pmc, "unknown intr 0x%08x\n", stat);
-		pm_runtime_mark_last_busy(&device->pdev->dev);
 	}
 
 	nv_wr32(pmc, 0x000140, 0x00000001);

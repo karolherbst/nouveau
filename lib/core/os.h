@@ -69,6 +69,7 @@ void os_backtrace(void);
 #define lower_32_bits(a) ((a) & 0xffffffff)
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 #define do_div(a,b) (a) = (a) / (b)
+#define div_u64(a,b) (a) / (b)
 #define likely(a) (a)
 #define unlikely(a) (a)
 
@@ -500,7 +501,11 @@ dmi_check_system(const struct dmi_system_id *list)
 /******************************************************************************
  * Device
  *****************************************************************************/
+struct device_driver {
+};
+
 struct device {
+	struct device_driver *driver;
 };
 
 /******************************************************************************
@@ -769,12 +774,19 @@ struct i2c_board_info {
 #define I2C_BOARD_INFO(a,b) .type = (a), .addr = (b)
 
 struct i2c_client {
-	struct i2c_driver *driver;
+	struct device dev;
 };
 
 struct i2c_driver {
+	struct device_driver driver;
 	int (*detect)(struct i2c_client *, struct i2c_board_info *);
 };
+
+static inline struct i2c_driver *
+to_i2c_driver(struct device_driver *driver)
+{
+	return (void *)driver;
+}
 
 static inline struct i2c_client *
 i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
