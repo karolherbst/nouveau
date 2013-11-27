@@ -15,6 +15,7 @@ libbios_la_SOURCES = base.c \
 		     mxm.c \
 		     perf.c \
 		     pll.c \
+		     ramcfg.c \
 		     rammap.c \
 		     timing.c \
 		     therm.c \
