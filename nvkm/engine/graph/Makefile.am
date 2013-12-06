@@ -40,7 +40,7 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      nve4.c \
 		      nvf0.c
 
-$(filter %.fuc.h,$(BUILT_SOURCES)): %.fuc.h: %.fuc fuc/com.fuc fuc/hub.fuc fuc/gpc.fuc
+$(filter %.fuc.h,$(BUILT_SOURCES)): %.fuc.h: %.fuc fuc/com.fuc fuc/hub.fuc fuc/gpc.fuc fuc/macros.fuc
 	cpp -Ifuc -CC $< | cpp | sed -e '/^#/d' \
 	| envyas -a -w -m fuc -V fuc3 -o $@
 
