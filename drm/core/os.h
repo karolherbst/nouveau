@@ -23,17 +23,6 @@
 
 #include <asm/unaligned.h>
 
-static inline int
-ffsll(u64 mask)
-{
-	int i;
-	for (i = 0; i < 64; i++) {
-		if (mask & (1ULL << i))
-			return i + 1;
-	}
-	return 0;
-}
-
 #ifndef ioread32_native
 #ifdef __BIG_ENDIAN
 #define ioread16_native ioread16be
