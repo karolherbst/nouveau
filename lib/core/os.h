@@ -55,6 +55,9 @@ void os_backtrace(void);
 #define s16 int16_t
 #define s8 int8_t
 
+typedef u64 dma_addr_t;
+typedef dma_addr_t resource_size_t;
+
 /******************************************************************************
  * various random macros
  *****************************************************************************/
@@ -350,6 +353,12 @@ __free_page(struct page *page)
 {
 }
 
+static inline dma_addr_t
+page_to_phys(struct page *page)
+{
+	return 0;
+}
+
 /******************************************************************************
  * assertions
  *****************************************************************************/
@@ -430,7 +439,7 @@ typedef struct rwlock_t {
 	pthread_rwlock_t lock;
 } rwlock_t;
 
-#define rwlock_init(a) pthread_rwlock_init(&(a)->lock, PTHREAD_PROCESS_PRIVATE)
+#define rwlock_init(a) pthread_rwlock_init(&(a)->lock, NULL)
 #define read_lock(a) pthread_rwlock_rdlock(&(a)->lock)
 #define read_unlock(a) pthread_rwlock_unlock(&(a)->lock)
 #define write_lock_irq(a) pthread_rwlock_wrlock(&(a)->lock)
@@ -554,6 +563,22 @@ pm_runtime_mark_last_busy(struct device *dev)
 }
 
 /******************************************************************************
+ * ioport
+ *****************************************************************************/
+struct resource {
+	resource_size_t start;
+	resource_size_t end;
+};
+
+#define IORESOURCE_MEM 1
+
+static inline resource_size_t
+resource_size(const struct resource *res)
+{
+	return res->end - res->start + 1;
+}
+
+/******************************************************************************
  * PCI
  *****************************************************************************/
 #include <pciaccess.h>
@@ -561,8 +586,6 @@ pm_runtime_mark_last_busy(struct device *dev)
 #define PCI_DMA_BIDIRECTIONAL 1
 
 #define PCI_CAP_ID_AGP 0x02
-
-typedef u64 dma_addr_t;
 
 struct pci_dev {
 	struct pci_device *pdev;
@@ -681,6 +704,27 @@ pci_disable_msi(struct pci_dev *pdev)
 #define PCI_DEVFN(a,b) 0
 #define pci_get_bus_and_slot(a, b) NULL
 #define pci_read_config_dword(a,b,c) *(c) = 0
+
+/******************************************************************************
+ * platform device
+ *****************************************************************************/
+
+struct platform_device {
+	struct device dev;
+};
+
+static inline struct resource *
+platform_get_resource(struct platform_device *pdev, unsigned int type,
+		      unsigned int num)
+{
+	return NULL;
+}
+
+static inline int
+platform_get_irq_byname(struct platform_device *pdev, const char *name)
+{
+	return -1;
+}
 
 /******************************************************************************
  * sg table

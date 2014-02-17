@@ -157,7 +157,8 @@ os_init_device(struct pci_device *pdev, u64 handle, char *cfg, char *dbg)
 	cfg = cfg ? strdup(cfg) : NULL;
 	dbg = dbg ? strdup(dbg) : NULL;
 
-	ret = nouveau_device_create(ldev, handle, name, cfg, dbg, &odev);
+	ret = nouveau_device_create(ldev, NOUVEAU_BUS_PCI, handle, name,
+				    cfg, dbg, &odev);
 	if (ret) {
 		fprintf(stderr, "failed to create device, %d\n", ret);
 		return ret;

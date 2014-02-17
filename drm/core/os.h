@@ -5,6 +5,7 @@
 #include <linux/slab.h>
 #include <linux/mutex.h>
 #include <linux/pci.h>
+#include <linux/platform_device.h>
 #include <linux/printk.h>
 #include <linux/bitops.h>
 #include <linux/firmware.h>
