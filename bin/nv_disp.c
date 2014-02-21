@@ -9,7 +9,8 @@ static unsigned long chan = 0;
 static void
 nv_disp(struct nouveau_object *device, u16 mthd, u32 data)
 {
-	if (nv_device(device)->card_type == NV_50) {
+	if (nv_device(device)->card_type >= NV_50 &&
+	    nv_device(device)->card_type <= NV_C0) {
 		u32 ctrl = nv_ro32(device, 0x610300 + (chan * 8));
 		nv_wo32(device, 0x610300 + (chan * 8), ctrl | 0x00000001);
 		nv_wo32(device, 0x610304 + (chan * 8), data);
