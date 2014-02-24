@@ -11,6 +11,7 @@ libdevinit_la_SOURCES = base.c \
 			nv98.c \
 			nva3.c \
 			nvaf.c \
-			nvc0.c
+			nvc0.c \
+			gm107.c
 
 include $(srcdir)/../Makefile.subdev
