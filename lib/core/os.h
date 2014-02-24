@@ -74,7 +74,14 @@ void os_backtrace(void);
 #define likely(a) (a)
 #define unlikely(a) (a)
 
+#define jiffies (ktime_to_us(ktime_get()))
 #define usecs_to_jiffies(a) (a)
+#define msecs_to_jiffies(a) usecs_to_jiffies((a) * 1000)
+#define HZ 1000000
+
+#define time_before(a,b) ((a) < (b))
+#define time_after_eq(a,b) ((a) >= (b))
+
 #define THIS_MODULE 0
 #define request_module(a,b,c)
 
@@ -213,6 +220,7 @@ typedef struct atomic {
 #define atomic_inc_return(a) atomic_add_return(1, (a))
 #define atomic_dec_return(a) atomic_add_return(-1, (a))
 #define atomic_dec_and_test(a) (atomic_dec_return(a) == 0)
+#define atomic_or(a,b) (void) __sync_fetch_and_or(&(b)->value, (a));
 
 /******************************************************************************
  * ktime
@@ -726,7 +734,7 @@ release_firmware(const struct firmware *fw)
 }
 
 /******************************************************************************
- * workstruct
+ * workqueues
  *****************************************************************************/
 struct work_struct;
 
@@ -734,22 +742,53 @@ typedef void (*work_func_t)(struct work_struct *);
 
 struct work_struct {
 	work_func_t func;
+	pthread_mutex_t mutex;
 	pthread_t thread;
+	bool pending;
 };
 
-#define INIT_WORK(a, b) (a)->func = (b)
-#define schedule_work(a) do {                                                  \
-	int ret = pthread_create(&(a)->thread, NULL, os_work, (a));            \
-	assert(ret == 0);                                                      \
-} while(0)
-#define flush_work(a)
+static inline void
+INIT_WORK(struct work_struct *work, work_func_t func)
+{
+	pthread_mutex_init(&work->mutex, NULL);
+	work->func = func;
+	work->pending = false;
+}
 
 static inline void *
 os_work(void *arg)
 {
 	struct work_struct *work = arg;
-	work->func(work);
+	work_func_t func;
+	do {
+		pthread_mutex_lock(&work->mutex);
+		if (work->pending) {
+			work->pending = false;
+			func = work->func;
+		} else {
+			func = NULL;
+		}
+		pthread_mutex_unlock(&work->mutex);
+		if (func)
+			func(work);
+	} while (func);
 	return NULL;
+}
+
+static inline void
+schedule_work(struct work_struct *work)
+{
+	pthread_mutex_lock(&work->mutex);
+	if (!work->pending) {
+		work->pending = true;
+		assert(!pthread_create(&work->thread, NULL, os_work, work));
+	}
+	pthread_mutex_unlock(&work->mutex);
+}
+
+static inline void
+flush_work(struct work_struct *work)
+{
 }
 
 /******************************************************************************
@@ -758,11 +797,29 @@ os_work(void *arg)
 typedef struct __wait_queue_head {
 } wait_queue_head_t;
 
+#define init_waitqueue_head(wq)
 #define wake_up(wq)
+
 #define wait_event(wq,cond) do {                                               \
 	usleep(1);                                                             \
 } while (!(cond))
-#define init_waitqueue_head(wq)
+
+#define wait_event_interruptible(wq,cond) ({                                   \
+	wait_event((wq), (cond)); 0;                                           \
+})
+
+#define wait_event_timeout(wq,cond,jiffies) ({                                 \
+	unsigned long _t = (jiffies) / 10;                                     \
+	do {                                                                   \
+		if (cond)                                                      \
+			break;                                                 \
+		usleep(10);                                                    \
+	} while (--_t > 0);                                                    \
+	_t;                                                                    \
+})
+
+#define wait_event_interruptible_timeout(wq,cond,jiffies)                      \
+	wait_event_timeout((wq), (cond), (jiffies))
 
 /******************************************************************************
  * i2c
