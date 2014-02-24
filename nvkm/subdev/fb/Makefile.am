@@ -9,6 +9,7 @@ libfb_la_SOURCES = base.c \
 		   nv50.c nv84.c nva3.c nvaa.c nvaf.c \
 		   nvc0.c \
 		   nve0.c \
+		   gm107.c \
 		   ramnv04.c \
 		   ramnv10.c \
 		   ramnv1a.c \
@@ -23,6 +24,7 @@ libfb_la_SOURCES = base.c \
 		   ramnvaa.c \
 		   ramnvc0.c \
 		   ramnve0.c \
+		   ramgm107.c \
 		   sddr3.c \
 		   gddr5.c
 
