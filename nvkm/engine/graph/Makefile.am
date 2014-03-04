@@ -9,7 +9,9 @@ BUILT_SOURCES = fuc/hubnvc0.fuc.h \
 		fuc/hubnvf0.fuc.h \
 		fuc/gpcnvf0.fuc.h \
 		fuc/hubnv108.fuc5.h \
-		fuc/gpcnv108.fuc5.h
+		fuc/gpcnv108.fuc5.h \
+		fuc/hubgm107.fuc5.h \
+		fuc/gpcgm107.fuc5.h
 CLEANFILES = ${BUILT_SOURCES}
 
 libgraph_la_SOURCES = ${BUILT_SOURCES} \
@@ -24,6 +26,7 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      ctxnve4.c \
 		      ctxnvf0.c \
 		      ctxnv108.c \
+		      ctxgm107.c \
 		      nv04.c \
 		      nv10.c \
 		      nv20.c \
@@ -42,7 +45,8 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      nvd9.c \
 		      nve4.c \
 		      nvf0.c \
-		      nv108.c
+		      nv108.c \
+		      gm107.c
 
 $(filter %.fuc.h,$(BUILT_SOURCES)): %.fuc.h: %.fuc fuc/com.fuc fuc/hub.fuc fuc/gpc.fuc fuc/macros.fuc
 	cpp -Ifuc -CC $< | cpp | sed -e '/^#/d' \
