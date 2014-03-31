@@ -114,10 +114,12 @@ order_base_2(u64 base)
  * endianness
  *****************************************************************************/
 
-#define le16_to_cpu(a) (a)
-#define le32_to_cpu(a) (a)
-#define cpu_to_le16(a) (a)
-#define cpu_to_le32(a) (a)
+#include <endian.h>
+
+#define le16_to_cpu(a) le16toh(a)
+#define le32_to_cpu(a) le32toh(a)
+#define cpu_to_le16(a) htole16(a)
+#define cpu_to_le32(a) htole32(a)
 
 /******************************************************************************
  * unaligned access
@@ -579,6 +581,19 @@ resource_size(const struct resource *res)
 }
 
 /******************************************************************************
+ * OpenFirmware
+ *****************************************************************************/
+
+struct device_node {
+};
+
+static inline const void *
+of_get_property(const struct device_node *dn, const char *name, int *lenp)
+{
+	return NULL;
+}
+
+/******************************************************************************
  * PCI
  *****************************************************************************/
 #include <pciaccess.h>
@@ -595,6 +610,12 @@ struct pci_dev {
 	u16 subsystem_device;
 	int irq;
 };
+
+static inline struct device_node *
+pci_device_to_OF_node(const struct pci_dev *pdev)
+{
+	return NULL;
+}
 
 static inline int
 pci_find_capability(struct pci_dev *pdev, int cap)
@@ -1006,5 +1027,12 @@ orderly_poweroff(bool force)
 	BUG_ON(1);
 }
 
+/******************************************************************************
+ * endianness (cont'd)
+ *****************************************************************************/
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 #undef __BIG_ENDIAN
+#endif
+
 #endif
