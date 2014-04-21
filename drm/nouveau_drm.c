@@ -510,13 +510,13 @@ nouveau_drm_remove(struct pci_dev *pdev)
 }
 
 static int
-nouveau_do_suspend(struct drm_device *dev)
+nouveau_do_suspend(struct drm_device *dev, bool runtime)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct nouveau_cli *cli;
 	int ret;
 
-	if (dev->mode_config.num_crtc) {
+	if (dev->mode_config.num_crtc && !runtime) {
 		NV_INFO(drm, "suspending display...\n");
 		ret = nouveau_display_suspend(dev);
 		if (ret)
@@ -590,7 +590,7 @@ int nouveau_pmops_suspend(struct device *dev)
 	if (drm_dev->mode_config.num_crtc)
 		nouveau_fbcon_set_suspend(drm_dev, 1);
 
-	ret = nouveau_do_suspend(drm_dev);
+	ret = nouveau_do_suspend(drm_dev, false);
 	if (ret)
 		return ret;
 
@@ -670,7 +670,7 @@ static int nouveau_pmops_freeze(struct device *dev)
 	if (drm_dev->mode_config.num_crtc)
 		nouveau_fbcon_set_suspend(drm_dev, 1);
 
-	ret = nouveau_do_suspend(drm_dev);
+	ret = nouveau_do_suspend(drm_dev, false);
 	return ret;
 }
 
@@ -891,20 +891,23 @@ static int nouveau_pmops_runtime_suspend(struct device *dev)
 	struct drm_device *drm_dev = pci_get_drvdata(pdev);
 	int ret;
 
-	if (nouveau_runtime_pm == 0)
-		return -EINVAL;
+	if (nouveau_runtime_pm == 0) {
+		pm_runtime_forbid(dev);
+		return -EBUSY;
+	}
 
 	/* are we optimus enabled? */
 	if (nouveau_runtime_pm == -1 && !nouveau_is_optimus() && !nouveau_is_v1_dsm()) {
 		DRM_DEBUG_DRIVER("failing to power off - not optimus\n");
-		return -EINVAL;
+		pm_runtime_forbid(dev);
+		return -EBUSY;
 	}
 
 	nv_debug_level(SILENT);
 	drm_kms_helper_poll_disable(drm_dev);
 	vga_switcheroo_set_dynamic_switch(pdev, VGA_SWITCHEROO_OFF);
 	nouveau_switcheroo_optimus_dsm();
-	ret = nouveau_do_suspend(drm_dev);
+	ret = nouveau_do_suspend(drm_dev, true);
 	pci_save_state(pdev);
 	pci_disable_device(pdev);
 	pci_set_power_state(pdev, PCI_D3cold);
@@ -930,8 +933,6 @@ static int nouveau_pmops_runtime_resume(struct device *dev)
 	pci_set_master(pdev);
 
 	ret = nouveau_do_resume(drm_dev);
-	if (drm_dev->mode_config.num_crtc)
-		nouveau_display_resume(drm_dev);
 	drm_kms_helper_poll_enable(drm_dev);
 	/* do magic */
 	nv_mask(device, 0x88488, (1 << 25), (1 << 25));
@@ -948,12 +949,15 @@ static int nouveau_pmops_runtime_idle(struct device *dev)
 	struct nouveau_drm *drm = nouveau_drm(drm_dev);
 	struct drm_crtc *crtc;
 
-	if (nouveau_runtime_pm == 0)
+	if (nouveau_runtime_pm == 0) {
+		pm_runtime_forbid(dev);
 		return -EBUSY;
+	}
 
 	/* are we optimus enabled? */
 	if (nouveau_runtime_pm == -1 && !nouveau_is_optimus() && !nouveau_is_v1_dsm()) {
 		DRM_DEBUG_DRIVER("failing to power off - not optimus\n");
+		pm_runtime_forbid(dev);
 		return -EBUSY;
 	}
 
