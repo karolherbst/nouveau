@@ -76,6 +76,7 @@ typedef dma_addr_t resource_size_t;
 #define div_u64(a,b) (a) / (b)
 #define likely(a) (a)
 #define unlikely(a) (a)
+#define BIT(a) (1UL << (a))
 
 #define jiffies (ktime_to_us(ktime_get()))
 #define usecs_to_jiffies(a) (a)
@@ -154,6 +155,7 @@ put_unaligned_le32(u32 val, void *ptr)
  *****************************************************************************/
 #define __ffs64(a) (__builtin_ffsll(a) - 1)
 #define __ffs(a) (__builtin_ffs(a) - 1)
+#define fls(a) ((a) ? sizeof(a) * 8 - __builtin_clz(a) : 0)
 
 static inline int
 hweight8(u32 v) {
@@ -357,6 +359,24 @@ __free_page(struct page *page)
 
 static inline dma_addr_t
 page_to_phys(struct page *page)
+{
+	return 0;
+}
+
+static inline struct page *
+pfn_to_page(dma_addr_t pfn)
+{
+	return NULL;
+}
+
+static inline dma_addr_t
+page_to_pfn(struct page *page)
+{
+	return 0;
+}
+
+static inline unsigned long
+get_num_physpages(void)
 {
 	return 0;
 }
@@ -591,6 +611,21 @@ static inline const void *
 of_get_property(const struct device_node *dn, const char *name, int *lenp)
 {
 	return NULL;
+}
+
+/******************************************************************************
+ * dma-mapping
+ *****************************************************************************/
+
+static inline void *
+dma_alloc_coherent(struct device *dev, size_t sz, dma_addr_t *hdl, gfp_t gfp)
+{
+	return NULL;
+}
+
+static inline void
+dma_free_coherent(struct device *dev, size_t sz, void *vaddr, dma_addr_t bus)
+{
 }
 
 /******************************************************************************

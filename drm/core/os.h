@@ -21,6 +21,8 @@
 #include <linux/interrupt.h>
 #include <linux/log2.h>
 #include <linux/pm_runtime.h>
+#include <linux/mm.h>
+#include <linux/dma-mapping.h>
 
 #include <asm/unaligned.h>
 
