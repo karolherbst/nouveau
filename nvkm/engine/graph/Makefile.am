@@ -24,6 +24,7 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      ctxnvd7.c \
 		      ctxnvd9.c \
 		      ctxnve4.c \
+		      ctxgk20a.c \
 		      ctxnvf0.c \
 		      ctxnv108.c \
 		      ctxgm107.c \
@@ -44,6 +45,7 @@ libgraph_la_SOURCES = ${BUILT_SOURCES} \
 		      nvd7.c \
 		      nvd9.c \
 		      nve4.c \
+		      gk20a.c \
 		      nvf0.c \
 		      nv108.c \
 		      gm107.c
