@@ -8,6 +8,7 @@ libi2c_la_SOURCES = base.c \
 		    nv4e.c \
 		    nv50.c \
 		    nv94.c \
-		    nvd0.c
+		    nvd0.c \
+		    nve0.c
 
 include $(srcdir)/../Makefile.subdev
