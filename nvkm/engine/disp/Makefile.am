@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libdisp.la
 
 libdisp_la_SOURCES = base.c \
+		     conn.c \
+		     outp.c \
 		     nv04.c \
 		     nv50.c \
 		     nv84.c \
