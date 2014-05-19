@@ -236,6 +236,8 @@ typedef struct atomic {
 #define atomic_dec_return(a) atomic_add_return(-1, (a))
 #define atomic_dec_and_test(a) (atomic_dec_return(a) == 0)
 #define atomic_or(a,b) (void) __sync_fetch_and_or(&(b)->value, (a));
+#define atomic_xchg(a,b) \
+	__atomic_exchange_n(&(a)->value, (b), __ATOMIC_SEQ_CST)
 
 /******************************************************************************
  * ktime
