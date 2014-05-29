@@ -49,7 +49,7 @@ main(int argc, char **argv)
 				if (addr > 0x000fffff)
 					return -EINVAL;
 			} else
-			if (action >= 1 && data < 0) {
+			if (action >= 1 && val < 0) {
 				val = strtoul(optarg, NULL, 0);
 				if (val > 0xff)
 					return -EINVAL;
