@@ -78,8 +78,9 @@ typedef dma_addr_t resource_size_t;
 #define unlikely(a) (a)
 #define BIT(a) (1UL << (a))
 
-#define jiffies (ktime_to_us(ktime_get()))
-#define usecs_to_jiffies(a) (a)
+#define jiffies (ktime_to_ns(ktime_get()))
+#define nsecs_to_jiffies(a) (a)
+#define usecs_to_jiffies(a) nsecs_to_jiffies((a) * 1000)
 #define msecs_to_jiffies(a) usecs_to_jiffies((a) * 1000)
 #define HZ 1000000
 
@@ -906,6 +907,7 @@ typedef struct __wait_queue_head {
 
 #define init_waitqueue_head(wq)
 #define wake_up(wq)
+#define wake_up_all(wq)
 
 #define wait_event(wq,cond) do {                                               \
 	usleep(1);                                                             \
@@ -916,7 +918,7 @@ typedef struct __wait_queue_head {
 })
 
 #define wait_event_timeout(wq,cond,jiffies) ({                                 \
-	unsigned long _t = (jiffies) / 10;                                     \
+	unsigned long _t = (jiffies) / 10000;                                  \
 	do {                                                                   \
 		if (cond)                                                      \
 			break;                                                 \
@@ -1034,13 +1036,14 @@ i2c_bit_algo = {
 
 struct i2c_algo_bit_data {
 	int udelay;
-	int timeout;
+	unsigned long timeout;
 	void *data;
 	void (*setsda) (void *data, int state);
 	void (*setscl) (void *data, int state);
 	int  (*getsda) (void *data);
 	int  (*getscl) (void *data);
 	int  (*pre_xfer)(struct i2c_adapter *);
+	void (*post_xfer)(struct i2c_adapter *);
 };
 
 static inline int
