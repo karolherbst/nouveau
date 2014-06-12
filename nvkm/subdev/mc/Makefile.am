@@ -9,6 +9,7 @@ libmc_la_SOURCES = base.c \
 		   nv94.c \
 		   nv98.c \
 		   nvc0.c \
-		   nvc3.c
+		   nvc3.c \
+		   gk20a.c
 
 include $(srcdir)/../Makefile.subdev
