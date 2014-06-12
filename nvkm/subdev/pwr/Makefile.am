@@ -11,6 +11,7 @@ libpwr_la_SOURCES = base.c \
 		    nva3.c \
 		    nvc0.c \
 		    nvd0.c \
+		    gk104.c \
 		    nv108.c
 
 FUC_COMMON = fuc/os.h \
