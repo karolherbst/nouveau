@@ -1,0 +1,1 @@
+../../../../nvkm/subdev/pwr/priv.h
