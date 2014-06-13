@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libdevice.la
 
-libdevice_la_SOURCES = base.c \
+libdevice_la_SOURCES = acpi.c \
+		       base.c \
 		       ctrl.c \
 		       nv04.c \
 		       nv10.c \
