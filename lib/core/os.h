@@ -61,6 +61,7 @@ typedef dma_addr_t resource_size_t;
 /******************************************************************************
  * various random macros
  *****************************************************************************/
+#define noinline __attribute__ ((noinline))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define min(a,b) ((a) > (b) ? (b) : (a))
 #define max_t(t,a,b) max((t)(a), (t)(b))
