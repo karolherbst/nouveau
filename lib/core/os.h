@@ -1106,6 +1106,32 @@ struct notifier_block {
 };
 
 /******************************************************************************
+ * clk
+ *****************************************************************************/
+struct clk {
+};
+
+static inline unsigned long
+clk_get_rate(struct clk *clk)
+{
+	return 0;
+}
+
+/******************************************************************************
+ * nouveau drm platform device
+ *****************************************************************************/
+
+struct nouveau_platform_gpu {
+	struct clk *clk;
+};
+
+struct nouveau_platform_device {
+	struct nouveau_platform_gpu *gpu;
+};
+
+#define nv_device_to_platform(x) NULL
+
+/******************************************************************************
  * endianness (cont'd)
  *****************************************************************************/
 

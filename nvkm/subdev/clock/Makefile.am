@@ -9,6 +9,7 @@ libclock_la_SOURCES = base.c \
 		      nvaa.c \
 		      nvc0.c \
 		      nve0.c \
+		      gk20a.c \
 		      pllnv04.c \
 		      pllnva3.c
 
