@@ -644,7 +644,7 @@ dma_free_coherent(struct device *dev, size_t sz, void *vaddr, dma_addr_t bus)
  *****************************************************************************/
 #include <pciaccess.h>
 
-#define PCI_DMA_BIDIRECTIONAL 1
+#define DMA_BIDIRECTIONAL 1
 
 #define PCI_CAP_ID_AGP 0x02
 
@@ -688,7 +688,7 @@ pci_resource_len(struct pci_dev *pdev, int bar)
 }
 
 static inline dma_addr_t
-pci_map_page(struct pci_dev *pdev, struct page *page, int offset,
+dma_map_page(struct device *pdev, struct page *page, int offset,
 	     int length, unsigned flags)
 {
 	return 0;
@@ -696,13 +696,13 @@ pci_map_page(struct pci_dev *pdev, struct page *page, int offset,
 
 
 static inline bool
-pci_dma_mapping_error(struct pci_dev *pdev, dma_addr_t addr)
+dma_mapping_error(struct device *pdev, dma_addr_t addr)
 {
 	return true;
 }
 
 static inline void
-pci_unmap_page(struct pci_dev *pdev, dma_addr_t addr, int size, unsigned flags)
+dma_unmap_page(struct device *pdev, dma_addr_t addr, int size, unsigned flags)
 {
 }
 
