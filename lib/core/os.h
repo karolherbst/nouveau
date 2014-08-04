@@ -427,7 +427,22 @@ nvos_backtrace(void)
 	nvos_backtrace();                                                      \
 } while(0)
 
-#define WARN_ON(c) (c)
+#define WARN_ON(c) ({                                                          \
+	int _ret = !!(c);                                                      \
+	if (_ret)                                                              \
+		WARN();                                                        \
+	_ret;                                                                  \
+})
+
+#define WARN_ON_ONCE(c) ({                                                     \
+	static int _once = 1;                                                  \
+	int _ret = !!(c);                                                      \
+	if (_ret && _once) {                                                   \
+		WARN();                                                        \
+		_once = 0;                                                     \
+	}                                                                      \
+	_ret;                                                                  \
+})
 
 /******************************************************************************
  * interrupts
