@@ -139,5 +139,6 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	free(data);
 	return 0;
 }

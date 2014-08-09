@@ -20,7 +20,4 @@ struct os_client {
 	struct list_head head;
 };
 
-extern pthread_t os_intr_thread;
-void *os_intr(void *arg);
-
 #endif

@@ -26,14 +26,26 @@
 #include <core/client.h>
 #include "priv.h"
 
-pthread_t os_intr_thread;
 struct os_intr {
 	struct list_head head;
+	pthread_t thread;
 	irq_handler_t handler;
 	int irq;
 	void *dev;
 };
+static DEFINE_MUTEX(os_intr_mutex);
 static LIST_HEAD(os_intr_list);
+
+static void *
+os_intr(void *arg)
+{
+	struct os_intr *intr = arg;
+	while (1) {
+		intr->handler(intr->irq, intr->dev);
+		usleep(10000);
+	}
+	return NULL;
+}
 
 int
 os_intr_init(unsigned int irq, irq_handler_t handler, unsigned long flags,
@@ -45,7 +57,10 @@ os_intr_init(unsigned int irq, irq_handler_t handler, unsigned long flags,
 	intr->handler = handler;
 	intr->irq = irq;
 	intr->dev = dev;
+	mutex_lock(&os_intr_mutex);
 	list_add(&intr->head, &os_intr_list);
+	mutex_unlock(&os_intr_mutex);
+	pthread_create(&intr->thread, NULL, os_intr, intr);
 	return 0;
 }
 
@@ -54,27 +69,16 @@ os_intr_free(unsigned int irq, void *dev)
 {
 	struct os_intr *intr;
 
+	mutex_lock(&os_intr_mutex);
 	list_for_each_entry(intr, &os_intr_list, head) {
 		if (intr->irq == irq && intr->dev == dev) {
+			pthread_cancel(intr->thread);
+			pthread_join(intr->thread, NULL);
 			list_del(&intr->head);
+			mutex_unlock(&os_intr_mutex);
 			free(intr);
-			break;
+			return;
 		}
 	}
-}
-
-void *
-os_intr(void *arg)
-{
-	struct os_intr *intr;
-
-	while (1) {
-		list_for_each_entry(intr, &os_intr_list, head) {
-			intr->handler(intr->irq, intr->dev);
-		}
-
-		usleep(10000);
-	}
-
-	return NULL;
+	mutex_unlock(&os_intr_mutex);
 }

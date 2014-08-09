@@ -205,8 +205,8 @@ os_init(char *cfg, char *dbg, bool init)
 
 		os_init_device(pdev, handle, cfg, dbg);
 	}
-
-	return pthread_create(&os_intr_thread, NULL, os_intr, NULL);
+	pci_iterator_destroy(iter);
+	return 0;
 }
 
 static void
@@ -215,13 +215,17 @@ os_fini(void)
 	struct os_device *odev, *temp;
 
 	list_for_each_entry_safe(odev, temp, &os_device_list, head) {
+		struct pci_dev *ldev = odev->base.pdev;
 		char *name = odev->name;
 		char *cfg  = odev->cfg;
 		char *dbg  = odev->dbg;
 		list_del(&odev->head);
 		nouveau_object_ref(NULL, (struct nouveau_object **)&odev);
-		free(dbg); free(cfg); free(name);
+		free(dbg); free(cfg); free(name); free(ldev);
 	}
+
+	nouveau_object_debug();
+	pci_system_cleanup();
 }
 
 int
