@@ -34,3 +34,4 @@ stamp-h1
 bin/nv_*
 !bin/nv_*.c
 !bin/nv_*.h
+compile
