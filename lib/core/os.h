@@ -707,6 +707,12 @@ pci_find_capability(struct pci_dev *pdev, int cap)
 	return 0;
 }
 
+static inline bool
+pci_is_pcie(struct pci_dev *pdev)
+{
+	return false;
+}
+
 static inline int
 pci_write_config_byte(struct pci_dev *pdev, int addr, u8 data)
 {
