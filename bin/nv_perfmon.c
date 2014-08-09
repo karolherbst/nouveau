@@ -31,7 +31,7 @@
 #include <nvif/client.h>
 #include <nvif/device.h>
 #include <nvif/class.h>
-#include <core/class.h>
+#include <nvif/ioctl.h>
 
 #include <sys/time.h>
 
@@ -279,21 +279,20 @@ ui_main_select(void)
 	}
 
 	for (i = 0; i < nr_signals; i++) {
+		struct nvif_perfctr_v0 args = {
+			.logic_op = 0xaaaa,
+		};
+
 		item = calloc(1, sizeof(*item));
 		item->handle = ui_main_handle++;
 		item->name = signals[i];
 		item->incr = 0;
 
+		strncpy(args.name[0], item->name, sizeof(args.name[0]));
+
 		ret = nvif_object_init(nvif_object(device), NULL, item->handle,
-				       NV_PERFCTR_CLASS,
-				       &(struct nv_perfctr_class) {
-						.logic_op = 0xaaaa,
-						.signal[0].name =
-							(char *)item->name,
-						.signal[0].size =
-							strlen(item->name)
-				       }, sizeof(struct nv_perfctr_class),
-				       &item->object);
+				       NVIF_IOCTL_NEW_V0_PERFCTR, &args,
+				       sizeof(args), &item->object);
 		assert(ret == 0);
 		list_add_tail(&item->head, &ui_main_list);
 	}
@@ -309,19 +308,18 @@ ui_main_alarm_handler(int signal)
 		ui_main_select();
 
 	list_for_each_entry(item, &ui_main_list, head) {
-		struct nv_perfctr_read args;
+		struct nvif_perfctr_read_v0 args = {};
 		int ret;
 
 		if (!sampled) {
-			struct nv_perfctr_sample args;
-			ret = nvif_exec(&item->object, NV_PERFCTR_SAMPLE,
-					&args, sizeof(args));
+			struct nvif_perfctr_sample args = {};
+
+			ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_SAMPLE, &args, sizeof(args));
 			assert(ret == 0);
 			sampled = true;
 		}
 
-		ret = nvif_exec(&item->object, NV_PERFCTR_READ,
-				&args, sizeof(args));
+		ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_READ, &args, sizeof(args));
 		assert(ret == 0 || ret == -EAGAIN);
 
 		if (ret == 0) {
@@ -602,8 +600,8 @@ main(int argc, char **argv)
 	const char *cfg = NULL;
 	const char *dbg = "error";
 	u64 dev = ~0ULL;
+	struct nvif_perfctr_query_v0 args = {};
 	struct nvif_client *client;
-	struct nv_perfctr_query args = {};
 	struct nvif_object object;
 	int ret, c, k;
 	int scan = 0;
@@ -646,25 +644,26 @@ main(int argc, char **argv)
 	}
 
 	ret = nvif_object_init(nvif_object(device), NULL, 0xdeadbeef,
-			       NV_PERFCTR_CLASS, &(struct nv_perfctr_class) {
-			       }, sizeof(struct nv_perfctr_class), &object);
+			       NVIF_IOCTL_NEW_V0_PERFCTR,
+			       &(struct nvif_perfctr_v0) {
+			       }, sizeof(struct nvif_perfctr_v0), &object);
 	assert(ret == 0);
 	do {
 		u32 prev_iter = args.iter;
 
-		args.name = NULL;
-		ret = nvif_exec(&object, NV_PERFCTR_QUERY, &args, sizeof(args));
+		args.name[0] = '\0';
+		ret = nvif_mthd(&object, NVIF_PERFCTR_V0_QUERY, &args, sizeof(args));
 		assert(ret == 0);
 
 		if (prev_iter) {
 			nr_signals++;
 			signals = realloc(signals, nr_signals * sizeof(char*));
-			signals[nr_signals - 1] = malloc(args.size);
+			signals[nr_signals - 1] = malloc(sizeof(args.name));
 
 			args.iter = prev_iter;
-			args.name = signals[nr_signals - 1];
-			ret = nvif_exec(&object, NV_PERFCTR_QUERY,
-					&args, sizeof(args));
+			strncpy(signals[nr_signals - 1], args.name,
+				sizeof(args.name));
+			ret = nvif_mthd(&object, NVIF_PERFCTR_V0_QUERY, &args, sizeof(args));
 			assert(ret == 0);
 		}
 	} while (args.iter != 0xffffffff);
