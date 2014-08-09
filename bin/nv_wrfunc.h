@@ -8,7 +8,7 @@
 #include <core/class.h>
 
 #ifndef ENABLE
-#define ENABLE NV_DEVICE_DISABLE_MMIO
+#define ENABLE NV_DEVICE_V0_DISABLE_MMIO
 #endif
 #ifndef DEBUG0
 #define DEBUG0 0ULL
@@ -23,7 +23,7 @@ MAIN(int argc, char **argv)
 	u64 dev = ~0ULL;
 	struct nvif_client *client;
 	struct nvif_device *device;
-	struct nv_device_class args;
+	struct nv_device_v0 args = {};
 	char *rstr = NULL;
 	char *vstr = NULL;
 	int quiet = 0;
@@ -58,7 +58,7 @@ MAIN(int argc, char **argv)
 	args.disable = ~ENABLE;
 	args.debug0  = ~DEBUG0;
 
-	ret = nvif_device_new(nvif_object(client), 0, NV_DEVICE_CLASS,
+	ret = nvif_device_new(nvif_object(client), 0, NV_DEVICE,
 			     &args, sizeof(args), &device);
 	nvif_client_ref(NULL, &client);
 	if (ret)

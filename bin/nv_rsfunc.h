@@ -20,5 +20,5 @@ nv_rsys(struct nvif_device *device, u64 addr)
 }
 
 #define READ(o) nv_rsys(device, (o))
-#define ENABLE  (NV_DEVICE_DISABLE_MMIO | NV_DEVICE_DISABLE_IDENTIFY)
+#define ENABLE  (NV_DEVICE_V0_DISABLE_MMIO | NV_DEVICE_V0_DISABLE_IDENTIFY)
 #include "nv_rdfunc.h"

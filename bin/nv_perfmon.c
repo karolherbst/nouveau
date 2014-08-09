@@ -627,15 +627,15 @@ main(int argc, char **argv)
 		return ret;
 
 	ret = nvif_device_new(nvif_object(client), 0x00000000,
-			      NV_DEVICE_CLASS, &(struct nv_device_class) {
+			      NV_DEVICE, &(struct nv_device_v0) {
 					.device = ~0ULL,
-					.disable = ~(NV_DEVICE_DISABLE_MMIO |
-						     NV_DEVICE_DISABLE_VBIOS |
-						     NV_DEVICE_DISABLE_CORE |
-						     NV_DEVICE_DISABLE_IDENTIFY),
+					.disable = ~(NV_DEVICE_V0_DISABLE_MMIO |
+						     NV_DEVICE_V0_DISABLE_VBIOS |
+						     NV_DEVICE_V0_DISABLE_CORE |
+						     NV_DEVICE_V0_DISABLE_IDENTIFY),
 					.debug0 = ~((1ULL << NVDEV_SUBDEV_TIMER) |
 						    (1ULL << NVDEV_ENGINE_PERFMON)),
-			      }, sizeof(struct nv_device_class), &device);
+			      }, sizeof(struct nv_device_v0), &device);
 	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;

@@ -43,12 +43,12 @@ main(int argc, char **argv)
 	if (ret)
 		return ret;
 
-	ret = nvif_device_new(nvif_object(client), 0x00000000, NV_DEVICE_CLASS,
-			      &(struct nv_device_class) {
+	ret = nvif_device_new(nvif_object(client), 0x00000000, NV_DEVICE,
+			      &(struct nv_device_v0) {
 					.device = ~0ULL,
-					.disable = ~NV_DEVICE_DISABLE_MMIO,
+					.disable = ~NV_DEVICE_V0_DISABLE_MMIO,
 					.debug0 = 0,
-			      }, sizeof(struct nv_device_class), &device);
+			      }, sizeof(struct nv_device_v0), &device);
 	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;
