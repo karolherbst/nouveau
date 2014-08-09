@@ -11,6 +11,7 @@ libcore_la_SOURCES = client.c \
 		     event.c \
 		     gpuobj.c \
 		     handle.c \
+		     ioctl.c \
 		     mm.c \
 		     namedb.c \
 		     notify.c \
