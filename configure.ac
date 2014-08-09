@@ -78,7 +78,7 @@ AC_OUTPUT( Makefile \
 	   nvkm/subdev/i2c/Makefile \
 	   nvkm/subdev/ibus/Makefile \
 	   nvkm/subdev/instmem/Makefile \
-	   nvkm/subdev/ltcg/Makefile \
+	   nvkm/subdev/ltc/Makefile \
 	   nvkm/subdev/mc/Makefile \
 	   nvkm/subdev/mxm/Makefile \
 	   nvkm/subdev/pwr/Makefile \
