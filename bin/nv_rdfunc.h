@@ -2,8 +2,9 @@
 #include <limits.h>
 #include <unistd.h>
 
-#include <core/os.h>
-#include <core/object.h>
+#include <nvif/client.h>
+#include <nvif/device.h>
+#include <nvif/class.h>
 #include <core/class.h>
 
 #ifndef ENABLE
@@ -16,8 +17,12 @@
 int
 main(int argc, char **argv)
 {
-	struct nouveau_object *client;
-	struct nouveau_object *device;
+	const char *drv = NULL;
+	const char *cfg = NULL;
+	const char *dbg = "fatal";
+	u64 dev = ~0ULL;
+	struct nvif_client *client;
+	struct nvif_device *device;
 	struct nv_device_class args;
 	char *rstr = NULL;
 	enum {
@@ -34,8 +39,12 @@ main(int argc, char **argv)
 	int ndata = 0;
 	int ret, c;
 
-	while ((c = getopt(argc, argv, "-qrw")) != -1) {
+	while ((c = getopt(argc, argv, "-a:b:c:d:qrw")) != -1) {
 		switch (c) {
+		case 'a': dev = strtoull(optarg, NULL, 0); break;
+		case 'b': drv = optarg; break;
+		case 'c': cfg = optarg; break;
+		case 'd': dbg = optarg; break;
 		case 'q': mode = QUIET; break;
 		case 'r': mode = RATES; break;
 		case 'w': mode = WATCH; break;
@@ -47,7 +56,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	ret = os_client_new(NULL, "fatal", argc, argv, &client);
+	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
 	if (ret)
 		return ret;
 
@@ -55,8 +64,9 @@ main(int argc, char **argv)
 	args.disable = ~ENABLE;
 	args.debug0  = ~DEBUG0;
 
-	ret = nouveau_object_new(client, ~0, 0, 0x0080, &args, sizeof(args),
-				 &device);
+	ret = nvif_device_new(nvif_object(client), 0x00000000, NV_DEVICE_CLASS,
+			      &args, sizeof(args), &device);
+	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;
 
@@ -140,5 +150,6 @@ main(int argc, char **argv)
 	}
 
 	free(data);
+	nvif_device_ref(NULL, &device);
 	return 0;
 }

@@ -2,23 +2,30 @@
 #include <limits.h>
 #include <unistd.h>
 
-#include <core/os.h>
-#include <core/object.h>
+#include <nvif/client.h>
+#include <nvif/driver.h>
+#include <nvif/device.h>
+#include <nvif/class.h>
 #include <core/class.h>
-
-#include <core/device.h>
-
-struct nouveau_object *client;
-struct nouveau_object *device;
 
 int
 main(int argc, char **argv)
 {
+	const char *drv = NULL;
+	const char *cfg = NULL;
+	const char *dbg = "info";
+	u64 dev = ~0ULL;
+	struct nvif_client *client;
+	struct nvif_device *device;
 	bool suspend = false, wait = false;
 	int ret, c;
 
-	while ((c = getopt(argc, argv, "-sw")) != -1) {
+	while ((c = getopt(argc, argv, "-a:b:c:d:sw")) != -1) {
 		switch (c) {
+		case 'a': dev = strtoull(optarg, NULL, 0); break;
+		case 'b': drv = optarg; break;
+		case 'c': cfg = optarg; break;
+		case 'd': dbg = optarg; break;
 		case 's':
 			suspend = true;
 			break;
@@ -30,22 +37,23 @@ main(int argc, char **argv)
 		}
 	}
 
-	ret = os_client_new(NULL, "info", argc, argv, &client);
+	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
 	if (ret)
 		return ret;
 
-	ret = nouveau_object_new(client, ~0, 0, 0x0080,
-				&(struct nv_device_class) {
+	ret = nvif_device_new(nvif_object(client), 0, NV_DEVICE_CLASS,
+			      &(struct nv_device_class) {
 					.device = ~0ULL,
 					.disable = 0ULL,
 					.debug0 = 0ULL,
-				}, sizeof(struct nv_device_class), &device);
+			      }, sizeof(struct nv_device_class), &device);
+	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;
 
 	if (suspend) {
-		os_suspend();
-		os_resume();
+		client->driver->suspend(client);
+		client->driver->resume(client);
 	}
 
 	while (wait && (c = getchar()) == EOF) {
@@ -53,8 +61,7 @@ main(int argc, char **argv)
 	}
 
 	printf("shutting down...\n");
-	os_client_del(&client);
-	nouveau_object_debug();
+	nvif_device_ref(NULL, &device);
 	printf("done!\n");
 	return ret;
 }

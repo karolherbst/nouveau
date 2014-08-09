@@ -3,5 +3,5 @@
 #define NAME    "nv_rs08"
 #define CAST    u8
 #define MAIN    main
-#define WSYS    nv_wo08
+#define WSYS    nvif_wr08
 #include "nv_wsfunc.h"

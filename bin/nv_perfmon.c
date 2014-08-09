@@ -28,14 +28,14 @@
 #include <menu.h>
 #include <form.h>
 
-#include <core/object.h>
-#include <core/device.h>
+#include <nvif/client.h>
+#include <nvif/device.h>
+#include <nvif/class.h>
 #include <core/class.h>
 
 #include <sys/time.h>
 
-static struct nouveau_object *client;
-static struct nouveau_object *device;
+static struct nvif_device *device;
 static char **signals;
 static int nr_signals;
 
@@ -250,7 +250,7 @@ ui_menu_win = {
 struct ui_main {
 	struct list_head head;
 	u32 handle;
-	struct nouveau_object *object;
+	struct nvif_object object;
 	const char *name;
 	u32 clk;
 	u32 ctr;
@@ -263,7 +263,7 @@ static u32 ui_main_handle = 0xc0000000;
 static void
 ui_main_remove(struct ui_main *item)
 {
-	int ret = nouveau_object_del(client, 0x00000000, item->handle);
+	nvif_object_fini(&item->object);
 	list_del(&item->head);
 	free(item);
 }
@@ -281,20 +281,19 @@ ui_main_select(void)
 	for (i = 0; i < nr_signals; i++) {
 		item = calloc(1, sizeof(*item));
 		item->handle = ui_main_handle++;
-		item->object = NULL;
 		item->name = signals[i];
 		item->incr = 0;
 
-		ret = nouveau_object_new(client, 0x00000000, item->handle,
-					 NV_PERFCTR_CLASS,
-					 &(struct nv_perfctr_class) {
+		ret = nvif_object_init(nvif_object(device), NULL, item->handle,
+				       NV_PERFCTR_CLASS,
+				       &(struct nv_perfctr_class) {
 						.logic_op = 0xaaaa,
 						.signal[0].name =
 							(char *)item->name,
 						.signal[0].size =
 							strlen(item->name)
-					 }, sizeof(struct nv_perfctr_class),
-					 &item->object);
+				       }, sizeof(struct nv_perfctr_class),
+				       &item->object);
 		assert(ret == 0);
 		list_add_tail(&item->head, &ui_main_list);
 	}
@@ -315,13 +314,14 @@ ui_main_alarm_handler(int signal)
 
 		if (!sampled) {
 			struct nv_perfctr_sample args;
-			ret = nv_exec(item->object, NV_PERFCTR_SAMPLE,
-				     &args, sizeof(args));
+			ret = nvif_exec(&item->object, NV_PERFCTR_SAMPLE,
+					&args, sizeof(args));
 			assert(ret == 0);
 			sampled = true;
 		}
 
-		ret = nv_exec(item->object, NV_PERFCTR_READ, &args, sizeof(args));
+		ret = nvif_exec(&item->object, NV_PERFCTR_READ,
+				&args, sizeof(args));
 		assert(ret == 0 || ret == -EAGAIN);
 
 		if (ret == 0) {
@@ -598,13 +598,22 @@ ui_resize(void)
 int
 main(int argc, char **argv)
 {
+	const char *drv = NULL;
+	const char *cfg = NULL;
+	const char *dbg = "error";
+	u64 dev = ~0ULL;
+	struct nvif_client *client;
 	struct nv_perfctr_query args = {};
-	struct nouveau_object *object;
+	struct nvif_object object;
 	int ret, c, k;
 	int scan = 0;
 
-	while ((c = getopt(argc, argv, "-s")) != -1) {
+	while ((c = getopt(argc, argv, "-a:b:c:d:s")) != -1) {
 		switch (c) {
+		case 'a': dev = strtoull(optarg, NULL, 0); break;
+		case 'b': drv = optarg; break;
+		case 'c': cfg = optarg; break;
+		case 'd': dbg = optarg; break;
 		case 's':
 			scan = 1;
 			break;
@@ -613,13 +622,12 @@ main(int argc, char **argv)
 		}
 	}
 
-
-	ret = os_client_new(NULL, "error", argc, argv, &client);
+	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
 	if (ret)
 		return ret;
 
-	ret = nouveau_object_new(client, 0xffffffff, 0x00000000,
-				 NV_DEVICE_CLASS, &(struct nv_device_class) {
+	ret = nvif_device_new(nvif_object(client), 0x00000000,
+			      NV_DEVICE_CLASS, &(struct nv_device_class) {
 					.device = ~0ULL,
 					.disable = ~(NV_DEVICE_DISABLE_MMIO |
 						     NV_DEVICE_DISABLE_VBIOS |
@@ -627,7 +635,8 @@ main(int argc, char **argv)
 						     NV_DEVICE_DISABLE_IDENTIFY),
 					.debug0 = ~((1ULL << NVDEV_SUBDEV_TIMER) |
 						    (1ULL << NVDEV_ENGINE_PERFMON)),
-				}, sizeof(struct nv_device_class), &device);
+			      }, sizeof(struct nv_device_class), &device);
+	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;
 
@@ -636,15 +645,15 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = nouveau_object_new(client, 0x00000000, 0xdeadbeef,
-				 NV_PERFCTR_CLASS, &(struct nv_perfctr_class) {
-				 }, sizeof(struct nv_perfctr_class), &object);
+	ret = nvif_object_init(nvif_object(device), NULL, 0xdeadbeef,
+			       NV_PERFCTR_CLASS, &(struct nv_perfctr_class) {
+			       }, sizeof(struct nv_perfctr_class), &object);
 	assert(ret == 0);
 	do {
 		u32 prev_iter = args.iter;
 
 		args.name = NULL;
-		ret = nv_exec(object, NV_PERFCTR_QUERY, &args, sizeof(args));
+		ret = nvif_exec(&object, NV_PERFCTR_QUERY, &args, sizeof(args));
 		assert(ret == 0);
 
 		if (prev_iter) {
@@ -654,12 +663,12 @@ main(int argc, char **argv)
 
 			args.iter = prev_iter;
 			args.name = signals[nr_signals - 1];
-			ret = nv_exec(object, NV_PERFCTR_QUERY,
-				     &args, sizeof(args));
+			ret = nvif_exec(&object, NV_PERFCTR_QUERY,
+					&args, sizeof(args));
 			assert(ret == 0);
 		}
 	} while (args.iter != 0xffffffff);
-	nouveau_object_del(client, 0x00000000, 0xdeadbeef);
+	nvif_object_fini(&object);
 
 	initscr();
 	keypad(stdscr, TRUE);
@@ -692,5 +701,6 @@ main(int argc, char **argv)
 	while (nr_signals--)
 		free(signals[nr_signals]);
 	free(signals);
+	nvif_device_ref(NULL, &device);
 	return 0;
 }

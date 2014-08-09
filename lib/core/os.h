@@ -26,18 +26,6 @@
 #define __NOUVEAU_OS_H__
 
 /******************************************************************************
- * bootstrap interface
- *****************************************************************************/
-struct nouveau_object;
-
-int  os_client_new(char *cfg, char *dbg, int argc, char **argv,
-		   struct nouveau_object **);
-void os_client_del(struct nouveau_object **);
-void os_suspend(void);
-void os_resume(void);
-void os_backtrace(void);
-
-/******************************************************************************
  * types
  *****************************************************************************/
 #include <stddef.h>
@@ -45,15 +33,15 @@ void os_backtrace(void);
 #include <stdbool.h>
 #include <limits.h>
 
-#define u64 uint64_t
-#define u32 uint32_t
-#define u16 uint16_t
-#define u8 uint8_t
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
 
-#define s64 int64_t
-#define s32 int32_t
-#define s16 int16_t
-#define s8 int8_t
+typedef int64_t s64;
+typedef int32_t s32;
+typedef int16_t s16;
+typedef int8_t s8;
 
 #ifndef _ASM_GENERIC_INT_LL64_H
 typedef uint64_t __u64;
@@ -73,6 +61,7 @@ typedef dma_addr_t resource_size_t;
  * various random macros
  *****************************************************************************/
 #define noinline __attribute__ ((noinline))
+#define __packed __attribute__ ((packed))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define min(a,b) ((a) > (b) ? (b) : (a))
 #define max_t(t,a,b) max((t)(a), (t)(b))

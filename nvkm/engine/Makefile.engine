@@ -1,3 +1,4 @@
 AM_CPPFLAGS = -I${top_srcdir}/nvkm \
 	      -I${top_srcdir}/nvkm/include \
-	      -I${top_srcdir}/lib
+	      -I${top_srcdir}/lib \
+	      -I${top_srcdir}

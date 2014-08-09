@@ -3,5 +3,5 @@
 #define NAME    "nv_rv32"
 #define CAST    u32
 #define MAIN    main
-#define RVRAM   nv_ro32
+#define RVRAM   nvif_rd32
 #include "nv_rvfunc.h"

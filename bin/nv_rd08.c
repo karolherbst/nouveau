@@ -2,6 +2,6 @@
 #define FMTDATA "0x%02x"
 #define NAME    "nv_rd08"
 #define CAST    u8
-#define READ(o) nv_ro08(device, (o))
+#define READ(o) nvif_rd08(device, (o))
 #define MAIN    main
 #include "nv_rdfunc.h"

@@ -7,9 +7,7 @@ bin_PROGRAMS = \
 	       nv_disp nv_i2c nv_aux nv_init nv_rdfuc nv_perfmon
 
 AM_CPPFLAGS = -I$(top_srcdir)/nvkm/include \
-	      -I$(top_srcdir)/nvkm \
-	      -I$(top_srcdir)/lib/
+	      -I$(top_srcdir)/lib/ \
+	      -I$(top_srcdir)/
 
-LDADD = -lpciaccess -lncurses -lmenu -lform \
-	$(top_srcdir)/lib/libpciaccessos.la \
-	$(top_srcdir)/nvkm/libnouveau.la
+LDFLAGS = $(top_srcdir)/nvif/libnvif.la -lncurses -lmenu -lform

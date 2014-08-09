@@ -2,16 +2,10 @@
 #include <limits.h>
 #include <unistd.h>
 
-#include <core/os.h>
-#include <core/object.h>
+#include <nvif/client.h>
+#include <nvif/device.h>
+#include <nvif/class.h>
 #include <core/class.h>
-
-#include <core/device.h>
-
-#include <subdev/i2c.h>
-
-struct nouveau_object *client;
-struct nouveau_object *device;
 
 static void
 print_chan(struct nouveau_i2c_port *chan)
@@ -22,6 +16,12 @@ print_chan(struct nouveau_i2c_port *chan)
 int
 main(int argc, char **argv)
 {
+	const char *drv = "libnvkm";
+	const char *cfg = NULL;
+	const char *dbg = "error";
+	u64 dev = ~0ULL;
+	struct nvif_client *client;
+	struct nvif_device *device;
 	struct nouveau_i2c_port *chan;
 	struct nouveau_i2c *i2c;
 	int action = -1, index = -1;
@@ -29,8 +29,12 @@ main(int argc, char **argv)
 	int ret, c;
 	u8 data;
 
-	while ((c = getopt(argc, argv, "-")) != -1) {
+	while ((c = getopt(argc, argv, "-a:b:c:d:")) != -1) {
 		switch (c) {
+		case 'a': dev = strtoull(optarg, NULL, 0); break;
+		case 'b': drv = optarg; break;
+		case 'c': cfg = optarg; break;
+		case 'd': dbg = optarg; break;
 		case 1:
 			if (action < 0) {
 				if (!strcasecmp(optarg, "rd"))
@@ -60,12 +64,12 @@ main(int argc, char **argv)
 		}
 	}
 
-	ret = os_client_new(NULL, "error", argc, argv, &client);
+	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
 	if (ret)
 		return ret;
 
-	ret = nouveau_object_new(client, ~0, 0, 0x0080,
-				&(struct nv_device_class) {
+	ret = nvif_device_new(nvif_object(client), 0x00000000, NV_DEVICE_CLASS,
+			      &(struct nv_device_class) {
 					.device = ~0ULL,
 					.disable = ~(NV_DEVICE_DISABLE_MMIO |
 						     NV_DEVICE_DISABLE_IDENTIFY|
@@ -73,11 +77,12 @@ main(int argc, char **argv)
 						     NV_DEVICE_DISABLE_CORE),
 					.debug0 = ~((1 << NVDEV_SUBDEV_VBIOS) |
 						    (1 << NVDEV_SUBDEV_I2C)),
-				}, sizeof(struct nv_device_class), &device);
+			      }, sizeof(struct nv_device_class), &device);
+	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;
 
-	i2c = nouveau_i2c(device);
+	i2c = nvkm_i2c(device);
 
 	if (action < 0) {
 		list_for_each_entry(chan, &i2c->ports, head) {
@@ -113,6 +118,6 @@ main(int argc, char **argv)
 	}
 
 done:
-	os_client_del(&client);
+	nvif_device_ref(NULL, &device);
 	return ret;
 }

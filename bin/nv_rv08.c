@@ -3,5 +3,5 @@
 #define NAME    "nv_rv08"
 #define CAST    u8
 #define MAIN    main
-#define RVRAM   nv_ro08
+#define RVRAM   nvif_rd08
 #include "nv_rvfunc.h"

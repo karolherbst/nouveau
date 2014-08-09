@@ -3,5 +3,5 @@
 #define NAME    "nv_wv08"
 #define CAST    u8
 #define MAIN    main
-#define WVRAM   nv_wo08
+#define WVRAM   nvif_wr08
 #include "nv_wvfunc.h"

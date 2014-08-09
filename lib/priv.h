@@ -1,8 +1,7 @@
 #ifndef __OS_PRIV_H__
 #define __OS_PRIV_H__
 
-#include <core/os.h>
-#include <core/client.h>
+#include <core/device.h>
 
 #include <pthread.h>
 #include <unistd.h>
@@ -13,11 +12,6 @@ struct os_device {
 	char *name;
 	char *cfg;
 	char *dbg;
-};
-
-struct os_client {
-	struct nouveau_client base;
-	struct list_head head;
 };
 
 #endif

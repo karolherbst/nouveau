@@ -3,5 +3,5 @@
 #define NAME    "nv_rs08"
 #define CAST    u8
 #define MAIN    main
-#define RSYS    nv_ro08
+#define RSYS    nvif_rd08
 #include "nv_rsfunc.h"

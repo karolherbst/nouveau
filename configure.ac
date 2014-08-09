@@ -100,6 +100,7 @@ AC_OUTPUT( Makefile \
 	   nvkm/engine/ppp/Makefile \
 	   nvkm/engine/software/Makefile \
 	   nvkm/engine/vp/Makefile \
+	   nvif/Makefile \
 	   lib/Makefile \
 	   bin/Makefile \
 )

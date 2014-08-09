@@ -3,5 +3,5 @@
 #define NAME    "nv_rs32"
 #define CAST    u32
 #define MAIN    main
-#define RSYS    nv_ro32
+#define RSYS    nvif_rd32
 #include "nv_rsfunc.h"

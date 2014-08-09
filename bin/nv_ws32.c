@@ -3,5 +3,5 @@
 #define NAME    "nv_ws32"
 #define CAST    u32
 #define MAIN    main
-#define WSYS    nv_wo32
+#define WSYS    nvif_wr32
 #include "nv_wsfunc.h"

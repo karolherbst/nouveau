@@ -2,21 +2,28 @@
 #include <limits.h>
 #include <unistd.h>
 
-#include <core/os.h>
-#include <core/object.h>
+#include <nvif/client.h>
+#include <nvif/device.h>
+#include <nvif/class.h>
 #include <core/class.h>
 
 int
 main(int argc, char **argv)
 {
-	struct nouveau_object *client;
-	struct nouveau_object *device;
+	const char *drv = NULL;
+	const char *cfg = NULL;
+	const char *dbg = "error";
+	u64 dev = ~0ULL;
+	struct nvif_client *client;
+	struct nvif_device *device;
 	u32 fucbase = ~0;
 	int segment = -1;
 	int ret, c, i;
 
-	while ((c = getopt(argc, argv, "-cd")) != -1) {
+	while ((c = getopt(argc, argv, "-a:b:cd")) != -1) {
 		switch (c) {
+		case 'a': dev = strtoull(optarg, NULL, 0); break;
+		case 'b': drv = optarg; break;
 		case 'c':
 			segment = 0;
 			break;
@@ -32,35 +39,35 @@ main(int argc, char **argv)
 	if (fucbase == ~0 || segment < 0 || segment > 1)
 		return 1;
 
-	ret = os_client_new(NULL, "info", argc, argv, &client);
+	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
 	if (ret)
 		return ret;
 
-	ret = nouveau_object_new(client, ~0, 0, 0x0080,
-				&(struct nv_device_class) {
+	ret = nvif_device_new(nvif_object(client), 0x00000000, NV_DEVICE_CLASS,
+			      &(struct nv_device_class) {
 					.device = ~0ULL,
 					.disable = ~NV_DEVICE_DISABLE_MMIO,
 					.debug0 = 0,
-				}, sizeof(struct nv_device_class), &device);
+			      }, sizeof(struct nv_device_class), &device);
+	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;
 
 	if (segment == 0) {
-		u32 size = (nv_ro32(device, fucbase + 0x0108) & 0x1ff) << 8;
-		nv_wo32(device, fucbase + 0x0180, 0x02000000);
+		u32 size = (nvif_rd32(device, fucbase + 0x0108) & 0x1ff) << 8;
+		nvif_wr32(device, fucbase + 0x0180, 0x02000000);
 		for (i = 0; i < size; i += 4) {
 			if (!(i & 0xff))
-				nv_wo32(device, fucbase + 0x0188, i >> 8);
-			printf("0x%08x\n", nv_ro32(device, fucbase + 0x0184));
+				nvif_wr32(device, fucbase + 0x0188, i >> 8);
+			printf("0x%08x\n", nvif_rd32(device, fucbase + 0x0184));
 		}
 	} else {
-		u32 size = (nv_ro32(device, fucbase + 0x0108) & 0x3fe00) >> 1;
-		nv_wo32(device, fucbase + 0x01c0, 0x02000000);
+		u32 size = (nvif_rd32(device, fucbase + 0x0108) & 0x3fe00) >> 1;
+		nvif_wr32(device, fucbase + 0x01c0, 0x02000000);
 		for (i = 0; i < size; i += 4)
-			printf("0x%08x\n", nv_ro32(device, fucbase + 0x01c4));
+			printf("0x%08x\n", nvif_rd32(device, fucbase + 0x01c4));
 	}
 
-
-	os_client_del(&client);
+	nvif_device_ref(NULL, &device);
 	return 0;
 }

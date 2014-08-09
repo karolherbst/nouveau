@@ -3,5 +3,5 @@
 #define NAME    "nv_wv32"
 #define CAST    u32
 #define MAIN    main
-#define WVRAM   nv_wo32
+#define WVRAM   nvif_wr32
 #include "nv_wvfunc.h"

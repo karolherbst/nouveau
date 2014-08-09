@@ -1,14 +1,12 @@
 #include <stdlib.h>
 
-#include <core/os.h>
-#include <core/object.h>
-#include <core/device.h>
+#include <nvif/device.h>
 
 static void
-nv_wsys(struct nouveau_object *device, u64 addr, CAST data)
+nv_wsys(struct nvif_device *device, u64 addr, CAST data)
 {
-	if (nv_device(device)->card_type >= NV_50 &&
-	    nv_device(device)->card_type <= NV_E0) {
+	if (device->info.family >= NV_DEVICE_INFO_V0_TESLA &&
+	    device->info.family <= NV_DEVICE_INFO_V0_MAXWELL) {
 		u32 pmem = nv_ro32(device, 0x001700);
 		nv_wo32(device, 0x001700, 0x02000000 | (addr >> 16));
 		WSYS(device, 0x700000 + (addr & 0xffffULL), data);

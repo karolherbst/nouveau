@@ -1,21 +1,19 @@
 #include <stdlib.h>
 
-#include <core/os.h>
-#include <core/object.h>
-#include <core/device.h>
+#include <nvif/device.h>
 
 static void __iomem *map = NULL;
 static u64 map_page = ~0ULL;
 
 static CAST
-nv_rfb(struct nouveau_object *device, u64 offset)
+nv_rfb(struct nvif_device *device, u64 offset)
 {
-	struct pci_dev *pdev = nv_device(device)->pdev;
+	struct pci_dev *pdev = nvkm_device(device)->pdev;
 	u64 page = (offset & ~(PAGE_SIZE - 1));
 	u64 addr = (offset &  (PAGE_SIZE - 1));
 
-	if (nv_device(device)->card_type < NV_40 ||
-	    nv_device(device)->card_type > NV_E0) {
+	if (device->info.family < NV_DEVICE_INFO_V0_CURIE ||
+	    device->info.family > NV_DEVICE_INFO_V0_MAXWELL) {
 		printk("unsupported chipset\n");
 		exit(1);
 	}

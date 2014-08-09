@@ -3,5 +3,5 @@
 #define NAME    "nv_rv16"
 #define CAST    u16
 #define MAIN    main
-#define RVRAM   nv_ro16
+#define RVRAM   nvif_rd16
 #include "nv_rvfunc.h"

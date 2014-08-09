@@ -22,22 +22,29 @@
  * Authors: Ben Skeggs
  */
 
-#include <core/os.h>
+#include <nvif/client.h>
+#include <nvif/driver.h>
+#include <nvif/notify.h>
+#include <nvif/ioctl.h>
+#include <nvif/class.h>
+#include <nvif/event.h>
 
 #include <core/object.h>
+#include <core/handle.h>
 #include <core/client.h>
 #include <core/device.h>
 #include <core/intr.h>
-#include <core/class.h>
+#include <core/ioctl.h>
+#include <core/event.h>
 
 #include <engine/device.h>
 #include <subdev/mc.h>
 
 #include "priv.h"
 
+static DEFINE_MUTEX(os_mutex);
 static LIST_HEAD(os_device_list);
-static LIST_HEAD(os_client_list);
-static int os_client_id = 0;
+static int os_client_nr = 0;
 
 /******************************************************************************
  * horrific stuff to implement linux's ioremap interface on top of pciaccess
@@ -126,7 +133,7 @@ nvos_iounmap(void __iomem *ptr)
  * client interfaces
  *****************************************************************************/
 static int
-os_init_device(struct pci_device *pdev, u64 handle, char *cfg, char *dbg)
+os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char *dbg)
 {
 	struct os_device *odev;
 	struct pci_dev *ldev;
@@ -152,10 +159,7 @@ os_init_device(struct pci_device *pdev, u64 handle, char *cfg, char *dbg)
 	ldev->device = pdev->dev;
 	ldev->subsystem_vendor = pdev->subvendor_id;
 	ldev->subsystem_device = pdev->subdevice_id;
-
 	name = strdup(_name);
-	cfg = cfg ? strdup(cfg) : NULL;
-	dbg = dbg ? strdup(dbg) : NULL;
 
 	ret = nouveau_device_create(ldev, NOUVEAU_BUS_PCI, handle, name,
 				    cfg, dbg, &odev);
@@ -166,13 +170,11 @@ os_init_device(struct pci_device *pdev, u64 handle, char *cfg, char *dbg)
 
 	list_add_tail(&odev->head, &os_device_list);
 	odev->name = name;
-	odev->cfg = cfg;
-	odev->dbg = dbg;
 	return 0;
 }
 
 static int
-os_init(char *cfg, char *dbg, bool init)
+os_init(const char *cfg, const char *dbg, bool init)
 {
 	struct pci_device_iterator *iter;
 	struct pci_device *pdev;
@@ -217,120 +219,88 @@ os_fini(void)
 	list_for_each_entry_safe(odev, temp, &os_device_list, head) {
 		struct pci_dev *ldev = odev->base.pdev;
 		char *name = odev->name;
-		char *cfg  = odev->cfg;
-		char *dbg  = odev->dbg;
 		list_del(&odev->head);
 		nouveau_object_ref(NULL, (struct nouveau_object **)&odev);
-		free(dbg); free(cfg); free(name); free(ldev);
+		free(name); free(ldev);
 	}
 
 	nouveau_object_debug();
 	pci_system_cleanup();
 }
 
-int
-os_client_new(char *cfg, char *dbg, int argc, char **argv,
-	      struct nouveau_object **pclient)
+static void
+os_client_unmap(void *priv, void *ptr, u32 size)
 {
-	struct os_device *device = NULL, *odev;
-	struct os_client *client;
-	u64 handle = ~0ULL;
-	int ret, c;
-
-	while ((c = getopt(argc, argv, "la:i:c:d:")) != -1) {
-		switch (c) {
-		case 'l':
-			return os_init(NULL, NULL, false);
-		case 'a':
-			handle = strtoull(optarg, NULL, 0);
-			break;
-		case 'c':
-			cfg = optarg;
-			break;
-		case 'd':
-			dbg = optarg;
-			break;
-		case '?':
-			return -EINVAL;
-		default:
-			break;
-		}
-	}
-
-	if (list_empty(&os_client_list)) {
-		ret = os_init(cfg, dbg, true);
-		if (ret)
-			return ret;
-	}
-
-	c = 0;
-	list_for_each_entry(odev, &os_device_list, head) {
-		if (handle == ~0ULL || handle == c++ ||
-		    handle == odev->base.handle) {
-			device = odev;
-			break;
-		}
-	}
-
-	if (device) {
-		char name[16];
-
-		snprintf(name, sizeof(name), "CLIENT%2d", os_client_id++);
-
-		ret = nouveau_client_create(name, device->base.handle,
-					    cfg, dbg, &client);
-		*pclient = nv_object(client);
-		if (ret)
-			return ret;
-
-		list_add(&client->head, &os_client_list);
-		return 0;
-	}
-
-	return -ENODEV;
+	iounmap(ptr);
 }
 
-void
-os_client_del(struct nouveau_object **pclient)
+static void *
+os_client_map(void *priv, u64 handle, u32 size)
 {
-	struct nouveau_object *client = *pclient;
-
-	if (client) {
-		struct os_client *ocli = (void *)client;
-
-		list_del(&ocli->head);
-
-		nouveau_client_fini(nv_client(client), false);
-		atomic_set(&client->refcount, 1);
-		nouveau_object_ref(NULL, &client);
-
-		if (list_empty(&os_client_list))
-			os_fini();
-	}
-
-	*pclient = NULL;
+	return ioremap(handle, size);
 }
 
-void
-os_suspend()
+static int
+os_client_ioctl(void *priv, bool super, void *data, u32 size, void **hack)
 {
-	struct os_client *client;
+	return nvkm_ioctl(priv, super, data, size, hack);
+}
+
+static int
+os_client_resume(void *priv)
+{
+	return nouveau_client_init(priv);
+}
+
+static int
+os_client_suspend(void *priv)
+{
+	return nouveau_client_fini(priv, true);
+}
+
+static void
+os_client_fini(void *priv)
+{
+	struct nouveau_object *object = priv;
+
+	nouveau_client_fini(nv_client(object), false);
+	atomic_set(&object->refcount, 1);
+	nouveau_object_ref(NULL, &object);
+
+	mutex_lock(&os_mutex);
+	if (--os_client_nr == 0)
+		os_fini();
+	mutex_unlock(&os_mutex);
+}
+
+static int
+os_client_init(const char *name, u64 device, const char *cfg,
+	       const char *dbg, void **ppriv)
+{
+	struct nouveau_client *client;
 	int ret;
 
-	list_for_each_entry(client, &os_client_list, head) {
-		ret = nouveau_client_fini(&client->base, true);
-		assert(ret == 0);
-	}
+	mutex_lock(&os_mutex);
+	if (os_client_nr++ == 0)
+		os_init(cfg, dbg, true);
+	mutex_unlock(&os_mutex);
+
+	ret = nouveau_client_create(name, device, cfg, dbg, &client);
+	*ppriv = client;
+	if (ret == 0)
+		client->ntfy = nvif_notify;
+	return ret;
 }
 
-void
-os_resume()
-{
-	struct os_client *client;
-	int ret;
-
-	list_for_each_entry(client, &os_client_list, head) {
-		ret = nouveau_client_init(&client->base);
-		assert(ret == 0);
-	}
-}
+const struct nvif_driver
+nvif_driver_lib = {
+	.name = "lib",
+	.init = os_client_init,
+	.fini = os_client_fini,
+	.suspend = os_client_suspend,
+	.resume = os_client_resume,
+	.ioctl = os_client_ioctl,
+	.map = os_client_map,
+	.unmap = os_client_unmap,
+	.keep = false,
+};
