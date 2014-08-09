@@ -6,7 +6,6 @@
 #include <nvif/driver.h>
 #include <nvif/device.h>
 #include <nvif/class.h>
-#include <core/class.h>
 
 int
 main(int argc, char **argv)

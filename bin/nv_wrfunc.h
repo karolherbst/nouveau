@@ -5,7 +5,6 @@
 #include <nvif/client.h>
 #include <nvif/device.h>
 #include <nvif/class.h>
-#include <core/class.h>
 
 #ifndef ENABLE
 #define ENABLE NV_DEVICE_V0_DISABLE_MMIO

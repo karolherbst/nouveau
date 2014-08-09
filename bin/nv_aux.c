@@ -5,7 +5,6 @@
 #include <nvif/client.h>
 #include <nvif/device.h>
 #include <nvif/class.h>
-#include <core/class.h>
 
 static void
 print_chan(struct nouveau_i2c_port *chan)
