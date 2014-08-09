@@ -13,6 +13,7 @@ libcore_la_SOURCES = client.c \
 		     handle.c \
 		     mm.c \
 		     namedb.c \
+		     notify.c \
 		     object.c \
 		     option.c \
 		     parent.c \

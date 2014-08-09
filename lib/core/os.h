@@ -55,6 +55,17 @@ void os_backtrace(void);
 #define s16 int16_t
 #define s8 int8_t
 
+#ifndef _ASM_GENERIC_INT_LL64_H
+typedef uint64_t __u64;
+typedef uint32_t __u32;
+typedef uint16_t __u16;
+typedef uint8_t __u8;
+typedef int64_t __s64;
+typedef int32_t __s32;
+typedef int16_t __s16;
+typedef int8_t __s8;
+#endif
+
 typedef u64 dma_addr_t;
 typedef dma_addr_t resource_size_t;
 
@@ -217,7 +228,13 @@ __test_and_set_bit(int bit, volatile unsigned long *ptr)
 static inline int
 test_and_set_bit(int bit, volatile unsigned long *ptr)
 {
-	 return !(__sync_fetch_and_or(ptr, (1L << bit)) & (1L << bit));
+	 return !!(__sync_fetch_and_or(ptr, (1L << bit)) & (1L << bit));
+}
+
+static inline void
+set_bit(int bit, volatile unsigned long *ptr)
+{
+	test_and_set_bit(bit, ptr);
 }
 
 /******************************************************************************
@@ -479,6 +496,12 @@ typedef struct spinlock_t {
 #define spin_unlock(a) pthread_mutex_unlock(&(a)->lock)
 #define spin_lock_irqsave(a,b) do { (b) = 1; spin_lock((a)); } while (0)
 #define spin_unlock_irqrestore(a,b) do { (void)(b); spin_unlock((a)); } while (0)
+#define spin_is_locked(a) ({ \
+	int _ret = pthread_mutex_trylock(&(a)->lock) != 0; \
+	if (_ret == 0) \
+		pthread_mutex_unlock(&(a)->lock); \
+	_ret; \
+})
 
 /******************************************************************************
  * rwlocks
