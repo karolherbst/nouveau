@@ -1,0 +1,1 @@
+../../../../../nvkm/include/subdev/bios/fan.h

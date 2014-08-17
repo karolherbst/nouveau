@@ -22,6 +22,7 @@ libbios_la_SOURCES = base.c \
 		     vmap.c \
 		     volt.c \
 		     xpio.c \
-		     P0260.c
+		     P0260.c \
+		     fan.c
 
 include $(srcdir)/../Makefile.subdev
