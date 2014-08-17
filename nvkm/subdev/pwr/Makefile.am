@@ -22,7 +22,8 @@ FUC_COMMON = fuc/os.h \
 	     fuc/memx.fuc \
 	     fuc/perf.fuc \
 	     fuc/i2c_.fuc \
-	     fuc/test.fuc
+	     fuc/test.fuc \
+	     fuc/arith.fuc
 
 fuc/nva3.fuc.h: fuc/nva3.fuc ${FUC_COMMON}
 	cpp -Ifuc -CC fuc/nva3.fuc | cpp \
