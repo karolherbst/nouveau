@@ -7,6 +7,7 @@ libi2c_la_SOURCES = base.c \
 		    pad.c \
 		    padnv04.c \
 		    padnv94.c \
+		    padgm204.c \
 		    nv04.c \
 		    nv4e.c \
 		    nv50.c \
