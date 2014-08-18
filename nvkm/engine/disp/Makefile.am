@@ -14,6 +14,7 @@ libdisp_la_SOURCES = base.c \
 		     nve0.c \
 		     nvf0.c \
 		     gm107.c \
+		     gm204.c \
 		     dacnv50.c \
 		     dport.c \
 		     hdanva3.c \
@@ -26,6 +27,7 @@ libdisp_la_SOURCES = base.c \
 		     sornv50.c \
 		     sornv94.c \
 		     sornvd0.c \
+		     sorgm204.c \
 		     vga.c
 
 include $(srcdir)/../Makefile.engine
