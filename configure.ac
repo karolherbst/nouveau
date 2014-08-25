@@ -74,6 +74,7 @@ AC_OUTPUT( Makefile \
 	   nvkm/subdev/clock/Makefile \
 	   nvkm/subdev/devinit/Makefile \
 	   nvkm/subdev/fb/Makefile \
+	   nvkm/subdev/fuse/Makefile \
 	   nvkm/subdev/gpio/Makefile \
 	   nvkm/subdev/i2c/Makefile \
 	   nvkm/subdev/ibus/Makefile \
