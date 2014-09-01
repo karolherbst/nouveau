@@ -9,6 +9,7 @@ libbios_la_SOURCES = base.c \
 		     disp.c \
 		     dp.c \
 		     extdev.c \
+		     fan.c \
 		     gpio.c \
 		     i2c.c \
 		     init.c \
@@ -22,7 +23,7 @@ libbios_la_SOURCES = base.c \
 		     vmap.c \
 		     volt.c \
 		     xpio.c \
-		     P0260.c \
-		     fan.c
+		     M0205.c \
+		     P0260.c
 
 include $(srcdir)/../Makefile.subdev
