@@ -27,6 +27,7 @@ libfb_la_SOURCES = base.c \
 		   ramnve0.c \
 		   ramgk20a.c \
 		   ramgm107.c \
+		   sddr2.c \
 		   sddr3.c \
 		   gddr5.c
 
