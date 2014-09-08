@@ -251,8 +251,9 @@ list_empty(struct list_head *head)
  * @return A pointer to the data struct containing the list head.
  */
 #ifndef container_of
-#define container_of(ptr, type, member) \
-    (type *)((char *)(ptr) - (char *) &((type *)0)->member)
+#define container_of(ptr, type, member) ({ \
+    (type *)((char *)(ptr) - (char *) &((type *)0)->member); \
+})
 #endif
 
 /**
