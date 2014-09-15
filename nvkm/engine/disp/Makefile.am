@@ -21,6 +21,7 @@ libdisp_la_SOURCES = base.c \
 		     hdminv84.c \
 		     hdminva3.c \
 		     hdminvd0.c \
+		     hdminve0.c \
 		     piornv50.c \
 		     sornv50.c \
 		     sornv94.c \
