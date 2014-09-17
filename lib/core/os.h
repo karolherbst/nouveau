@@ -79,6 +79,10 @@ typedef dma_addr_t resource_size_t;
 #define unlikely(a) (a)
 #define BIT(a) (1UL << (a))
 
+#define ERR_PTR(err) ((void *)(long)(err))
+#define PTR_ERR(ptr) ((long)(ptr))
+#define IS_ERR(ptr)  ((unsigned long)(ptr) >= (unsigned long)-4095)
+
 #define jiffies (ktime_to_ns(ktime_get()))
 #define nsecs_to_jiffies(a) (a)
 #define usecs_to_jiffies(a) nsecs_to_jiffies((a) * 1000)

@@ -1,0 +1,1 @@
+../../../../nvkm/subdev/bios/image.c

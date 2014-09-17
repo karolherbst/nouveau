@@ -12,12 +12,19 @@ libbios_la_SOURCES = base.c \
 		     fan.c \
 		     gpio.c \
 		     i2c.c \
+		     image.c \
 		     init.c \
 		     mxm.c \
 		     perf.c \
 		     pll.c \
 		     ramcfg.c \
 		     rammap.c \
+		     shadow.c \
+		     shadowacpi.c \
+		     shadowof.c \
+		     shadowpci.c \
+		     shadowramin.c \
+		     shadowrom.c \
 		     timing.c \
 		     therm.c \
 		     vmap.c \
