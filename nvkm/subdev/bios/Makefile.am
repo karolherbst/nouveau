@@ -15,6 +15,7 @@ libbios_la_SOURCES = base.c \
 		     image.c \
 		     init.c \
 		     mxm.c \
+		     pcir.c \
 		     perf.c \
 		     pll.c \
 		     ramcfg.c \
