@@ -19,6 +19,7 @@ libbios_la_SOURCES = base.c \
 		     pcir.c \
 		     perf.c \
 		     pll.c \
+		     pmu.c \
 		     ramcfg.c \
 		     rammap.c \
 		     shadow.c \
