@@ -15,7 +15,7 @@ print_chan(struct nouveau_i2c_port *chan)
 int
 main(int argc, char **argv)
 {
-	const char *drv = "libnvkm";
+	const char *drv = "lib";
 	const char *cfg = NULL;
 	const char *dbg = "error";
 	u64 dev = ~0ULL;

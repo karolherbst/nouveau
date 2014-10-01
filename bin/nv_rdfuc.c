@@ -9,7 +9,7 @@
 int
 main(int argc, char **argv)
 {
-	const char *drv = NULL;
+	const char *drv = "lib";
 	const char *cfg = NULL;
 	const char *dbg = "error";
 	u64 dev = ~0ULL;
