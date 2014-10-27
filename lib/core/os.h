@@ -105,6 +105,8 @@ typedef dma_addr_t resource_size_t;
 #define __printf(a,b)
 #define __user
 
+#define IS_ENABLED(x) (0)
+
 static inline int
 order_base_2(u64 base)
 {
