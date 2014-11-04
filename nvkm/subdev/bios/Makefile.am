@@ -33,6 +33,7 @@ libbios_la_SOURCES = base.c \
 		     vmap.c \
 		     volt.c \
 		     xpio.c \
+		     M0203.c \
 		     M0205.c \
 		     M0209.c \
 		     P0260.c
