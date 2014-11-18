@@ -9,4 +9,5 @@ libpciaccessos_la_LIBADD = @PCIACCESS_LIBS@ -lpthread -ldrm \
 			   $(top_srcdir)/nvkm/libnvkm.la
 libpciaccessos_la_SOURCES = intr.c \
 			    main.c \
+			    null.c \
 			    kern.c
