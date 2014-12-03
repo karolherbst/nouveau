@@ -46,13 +46,12 @@ main(int argc, char **argv)
 					.disable = 0ULL,
 					.debug0 = 0ULL,
 			      }, sizeof(struct nv_device_v0), &device);
-	nvif_client_ref(NULL, &client);
 	if (ret)
 		return ret;
 
 	if (suspend) {
-		client->driver->suspend(client);
-		client->driver->resume(client);
+		nvif_client_suspend(client);
+		nvif_client_resume(client);
 	}
 
 	while (wait && (c = getchar()) == EOF) {
@@ -61,6 +60,7 @@ main(int argc, char **argv)
 
 	printf("shutting down...\n");
 	nvif_device_ref(NULL, &device);
+	nvif_client_ref(NULL, &client);
 	printf("done!\n");
 	return ret;
 }
