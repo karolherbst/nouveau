@@ -507,6 +507,7 @@ typedef struct spinlock_t {
 		pthread_mutex_unlock(&(a)->lock); \
 	_ret; \
 })
+#define assert_spin_locked(a) BUG_ON(!spin_is_locked(a))
 
 /******************************************************************************
  * rwlocks
