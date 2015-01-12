@@ -21,7 +21,7 @@ nv_wfb(struct nvif_device *device, u64 offset, CAST data)
 		if (map)
 			iounmap(map);
 
-		map = ioremap(pci_resource_start(nvkm_device(device)->pdev, 1) +
+		map = ioremap(pci_resource_start(nvxx_device(device)->pdev, 1) +
 			      page, PAGE_SIZE);
 		if (!map) {
 			printk("map failed\n");

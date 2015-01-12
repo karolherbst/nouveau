@@ -81,7 +81,7 @@ main(int argc, char **argv)
 	if (ret)
 		return ret;
 
-	i2c = nvkm_i2c(device);
+	i2c = nvxx_i2c(device);
 
 	if (action < 0) {
 		list_for_each_entry(chan, &i2c->ports, head) {

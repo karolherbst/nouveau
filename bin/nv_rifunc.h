@@ -8,7 +8,7 @@ static u64 map_page = ~0ULL;
 static CAST
 nv_rfb(struct nvif_device *device, u64 offset)
 {
-	struct pci_dev *pdev = nvkm_device(device)->pdev;
+	struct pci_dev *pdev = nvxx_device(device)->pdev;
 	u64 page = (offset & ~(PAGE_SIZE - 1));
 	u64 addr = (offset &  (PAGE_SIZE - 1));
 
