@@ -20,10 +20,10 @@ fucs := $(drm)/nvkm/engine/copy/fuc/nva3.fuc3.h \
 	$(drm)/nvkm/engine/graph/fuc/gpcnvf0.fuc3.h \
 	$(drm)/nvkm/engine/graph/fuc/gpcnv108.fuc5.h \
 	$(drm)/nvkm/engine/graph/fuc/gpcgm107.fuc5.h \
-	$(drm)/nvkm/subdev/pwr/fuc/nva3.fuc3.h \
-	$(drm)/nvkm/subdev/pwr/fuc/nvc0.fuc3.h \
-	$(drm)/nvkm/subdev/pwr/fuc/nvd0.fuc4.h \
-	$(drm)/nvkm/subdev/pwr/fuc/nv108.fuc5.h
+	$(drm)/nvkm/subdev/pmu/fuc/nva3.fuc3.h \
+	$(drm)/nvkm/subdev/pmu/fuc/nvc0.fuc3.h \
+	$(drm)/nvkm/subdev/pmu/fuc/nvd0.fuc4.h \
+	$(drm)/nvkm/subdev/pmu/fuc/nv108.fuc5.h
 drms := $(addprefix $(lib)/, $(nvif-y)) \
 	$(addprefix $(lib)/, $(nvkm-y))
 srcs := $(lib)/drm.o \
