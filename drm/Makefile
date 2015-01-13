@@ -9,8 +9,8 @@ LINUXDIR := $(shell if [ -e /lib/modules/$(LINUXVER)/source ]; \
 	     )
 endif
 
-KBUILD_OPTS := M=$(CURDIR)
-KBUILD_OPTS += KCPPFLAGS="$(shell cat nouveau.config)"
+KBUILD_OPTS := M=$(CURDIR)/nouveau
+KBUILD_OPTS += KCPPFLAGS=""
 
 all: modules
 

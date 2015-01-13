@@ -1,5 +1,0 @@
-AUTOMAKE_OPTIONS = foreign
-
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-
-SUBDIRS = nvkm lib nvif bin

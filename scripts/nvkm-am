@@ -1,0 +1,42 @@
+#!/bin/bash
+
+APPLY="-p3 --include=drm/nouveau/*"
+  LOG=(
+       "drm/nouveau/\(.*\)\:" "\2\:"
+       "drm/nouveau\:" "drm\:"
+      )
+ REPO=
+ TEMP=`mktemp -d`
+
+while getopts "Rc:" ARG; do
+	case ${ARG} in
+	R) APPLY="--directory=drivers/gpu --include=drivers/gpu/drm/nouveau/*"
+	     LOG=(
+		  "\(.*\)\:" "drm/nouveau/\2\:"
+		  "drm/nouveau/drm\:" "drm/nouveau\:"
+		 );;
+	c)  REPO=${OPTARG};;
+	?) exit 1;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+if [[ ${REPO} != "" ]]; then
+	pushd ${REPO}
+	git format-patch -o ${TEMP} $1
+	popd
+else
+	cp $@ ${TEMP}
+fi
+FILES=${TEMP}/*
+
+for FILE in ${FILES}; do
+	for (( i = 0; i < ${#LOG[@]}; i += 2)); do
+		OLD=${LOG[$i + 0]}
+		NEW=${LOG[$i + 1]}
+		sed -i -e "s:^Subject\(.*\)] ${OLD}:Subject\1] ${NEW}:" ${FILE}
+	done
+done
+git am -3 ${APPLY} ${FILES}
+
+rm -rf ${TEMP}
