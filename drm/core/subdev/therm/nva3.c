@@ -1,1 +1,0 @@
-../../../../nvkm/subdev/therm/nva3.c

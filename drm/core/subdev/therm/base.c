@@ -1,1 +1,0 @@
-../../../../nvkm/subdev/therm/base.c

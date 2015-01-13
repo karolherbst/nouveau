@@ -1,1 +1,0 @@
-../../../../nvkm/subdev/bios/therm.c

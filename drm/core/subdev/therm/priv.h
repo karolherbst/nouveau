@@ -1,1 +1,0 @@
-../../../../nvkm/subdev/therm/priv.h

@@ -1,1 +1,0 @@
-../../../../nvkm/subdev/therm/nv84.c

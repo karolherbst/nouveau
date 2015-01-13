@@ -1,1 +1,0 @@
-../../../../../nvkm/subdev/pwr/fuc/nvc0.fuc.h
