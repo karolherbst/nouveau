@@ -7,18 +7,18 @@ include $(src)/nvkm/Kbuild
 
 fucs := $(drm)/nvkm/engine/ce/fuc/nva3.fuc3.h \
 	$(drm)/nvkm/engine/ce/fuc/nvc0.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/hubnvc0.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/hubnvd7.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/hubnve0.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/hubnvf0.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/hubnv108.fuc5.h \
-	$(drm)/nvkm/engine/graph/fuc/hubgm107.fuc5.h \
-	$(drm)/nvkm/engine/graph/fuc/gpcnvc0.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/gpcnvd7.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/gpcnve0.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/gpcnvf0.fuc3.h \
-	$(drm)/nvkm/engine/graph/fuc/gpcnv108.fuc5.h \
-	$(drm)/nvkm/engine/graph/fuc/gpcgm107.fuc5.h \
+	$(drm)/nvkm/engine/gr/fuc/hubnvc0.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubnvd7.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubnve0.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubnvf0.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubnv108.fuc5.h \
+	$(drm)/nvkm/engine/gr/fuc/hubgm107.fuc5.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcnvc0.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcnvd7.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcnve0.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcnvf0.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcnv108.fuc5.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcgm107.fuc5.h \
 	$(drm)/nvkm/subdev/pmu/fuc/nva3.fuc3.h \
 	$(drm)/nvkm/subdev/pmu/fuc/nvc0.fuc3.h \
 	$(drm)/nvkm/subdev/pmu/fuc/nvd0.fuc4.h \
