@@ -33,7 +33,6 @@
 #include <core/handle.h>
 #include <core/client.h>
 #include <core/device.h>
-#include <core/intr.h>
 #include <core/ioctl.h>
 #include <core/event.h>
 
