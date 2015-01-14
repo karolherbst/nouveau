@@ -36,7 +36,6 @@
 #include <core/ioctl.h>
 #include <core/event.h>
 
-#include <engine/device.h>
 #include <subdev/mc.h>
 
 #include "priv.h"
@@ -160,7 +159,7 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 	ldev->subsystem_device = pdev->subdevice_id;
 	name = strdup(_name);
 
-	ret = nouveau_device_create(ldev, NOUVEAU_BUS_PCI, handle, name,
+	ret = nouveau_device_create(ldev, NVKM_BUS_PCI, handle, name,
 				    cfg, dbg, &odev);
 	if (ret) {
 		fprintf(stderr, "failed to create device, %d\n", ret);

@@ -30,7 +30,6 @@
 #include <nvif/event.h>
 
 #include <core/ioctl.h>
-#include <engine/device.h>
 
 #include "priv.h"
 
@@ -53,7 +52,7 @@ null_fini(void)
 static int
 null_init(const char *cfg, const char *dbg, bool init)
 {
-	return nouveau_device_create(&null_pci_dev, NOUVEAU_BUS_PCI,
+	return nouveau_device_create(&null_pci_dev, NVKM_BUS_PCI,
 				     ~0ULL, "0000:00:00.0", cfg, dbg,
 				     &null_device);
 }
