@@ -632,7 +632,7 @@ main(int argc, char **argv)
 						     NV_DEVICE_V0_DISABLE_CORE |
 						     NV_DEVICE_V0_DISABLE_IDENTIFY),
 					.debug0 = ~((1ULL << NVDEV_SUBDEV_TIMER) |
-						    (1ULL << NVDEV_ENGINE_PERFMON)),
+						    (1ULL << NVDEV_ENGINE_PM)),
 			      }, sizeof(struct nv_device_v0), &device);
 	nvif_client_ref(NULL, &client);
 	if (ret)
