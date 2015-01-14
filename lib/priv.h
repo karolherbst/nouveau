@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 struct os_device {
-	struct nouveau_device base;
+	struct nvkm_device base;
 	struct list_head head;
 	char *name;
 	char *cfg;

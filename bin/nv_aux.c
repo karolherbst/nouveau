@@ -7,7 +7,7 @@
 #include <nvif/class.h>
 
 static void
-print_chan(struct nouveau_i2c_port *chan)
+print_chan(struct nvkm_i2c_port *chan)
 {
 	printf("chan 0x%02x: type %04x\n", chan->index, nv_mclass(chan));
 }
@@ -21,8 +21,8 @@ main(int argc, char **argv)
 	u64 dev = ~0ULL;
 	struct nvif_client *client;
 	struct nvif_device *device;
-	struct nouveau_i2c_port *chan;
-	struct nouveau_i2c *i2c;
+	struct nvkm_i2c_port *chan;
+	struct nvkm_i2c *i2c;
 	int action = -1, index = -1;
 	int addr = -1, val = -1;
 	int ret, c;

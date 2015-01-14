@@ -35,7 +35,7 @@
 
 static DEFINE_MUTEX(null_mutex);
 static int null_client_nr = 0;
-static struct nouveau_device *null_device;
+static struct nvkm_device *null_device;
 static struct pci_dev
 null_pci_dev = {
 	.pdev = &(struct pci_device) {
@@ -45,16 +45,16 @@ null_pci_dev = {
 static void
 null_fini(void)
 {
-	nouveau_object_ref(NULL, (struct nouveau_object **)&null_device);
-	nouveau_object_debug();
+	nvkm_object_ref(NULL, (struct nvkm_object **)&null_device);
+	nvkm_object_debug();
 }
 
 static int
 null_init(const char *cfg, const char *dbg, bool init)
 {
-	return nouveau_device_create(&null_pci_dev, NVKM_BUS_PCI,
-				     ~0ULL, "0000:00:00.0", cfg, dbg,
-				     &null_device);
+	return nvkm_device_create(&null_pci_dev, NVKM_BUS_PCI,
+				  ~0ULL, "0000:00:00.0", cfg, dbg,
+				  &null_device);
 }
 
 static void
@@ -77,23 +77,23 @@ null_client_ioctl(void *priv, bool super, void *data, u32 size, void **hack)
 static int
 null_client_resume(void *priv)
 {
-	return nouveau_client_init(priv);
+	return nvkm_client_init(priv);
 }
 
 static int
 null_client_suspend(void *priv)
 {
-	return nouveau_client_fini(priv, true);
+	return nvkm_client_fini(priv, true);
 }
 
 static void
 null_client_fini(void *priv)
 {
-	struct nouveau_object *object = priv;
+	struct nvkm_object *object = priv;
 
-	nouveau_client_fini(nv_client(object), false);
+	nvkm_client_fini(nv_client(object), false);
 	atomic_set(&object->refcount, 1);
-	nouveau_object_ref(NULL, &object);
+	nvkm_object_ref(NULL, &object);
 
 	mutex_lock(&null_mutex);
 	if (--null_client_nr == 0)
@@ -105,7 +105,7 @@ static int
 null_client_init(const char *name, u64 device, const char *cfg,
 	       const char *dbg, void **ppriv)
 {
-	struct nouveau_client *client;
+	struct nvkm_client *client;
 	int ret;
 
 	mutex_lock(&null_mutex);
@@ -113,7 +113,7 @@ null_client_init(const char *name, u64 device, const char *cfg,
 		null_init(cfg, dbg, true);
 	mutex_unlock(&null_mutex);
 
-	ret = nouveau_client_create(name, ~0ULL, cfg, dbg, &client);
+	ret = nvkm_client_create(name, ~0ULL, cfg, dbg, &client);
 	*ppriv = client;
 	if (ret == 0)
 		client->ntfy = nvif_notify;

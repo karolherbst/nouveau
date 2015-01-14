@@ -159,8 +159,8 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 	ldev->subsystem_device = pdev->subdevice_id;
 	name = strdup(_name);
 
-	ret = nouveau_device_create(ldev, NVKM_BUS_PCI, handle, name,
-				    cfg, dbg, &odev);
+	ret = nvkm_device_create(ldev, NVKM_BUS_PCI, handle, name,
+				 cfg, dbg, &odev);
 	if (ret) {
 		fprintf(stderr, "failed to create device, %d\n", ret);
 		return ret;
@@ -218,11 +218,11 @@ os_fini(void)
 		struct pci_dev *ldev = odev->base.pdev;
 		char *name = odev->name;
 		list_del(&odev->head);
-		nouveau_object_ref(NULL, (struct nouveau_object **)&odev);
+		nvkm_object_ref(NULL, (struct nvkm_object **)&odev);
 		free(name); free(ldev);
 	}
 
-	nouveau_object_debug();
+	nvkm_object_debug();
 	pci_system_cleanup();
 }
 
@@ -247,23 +247,23 @@ os_client_ioctl(void *priv, bool super, void *data, u32 size, void **hack)
 static int
 os_client_resume(void *priv)
 {
-	return nouveau_client_init(priv);
+	return nvkm_client_init(priv);
 }
 
 static int
 os_client_suspend(void *priv)
 {
-	return nouveau_client_fini(priv, true);
+	return nvkm_client_fini(priv, true);
 }
 
 static void
 os_client_fini(void *priv)
 {
-	struct nouveau_object *object = priv;
+	struct nvkm_object *object = priv;
 
-	nouveau_client_fini(nv_client(object), false);
+	nvkm_client_fini(nv_client(object), false);
 	atomic_set(&object->refcount, 1);
-	nouveau_object_ref(NULL, &object);
+	nvkm_object_ref(NULL, &object);
 
 	mutex_lock(&os_mutex);
 	if (--os_client_nr == 0)
@@ -275,7 +275,7 @@ static int
 os_client_init(const char *name, u64 device, const char *cfg,
 	       const char *dbg, void **ppriv)
 {
-	struct nouveau_client *client;
+	struct nvkm_client *client;
 	int ret;
 
 	mutex_lock(&os_mutex);
@@ -283,7 +283,7 @@ os_client_init(const char *name, u64 device, const char *cfg,
 		os_init(cfg, dbg, true);
 	mutex_unlock(&os_mutex);
 
-	ret = nouveau_client_create(name, device, cfg, dbg, &client);
+	ret = nvkm_client_create(name, device, cfg, dbg, &client);
 	*ppriv = client;
 	if (ret == 0)
 		client->ntfy = nvif_notify;
