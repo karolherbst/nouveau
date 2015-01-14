@@ -7,17 +7,17 @@ include $(src)/nvkm/Kbuild
 
 fucs := $(drm)/nvkm/engine/ce/fuc/gt215.fuc3.h \
 	$(drm)/nvkm/engine/ce/fuc/gf100.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/hubnvc0.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/hubnvd7.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/hubnve0.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/hubnvf0.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/hubnv108.fuc5.h \
+	$(drm)/nvkm/engine/gr/fuc/hubgf100.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubgf117.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubgk104.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubgk110.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/hubgk208.fuc5.h \
 	$(drm)/nvkm/engine/gr/fuc/hubgm107.fuc5.h \
-	$(drm)/nvkm/engine/gr/fuc/gpcnvc0.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/gpcnvd7.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/gpcnve0.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/gpcnvf0.fuc3.h \
-	$(drm)/nvkm/engine/gr/fuc/gpcnv108.fuc5.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcgf100.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcgf117.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcgk104.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcgk110.fuc3.h \
+	$(drm)/nvkm/engine/gr/fuc/gpcgk208.fuc5.h \
 	$(drm)/nvkm/engine/gr/fuc/gpcgm107.fuc5.h \
 	$(drm)/nvkm/subdev/pmu/fuc/gt215.fuc3.h \
 	$(drm)/nvkm/subdev/pmu/fuc/gf100.fuc3.h \
