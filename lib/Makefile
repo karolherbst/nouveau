@@ -5,8 +5,8 @@ src  := $(drm)
 include $(src)/nvif/Kbuild
 include $(src)/nvkm/Kbuild
 
-fucs := $(drm)/nvkm/engine/copy/fuc/nva3.fuc3.h \
-	$(drm)/nvkm/engine/copy/fuc/nvc0.fuc3.h \
+fucs := $(drm)/nvkm/engine/ce/fuc/nva3.fuc3.h \
+	$(drm)/nvkm/engine/ce/fuc/nvc0.fuc3.h \
 	$(drm)/nvkm/engine/graph/fuc/hubnvc0.fuc3.h \
 	$(drm)/nvkm/engine/graph/fuc/hubnvd7.fuc3.h \
 	$(drm)/nvkm/engine/graph/fuc/hubnve0.fuc3.h \
