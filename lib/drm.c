@@ -179,7 +179,7 @@ drm_client_init(const char *name, u64 device, const char *cfg,
 			continue;
 		if ((ver = drmGetVersion(drm->fd)) == NULL)
 			continue;
-		if (!strcmp(ver->name, "nvkm"))
+		if (!strcmp(ver->name, "nouveau"))
 			break;
 		free(ver);
 	}
