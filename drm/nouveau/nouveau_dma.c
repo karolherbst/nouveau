@@ -79,23 +79,31 @@ READ_GET(struct nouveau_channel *chan, uint64_t *prev_get, int *timeout)
 }
 
 void
-nv50_dma_push(struct nouveau_channel *chan, struct nouveau_bo *bo,
-	      int delta, int length)
+nv50_dma_push_bo(struct nouveau_channel *chan, struct nouveau_bo *bo,
+		 int delta, int length)
 {
 	struct nouveau_cli *cli = (void *)nvif_client(&chan->device->base);
-	struct nouveau_bo *pb = chan->push.buffer;
 	struct nvkm_vma *vma;
-	int ip = (chan->dma.ib_put * 2) + chan->dma.ib_base;
 	u64 offset;
 
 	vma = nouveau_bo_vma_find(bo, cli->vm);
 	BUG_ON(!vma);
 	offset = vma->offset + delta;
 
+	nv50_dma_push(chan, lower_32_bits(offset),
+		      upper_32_bits(offset) | length << 8);
+}
+
+void
+nv50_dma_push(struct nouveau_channel *chan, uint32_t entry0, uint32_t entry1)
+{
+	struct nouveau_bo *pb = chan->push.buffer;
+	int ip = (chan->dma.ib_put * 2) + chan->dma.ib_base;
+
 	BUG_ON(chan->dma.ib_free < 1);
 
-	nouveau_bo_wr32(pb, ip++, lower_32_bits(offset));
-	nouveau_bo_wr32(pb, ip++, upper_32_bits(offset) | length << 8);
+	nouveau_bo_wr32(pb, ip++, entry0);
+	nouveau_bo_wr32(pb, ip++, entry1);
 
 	chan->dma.ib_put = (chan->dma.ib_put + 1) & chan->dma.ib_max;
 

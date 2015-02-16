@@ -822,8 +822,8 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 			struct nouveau_bo *nvbo = (void *)(unsigned long)
 				bo[push[i].bo_index].user_priv;
 
-			nv50_dma_push(chan, nvbo, push[i].offset,
-				      push[i].length);
+			nv50_dma_push_bo(chan, nvbo, push[i].offset,
+				         push[i].length);
 		}
 	} else
 	if (drm->device.info.chipset >= 0x25) {

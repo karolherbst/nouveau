@@ -31,8 +31,10 @@
 #include "nouveau_chan.h"
 
 int nouveau_dma_wait(struct nouveau_channel *, int slots, int size);
-void nv50_dma_push(struct nouveau_channel *, struct nouveau_bo *,
-		   int delta, int length);
+void nv50_dma_push(struct nouveau_channel *chan, uint32_t entry0,
+		   uint32_t entry1);
+void nv50_dma_push_bo(struct nouveau_channel *, struct nouveau_bo *,
+		      int delta, int length);
 
 /*
  * There's a hw race condition where you can't jump to your PUT offset,
@@ -151,8 +153,8 @@ FIRE_RING(struct nouveau_channel *chan)
 	chan->accel_done = true;
 
 	if (chan->dma.ib_max) {
-		nv50_dma_push(chan, chan->push.buffer, chan->dma.put << 2,
-			      (chan->dma.cur - chan->dma.put) << 2);
+		nv50_dma_push_bo(chan, chan->push.buffer, chan->dma.put << 2,
+			         (chan->dma.cur - chan->dma.put) << 2);
 	} else {
 		WRITE_PUT(chan->dma.cur);
 	}
