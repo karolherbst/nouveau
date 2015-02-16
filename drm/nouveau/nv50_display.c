@@ -1731,7 +1731,7 @@ nv50_audio_mode_set(struct drm_encoder *encoder, struct drm_display_mode *mode)
 	memcpy(args.data, nv_connector->base.eld, sizeof(args.data));
 
 	nvif_mthd(disp->disp, 0, &args,
-		  sizeof(args.base) + drm_eld_size(args.data));
+		  sizeof(args.base));
 }
 
 static void
