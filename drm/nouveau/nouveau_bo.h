@@ -88,6 +88,8 @@ int  nouveau_bo_validate(struct nouveau_bo *, bool interruptible,
 			 bool no_wait_gpu);
 void nouveau_bo_sync_for_device(struct nouveau_bo *nvbo);
 void nouveau_bo_sync_for_cpu(struct nouveau_bo *nvbo);
+int  nouveau_bo_sync(struct nouveau_bo *, struct nouveau_channel *,
+		     bool exclusive, bool intr);
 
 struct nvkm_vma *
 nouveau_bo_vma_find(struct nouveau_bo *, struct nvkm_vm *);

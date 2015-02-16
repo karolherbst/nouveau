@@ -545,7 +545,7 @@ validate_list(struct nouveau_channel *chan, struct nouveau_cli *cli,
 			return ret;
 		}
 
-		ret = nouveau_fence_sync(nvbo, chan, !!b->write_domains, true);
+		ret = nouveau_bo_sync(nvbo, chan, !!b->write_domains, true);
 		if (unlikely(ret)) {
 			if (ret != -ERESTARTSYS)
 				NV_PRINTK(error, cli, "fail post-validate sync\n");
