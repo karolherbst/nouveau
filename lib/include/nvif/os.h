@@ -715,6 +715,29 @@ dma_free_attrs(struct device *dev, size_t sz, void *vaddr, dma_addr_t bus,
 
 
 /******************************************************************************
+ * IOMMU
+ *****************************************************************************/
+struct iommu_domain;
+
+#define IOMMU_READ     (1 << 0)
+#define IOMMU_WRITE    (1 << 1)
+#define IOMMU_CACHE    (1 << 2) /* DMA cache coherency */
+#define IOMMU_NOEXEC   (1 << 3)
+
+static inline int
+iommu_map(struct iommu_domain *domain, unsigned long iova, dma_addr_t paddr,
+	  size_t size, int prot)
+{
+	return 0;
+}
+
+static inline size_t
+iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
+{
+	return 0;
+}
+
+/******************************************************************************
  * PCI
  *****************************************************************************/
 #include <pciaccess.h>
@@ -1208,9 +1231,18 @@ regulator_get_voltage(struct regulator *regulator)
  * nouveau drm platform device
  *****************************************************************************/
 
+struct nvkm_mm;
+
 struct nouveau_platform_gpu {
 	struct clk *clk;
 	struct regulator *vdd;
+
+	struct {
+		struct mutex mutex;
+		struct nvkm_mm *mm;
+		struct iommu_domain *domain;
+		unsigned long pgshift;
+	} iommu;
 };
 
 struct nouveau_platform_device {
