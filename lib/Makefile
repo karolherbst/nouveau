@@ -1,4 +1,4 @@
-LIBNVIF_CC := $(CFLAGS) -fPIC
+LIBNVIF_CC := $(CFLAGS) -I$(drm) -fPIC
 LIBNVIF_LD := $(LDFLAGS) -shared -lpciaccess -lpthread -ldrm
 
 src  := $(drm)
