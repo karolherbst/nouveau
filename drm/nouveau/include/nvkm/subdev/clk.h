@@ -146,6 +146,7 @@ extern struct nvkm_oclass gt215_clk_oclass;
 extern struct nvkm_oclass gf100_clk_oclass;
 extern struct nvkm_oclass gk104_clk_oclass;
 extern struct nvkm_oclass gk20a_clk_oclass;
+extern struct nvkm_oclass gm20b_clk_oclass;
 
 int nv04_clk_pll_set(struct nvkm_clk *, u32 type, u32 freq);
 int nv04_clk_pll_calc(struct nvkm_clk *, struct nvbios_pll *, int clk,

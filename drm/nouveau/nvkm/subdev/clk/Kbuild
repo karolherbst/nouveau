@@ -10,3 +10,4 @@ nvkm-y += nvkm/subdev/clk/gk104.o
 nvkm-y += nvkm/subdev/clk/gk20a.o
 nvkm-y += nvkm/subdev/clk/pllnv04.o
 nvkm-y += nvkm/subdev/clk/pllgt215.o
+nvkm-y += nvkm/subdev/clk/gm20b.o
