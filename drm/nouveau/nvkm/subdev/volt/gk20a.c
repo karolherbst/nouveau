@@ -177,7 +177,7 @@ gk20a_volt_ctor(struct nvkm_object *parent, struct nvkm_object *engine,
 	for (i = 0; i < volt->vid_nr; i++) {
 		volt->vid[i].vid = i;
 		volt->vid[i].uv = gk20a_volt_calc_voltage(&gk20a_cvb_coef[i],
-					plat->gpu_speedo);
+					plat->gpu_speedo_value);
 		nv_debug(priv, "%2d: vid=%d, uv=%d\n", i, volt->vid[i].vid,
 					volt->vid[i].uv);
 	}

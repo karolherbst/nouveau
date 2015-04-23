@@ -230,7 +230,8 @@ static int nouveau_platform_probe(struct platform_device *pdev)
 	}
 
 	device->gpu = gpu;
-	device->gpu_speedo = tegra_sku_info.gpu_speedo_value;
+	device->gpu_speedo_id = tegra_sku_info.gpu_speedo_id;
+	device->gpu_speedo_value = tegra_sku_info.gpu_speedo_value;
 
 	err = drm_dev_register(drm, 0);
 	if (err < 0)
