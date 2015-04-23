@@ -15,6 +15,7 @@ struct nvkm_volt {
 	int (*vid_set)(struct nvkm_volt *, u8 vid);
 	int (*set)(struct nvkm_volt *, u32 uv);
 	int (*set_id)(struct nvkm_volt *, u8 id, int condition);
+	int (*get_voltage_by_id)(struct nvkm_volt *, u8 vid);
 
 	u8 vid_mask;
 	u8 vid_nr;

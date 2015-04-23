@@ -44,6 +44,15 @@ nvkm_volt_get(struct nvkm_volt *volt)
 }
 
 static int
+nvkm_volt_get_voltage_by_id(struct nvkm_volt *volt, u8 id)
+{
+	if (id >= volt->vid_nr)
+		return -EINVAL;
+
+	return volt->vid[id].uv;
+}
+
+static int
 nvkm_volt_set(struct nvkm_volt *volt, u32 uv)
 {
 	if (volt->vid_set) {
@@ -179,6 +188,7 @@ nvkm_volt_create_(struct nvkm_object *parent, struct nvkm_object *engine,
 	volt->get = nvkm_volt_get;
 	volt->set = nvkm_volt_set;
 	volt->set_id = nvkm_volt_set_id;
+	volt->get_voltage_by_id = nvkm_volt_get_voltage_by_id;
 
 	/* Assuming the non-bios device should build the voltage table later */
 	if (bios)
