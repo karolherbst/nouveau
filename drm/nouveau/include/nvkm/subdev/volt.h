@@ -52,6 +52,7 @@ int  _nvkm_volt_init(struct nvkm_object *);
 
 extern struct nvkm_oclass nv40_volt_oclass;
 extern struct nvkm_oclass gk20a_volt_oclass;
+extern struct nvkm_oclass gm20b_volt_oclass;
 
 int nvkm_voltgpio_init(struct nvkm_volt *);
 int nvkm_voltgpio_get(struct nvkm_volt *);

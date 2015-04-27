@@ -200,6 +200,7 @@ gm100_identify(struct nvkm_device *device)
 		device->oclass[NVDEV_ENGINE_SW     ] =  gf100_sw_oclass;
 		device->oclass[NVDEV_ENGINE_GR     ] =  gm20b_gr_oclass;
 		device->oclass[NVDEV_ENGINE_CE2    ] = &gm204_ce2_oclass;
+		device->oclass[NVDEV_SUBDEV_VOLT   ] = &gm20b_volt_oclass;
 		break;
 	default:
 		nv_fatal(device, "unknown Maxwell chipset\n");
