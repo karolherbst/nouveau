@@ -103,6 +103,7 @@
 #define MAXWELL_COMPUTE_A                                            0x0000b0c0
 #define MAXWELL_COMPUTE_B                                            0x0000b1c0
 
+#define MAXWELL_DMA_COPY_A                                           0x0000b0b5
 
 /*******************************************************************************
  * client
