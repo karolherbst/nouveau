@@ -112,12 +112,14 @@ nvkm_vm_map_sg_table(struct nvkm_vma *vma, u64 delta, u64 length,
 			pte = 0;
 		}
 		if (m < sglen) {
+			pgt = vm->pgt[pde].obj[big];
 			for (; m < sglen; m++) {
 				dma_addr_t addr = sg_dma_address(sg) + (m << PAGE_SHIFT);
 
 				mmu->map_sg(vma, pgt, mem, pte, 1, &addr);
 				num--;
 				pte++;
+				/* XXX - We should check for pde overrun here too! */
 				if (num == 0)
 					goto finish;
 			}
