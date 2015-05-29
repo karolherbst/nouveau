@@ -281,7 +281,7 @@ static int
 nvkm_i2c_identify(struct nvkm_i2c *i2c, int index, const char *what,
 		  struct nvkm_i2c_board_info *info,
 		  bool (*match)(struct nvkm_i2c_port *,
-			  	struct i2c_board_info *, void *), void *data)
+				struct i2c_board_info *, void *), void *data)
 {
 	struct nvkm_i2c_port *port = nvkm_i2c_find(i2c, index);
 	int i;

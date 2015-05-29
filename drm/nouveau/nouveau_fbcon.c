@@ -418,7 +418,7 @@ nouveau_fbcon_create(struct drm_fb_helper *helper,
 	nouveau_fbcon_zfill(dev, fbcon);
 
 	/* To allow resizeing without swapping buffers */
-	NV_INFO(drm, "allocated %dx%d fb: 0x%lx, bo %p\n",
+	NV_INFO(drm, "allocated %dx%d fb: 0x%llx, bo %p\n",
 		nouveau_fb->base.width, nouveau_fb->base.height,
 		nvbo->bo.offset, nvbo);
 
@@ -526,12 +526,12 @@ nouveau_fbcon_init(struct drm_device *dev)
 
 	ret = drm_fb_helper_init(dev, &fbcon->helper,
 				 dev->mode_config.num_crtc, 4);
-	if (ret) {
-		kfree(fbcon);
-		return ret;
-	}
+	if (ret)
+		goto free;
 
-	drm_fb_helper_single_add_all_connectors(&fbcon->helper);
+	ret = drm_fb_helper_single_add_all_connectors(&fbcon->helper);
+	if (ret)
+		goto fini;
 
 	if (drm->device.info.ram_size <= 32 * 1024 * 1024)
 		preferred_bpp = 8;
@@ -544,8 +544,17 @@ nouveau_fbcon_init(struct drm_device *dev)
 	/* disable all the possible outputs/crtcs before entering KMS mode */
 	drm_helper_disable_unused_functions(dev);
 
-	drm_fb_helper_initial_config(&fbcon->helper, preferred_bpp);
+	ret = drm_fb_helper_initial_config(&fbcon->helper, preferred_bpp);
+	if (ret)
+		goto fini;
+
 	return 0;
+
+fini:
+	drm_fb_helper_fini(&fbcon->helper);
+free:
+	kfree(fbcon);
+	return ret;
 }
 
 void
