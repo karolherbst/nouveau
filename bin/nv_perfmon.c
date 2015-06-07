@@ -600,7 +600,7 @@ main(int argc, char **argv)
 	const char *cfg = NULL;
 	const char *dbg = "error";
 	u64 dev = ~0ULL;
-	struct nvif_perfctr_query_v0 args = {};
+	struct nvif_perfmon_query_signal_v0 args = {};
 	struct nvif_client *client;
 	struct nvif_object object;
 	int ret, c, k;
@@ -644,15 +644,14 @@ main(int argc, char **argv)
 	}
 
 	ret = nvif_object_init(nvif_object(device), NULL, 0xdeadbeef,
-			       NVIF_IOCTL_NEW_V0_PERFCTR,
-			       &(struct nvif_perfctr_v0) {
-			       }, sizeof(struct nvif_perfctr_v0), &object);
+			       NVIF_IOCTL_NEW_V0_PERFMON, NULL, 0, &object);
 	assert(ret == 0);
 	do {
 		u32 prev_iter = args.iter;
 
 		args.name[0] = '\0';
-		ret = nvif_mthd(&object, NVIF_PERFCTR_V0_QUERY, &args, sizeof(args));
+		ret = nvif_mthd(&object, NVIF_PERFMON_V0_QUERY_SIGNAL,
+				&args, sizeof(args));
 		assert(ret == 0);
 
 		if (prev_iter) {
@@ -663,7 +662,8 @@ main(int argc, char **argv)
 			args.iter = prev_iter;
 			strncpy(signals[nr_signals - 1], args.name,
 				sizeof(args.name));
-			ret = nvif_mthd(&object, NVIF_PERFCTR_V0_QUERY, &args, sizeof(args));
+			ret = nvif_mthd(&object, NVIF_PERFMON_V0_QUERY_SIGNAL,
+					&args, sizeof(args));
 			assert(ret == 0);
 		}
 	} while (args.iter != 0xffffffff);
