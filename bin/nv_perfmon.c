@@ -289,7 +289,7 @@ ui_perfmon_query_signals(struct nvif_object *perfmon,
 
 	args.domain = dom->id;
 	do {
-		u32 prev_iter = args.iter;
+		u16 prev_iter = args.iter;
 
 		args.name[0] = '\0';
 		ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
@@ -308,7 +308,7 @@ ui_perfmon_query_signals(struct nvif_object *perfmon,
 					&args, sizeof(args));
 			assert(ret == 0);
 		}
-	} while (args.iter != 0xffffffff);
+	} while (args.iter != 0xffff);
 }
 
 static void
