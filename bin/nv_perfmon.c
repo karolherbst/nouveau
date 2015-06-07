@@ -248,7 +248,8 @@ ui_menu_win = {
 
 struct ui_perfmon_dom {
 	struct list_head head;
-	struct list_head list;
+	struct list_head signals;
+	struct list_head perfdoms;
 	u8 id;
 };
 
@@ -260,22 +261,27 @@ struct ui_perfmon_sig {
 
 struct ui_main {
 	struct list_head head;
-	u32 handle;
-	struct nvif_object object;
-	const char *name;
+	struct ui_perfmon_sig *sig;
 	u32 clk;
 	u32 ctr;
 	u64 incr;
 };
 
+struct ui_perfdom {
+	struct nvif_object object;
+	struct list_head head;
+	struct ui_main *ctr[4];
+	u32 handle;
+};
+
 static struct list_head ui_main_list = LIST_HEAD_INIT(ui_main_list);
 static struct list_head ui_doms_list = LIST_HEAD_INIT(ui_doms_list);
+static struct list_head ui_perfdom_list = LIST_HEAD_INIT(ui_perfdom_list);
 static u32 ui_main_handle = 0xc0000000;
 
 static void
 ui_main_remove(struct ui_main *item)
 {
-	nvif_object_fini(&item->object);
 	list_del(&item->head);
 	free(item);
 }
@@ -303,7 +309,7 @@ ui_perfmon_query_signals(struct nvif_object *perfmon,
 			sig->signal = args.signal;
 			sig->name = malloc(sizeof(args.name));
 			strncpy(sig->name, args.name, sizeof(args.name));
-			list_add_tail(&sig->head, &dom->list);
+			list_add_tail(&sig->head, &dom->signals);
 
 			args.iter = prev_iter;
 			ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
@@ -331,7 +337,8 @@ ui_perfmon_query_domains(struct nvif_object *perfmon)
 		if (prev_iter) {
 			dom = calloc(1, sizeof(*dom));
 			dom->id = args.id;
-			INIT_LIST_HEAD(&dom->list);
+			INIT_LIST_HEAD(&dom->signals);
+			INIT_LIST_HEAD(&dom->perfdoms);
 			list_add_tail(&dom->head, &ui_doms_list);
 
 			args.iter = prev_iter;
@@ -343,6 +350,49 @@ ui_perfmon_query_domains(struct nvif_object *perfmon)
 			ui_perfmon_query_signals(perfmon, dom);
 		}
 	} while (args.iter != 0xff);
+}
+
+static void
+ui_perfdom_init(struct ui_perfdom *dom)
+{
+	struct nvif_perfdom_init args = {};
+	int ret;
+
+	ret = nvif_mthd(&dom->object, NVIF_PERFDOM_V0_INIT,
+			&args, sizeof(args));
+	assert(ret == 0);
+}
+
+static void
+ui_perfdom_sample(struct ui_perfdom *dom)
+{
+	struct nvif_perfdom_sample args = {};
+	int ret;
+
+	ret = nvif_mthd(&dom->object, NVIF_PERFDOM_V0_SAMPLE,
+			&args, sizeof(args));
+	assert(ret == 0);
+}
+
+static void
+ui_perfdom_read(struct ui_perfdom *dom)
+{
+	struct nvif_perfdom_read_v0 args = {};
+	int ret, i;
+
+	ret = nvif_mthd(&dom->object, NVIF_PERFDOM_V0_READ,
+			&args, sizeof(args));
+	assert(ret == 0 || ret == -EAGAIN);
+
+	if (ret == 0) {
+		for (i = 0; i < 4; i++) {
+			if (!dom->ctr[i])
+				continue;
+			dom->ctr[i]->ctr   = args.ctr[i];
+			dom->ctr[i]->incr += args.ctr[i];
+			dom->ctr[i]->clk   = args.clk;
+		}
+	}
 }
 
 static void
@@ -362,17 +412,37 @@ ui_perfmon_init(void)
 }
 
 static void
+ui_perfmon_free_signals(struct ui_perfmon_dom *dom)
+{
+	struct ui_perfmon_sig *sig, *next;
+
+	list_for_each_entry_safe(sig, next, &dom->signals, head) {
+		list_del(&sig->head);
+		free(sig->name);
+		free(sig);
+	}
+}
+
+static void
+ui_perfmon_free_perfdoms(struct ui_perfmon_dom *dom)
+{
+	struct ui_perfdom *perfdom, *next;
+
+	list_for_each_entry_safe(perfdom, next, &dom->perfdoms, head) {
+		nvif_object_fini(&perfdom->object);
+		list_del(&perfdom->head);
+		free(perfdom);
+	}
+}
+
+static void
 ui_perfmon_fini(void)
 {
-	struct ui_perfmon_dom *dom, *next_dom;
-	struct ui_perfmon_sig *sig, *next_sig;
+	struct ui_perfmon_dom *dom, *next;
 
-	list_for_each_entry_safe(dom, next_dom, &ui_doms_list, head) {
-		list_for_each_entry_safe(sig, next_sig, &dom->list, head) {
-			list_del(&sig->head);
-			free(sig->name);
-			free(sig);
-		}
+	list_for_each_entry_safe(dom, next, &ui_doms_list, head) {
+		ui_perfmon_free_perfdoms(dom);
+		ui_perfmon_free_signals(dom);
 		list_del(&dom->head);
 		free(dom);
 	}
@@ -384,31 +454,62 @@ ui_main_select(void)
 	struct ui_main *item, *temp;
 	struct ui_perfmon_dom *dom;
 	struct ui_perfmon_sig *sig;
+	struct ui_perfdom *perfdom;
 	int ret;
+	int i;
 
 	list_for_each_entry_safe(item, temp, &ui_main_list, head) {
 		ui_main_remove(item);
 	}
 
 	list_for_each_entry(dom, &ui_doms_list, head) {
-		list_for_each_entry(sig, &dom->list, head) {
-			struct nvif_perfctr_v0 args = {
-				.logic_op = 0xaaaa,
-				.domain = dom->id,
-			};
+		list_for_each_entry(sig, &dom->signals, head) {
+			bool found = false;
 
 			item = calloc(1, sizeof(*item));
-			item->handle = ui_main_handle++;
-			item->name = sig->name;
-
-			args.signal[0] = sig->signal;
-			ret = nvif_object_init(nvif_object(device), NULL,
-					       item->handle,
-					       NVIF_IOCTL_NEW_V0_PERFCTR,
-					       &args, sizeof(args),
-					       &item->object);
-			assert(ret == 0);
+			item->sig = sig;
 			list_add_tail(&item->head, &ui_main_list);
+
+			/* find a slot */
+			list_for_each_entry(perfdom, &dom->perfdoms, head) {
+				for (i = 0; i < 4; i++) {
+					if (!perfdom->ctr[i]) {
+						perfdom->ctr[i] = item;
+						found = true;
+						break;
+					}
+				}
+			}
+
+			if (!found) {
+				/* no free slots, create a new perfdom */
+				perfdom = calloc(1, sizeof(*perfdom));
+				perfdom->handle = ui_main_handle++;
+				perfdom->ctr[0] = item;
+				list_add_tail(&perfdom->head, &dom->perfdoms);
+			}
+		}
+
+		/* init perfdom objects */
+		list_for_each_entry(perfdom, &dom->perfdoms, head) {
+			struct nvif_perfdom_v0 args = {};
+			int i;
+
+			args.domain = dom->id;
+			for (i = 0; i < 4; i++) {
+				struct ui_main *ctr = perfdom->ctr[i];
+				if (!ctr)
+					continue;
+				args.ctr[i].signal[0] = ctr->sig->signal;
+				args.ctr[i].logic_op  = 0xaaaa;
+			}
+
+			ret = nvif_object_init(nvif_object(device), NULL,
+					       perfdom->handle,
+					       NVIF_IOCTL_NEW_V0_PERFDOM,
+					       &args, sizeof(args),
+					       &perfdom->object);
+			assert(ret == 0);
 		}
 	}
 }
@@ -416,34 +517,34 @@ ui_main_select(void)
 static void
 ui_main_alarm_handler(int signal)
 {
-	struct ui_main *item;
+	struct ui_perfmon_dom *dom;
+	struct ui_perfdom *perfdom;
 	bool sampled = false;
 
 	if (list_empty(&ui_main_list))
 		ui_main_select();
 
-	list_for_each_entry(item, &ui_main_list, head) {
-		struct nvif_perfctr_read_v0 args = {};
-		int ret;
+	list_for_each_entry(dom, &ui_doms_list, head) {
+		if (list_empty(&dom->perfdoms))
+			continue;
 
+		perfdom = list_first_entry(&dom->perfdoms,
+					   typeof(*perfdom), head);
+
+		/* sample previous batch of counters */
 		if (!sampled) {
-			struct nvif_perfctr_sample args = {};
-
-			ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_SAMPLE,
-					&args, sizeof(args));
-			assert(ret == 0);
+			ui_perfdom_sample(perfdom);
 			sampled = true;
 		}
 
-		ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_READ,
-				&args, sizeof(args));
-		assert(ret == 0 || ret == -EAGAIN);
+		/* read previous batch of counters */
+		ui_perfdom_read(perfdom);
 
-		if (ret == 0) {
-			item->clk = args.clk;
-			item->ctr = args.ctr;
-		}
-		item->incr += item->ctr;
+		/* setup next batch of counters for sampling */
+		list_move_tail(&perfdom->head, &dom->perfdoms);
+		perfdom = list_first_entry(&dom->perfdoms,
+					   typeof(*perfdom), head);
+		ui_perfdom_init(perfdom);
 	}
 }
 
@@ -485,7 +586,7 @@ ui_main_redraw(struct ui_table *t)
 
 	y = 2;
 	list_for_each_entry_from(item, &ui_main_list, head) {
-		set_field_buffer(f[0], 0, item->name);
+		set_field_buffer(f[0], 0, item->sig->name);
 		set_field_userptr(f[0], item);
 		field_opts_on(f[0], O_VISIBLE | O_ACTIVE);
 
