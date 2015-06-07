@@ -255,6 +255,7 @@ struct ui_perfmon_dom {
 struct ui_perfmon_sig {
 	struct list_head head;
 	char *name;
+	u8 signal;
 };
 
 struct ui_main {
@@ -299,6 +300,7 @@ ui_perfmon_query_signals(struct nvif_object *perfmon,
 		if (prev_iter) {
 			nr_signals++;
 			sig = calloc(1, sizeof(*sig));
+			sig->signal = args.signal;
 			sig->name = malloc(sizeof(args.name));
 			strncpy(sig->name, args.name, sizeof(args.name));
 			list_add_tail(&sig->head, &dom->list);
@@ -392,14 +394,14 @@ ui_main_select(void)
 		list_for_each_entry(sig, &dom->list, head) {
 			struct nvif_perfctr_v0 args = {
 				.logic_op = 0xaaaa,
+				.domain = dom->id,
 			};
 
 			item = calloc(1, sizeof(*item));
 			item->handle = ui_main_handle++;
 			item->name = sig->name;
 
-			strncpy(args.name[0], item->name, sizeof(args.name[0]));
-
+			args.signal[0] = sig->signal;
 			ret = nvif_object_init(nvif_object(device), NULL,
 					       item->handle,
 					       NVIF_IOCTL_NEW_V0_PERFCTR,
