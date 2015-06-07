@@ -36,8 +36,7 @@
 #include <sys/time.h>
 
 static struct nvif_device *device;
-static char **signals;
-static int nr_signals;
+static int nr_signals; /* number of signals for all domains */
 
 #define SEC_US  1000000
 #define REFRESH_PERIOD SEC_US
@@ -247,6 +246,17 @@ ui_menu_win = {
  *
  ******************************************************************************/
 
+struct ui_perfmon_dom {
+	struct list_head head;
+	struct list_head list;
+	u8 id;
+};
+
+struct ui_perfmon_sig {
+	struct list_head head;
+	char *name;
+};
+
 struct ui_main {
 	struct list_head head;
 	u32 handle;
@@ -258,6 +268,7 @@ struct ui_main {
 };
 
 static struct list_head ui_main_list = LIST_HEAD_INIT(ui_main_list);
+static struct list_head ui_doms_list = LIST_HEAD_INIT(ui_doms_list);
 static u32 ui_main_handle = 0xc0000000;
 
 static void
@@ -269,32 +280,134 @@ ui_main_remove(struct ui_main *item)
 }
 
 static void
+ui_perfmon_query_signals(struct nvif_object *perfmon,
+			 struct ui_perfmon_dom *dom)
+{
+	struct nvif_perfmon_query_signal_v0 args = {};
+	struct ui_perfmon_sig *sig;
+	int ret;
+
+	args.domain = dom->id;
+	do {
+		u32 prev_iter = args.iter;
+
+		args.name[0] = '\0';
+		ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
+				&args, sizeof(args));
+		assert(ret == 0);
+
+		if (prev_iter) {
+			nr_signals++;
+			sig = calloc(1, sizeof(*sig));
+			sig->name = malloc(sizeof(args.name));
+			strncpy(sig->name, args.name, sizeof(args.name));
+			list_add_tail(&sig->head, &dom->list);
+
+			args.iter = prev_iter;
+			ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
+					&args, sizeof(args));
+			assert(ret == 0);
+		}
+	} while (args.iter != 0xffffffff);
+}
+
+static void
+ui_perfmon_query_domains(struct nvif_object *perfmon)
+{
+	struct nvif_perfmon_query_domain_v0 args = {};
+	struct ui_perfmon_dom *dom;
+	int ret;
+
+	assert(ret == 0);
+	do {
+		u8 prev_iter = args.iter;
+
+		ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_DOMAIN,
+				&args, sizeof(args));
+		assert(ret == 0);
+
+		if (prev_iter) {
+			dom = calloc(1, sizeof(*dom));
+			dom->id = args.id;
+			INIT_LIST_HEAD(&dom->list);
+			list_add_tail(&dom->head, &ui_doms_list);
+
+			args.iter = prev_iter;
+			ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_DOMAIN,
+					&args, sizeof(args));
+			assert(ret == 0);
+
+			/* query available signals for the domain */
+			ui_perfmon_query_signals(perfmon, dom);
+		}
+	} while (args.iter != 0xff);
+}
+
+static void
+ui_perfmon_init(void)
+{
+	struct nvif_object perfmon;
+	int ret;
+
+	ret = nvif_object_init(nvif_object(device), NULL, 0xdeadbeef,
+			       NVIF_IOCTL_NEW_V0_PERFMON, NULL, 0, &perfmon);
+	assert(ret == 0);
+
+	/* query available domains for the device */
+	ui_perfmon_query_domains(&perfmon);
+
+	nvif_object_fini(&perfmon);
+}
+
+static void
+ui_perfmon_fini(void)
+{
+	struct ui_perfmon_dom *dom, *next_dom;
+	struct ui_perfmon_sig *sig, *next_sig;
+
+	list_for_each_entry_safe(dom, next_dom, &ui_doms_list, head) {
+		list_for_each_entry_safe(sig, next_sig, &dom->list, head) {
+			list_del(&sig->head);
+			free(sig->name);
+			free(sig);
+		}
+		list_del(&dom->head);
+		free(dom);
+	}
+}
+
+static void
 ui_main_select(void)
 {
 	struct ui_main *item, *temp;
-	int ret, i;
+	struct ui_perfmon_dom *dom;
+	struct ui_perfmon_sig *sig;
+	int ret;
 
 	list_for_each_entry_safe(item, temp, &ui_main_list, head) {
 		ui_main_remove(item);
 	}
 
-	for (i = 0; i < nr_signals; i++) {
-		struct nvif_perfctr_v0 args = {
-			.logic_op = 0xaaaa,
-		};
+	list_for_each_entry(dom, &ui_doms_list, head) {
+		list_for_each_entry(sig, &dom->list, head) {
+			struct nvif_perfctr_v0 args = {
+				.logic_op = 0xaaaa,
+			};
 
-		item = calloc(1, sizeof(*item));
-		item->handle = ui_main_handle++;
-		item->name = signals[i];
-		item->incr = 0;
+			item = calloc(1, sizeof(*item));
+			item->handle = ui_main_handle++;
+			item->name = sig->name;
 
-		strncpy(args.name[0], item->name, sizeof(args.name[0]));
+			strncpy(args.name[0], item->name, sizeof(args.name[0]));
 
-		ret = nvif_object_init(nvif_object(device), NULL, item->handle,
-				       NVIF_IOCTL_NEW_V0_PERFCTR, &args,
-				       sizeof(args), &item->object);
-		assert(ret == 0);
-		list_add_tail(&item->head, &ui_main_list);
+			ret = nvif_object_init(nvif_object(device), NULL,
+					       item->handle,
+					       NVIF_IOCTL_NEW_V0_PERFCTR,
+					       &args, sizeof(args),
+					       &item->object);
+			assert(ret == 0);
+			list_add_tail(&item->head, &ui_main_list);
+		}
 	}
 }
 
@@ -314,12 +427,14 @@ ui_main_alarm_handler(int signal)
 		if (!sampled) {
 			struct nvif_perfctr_sample args = {};
 
-			ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_SAMPLE, &args, sizeof(args));
+			ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_SAMPLE,
+					&args, sizeof(args));
 			assert(ret == 0);
 			sampled = true;
 		}
 
-		ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_READ, &args, sizeof(args));
+		ret = nvif_mthd(&item->object, NVIF_PERFCTR_V0_READ,
+				&args, sizeof(args));
 		assert(ret == 0 || ret == -EAGAIN);
 
 		if (ret == 0) {
@@ -600,9 +715,7 @@ main(int argc, char **argv)
 	const char *cfg = NULL;
 	const char *dbg = "error";
 	u64 dev = ~0ULL;
-	struct nvif_perfmon_query_signal_v0 args = {};
 	struct nvif_client *client;
-	struct nvif_object object;
 	int ret, c, k;
 	int scan = 0;
 
@@ -643,31 +756,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = nvif_object_init(nvif_object(device), NULL, 0xdeadbeef,
-			       NVIF_IOCTL_NEW_V0_PERFMON, NULL, 0, &object);
-	assert(ret == 0);
-	do {
-		u32 prev_iter = args.iter;
-
-		args.name[0] = '\0';
-		ret = nvif_mthd(&object, NVIF_PERFMON_V0_QUERY_SIGNAL,
-				&args, sizeof(args));
-		assert(ret == 0);
-
-		if (prev_iter) {
-			nr_signals++;
-			signals = realloc(signals, nr_signals * sizeof(char*));
-			signals[nr_signals - 1] = malloc(sizeof(args.name));
-
-			args.iter = prev_iter;
-			strncpy(signals[nr_signals - 1], args.name,
-				sizeof(args.name));
-			ret = nvif_mthd(&object, NVIF_PERFMON_V0_QUERY_SIGNAL,
-					&args, sizeof(args));
-			assert(ret == 0);
-		}
-	} while (args.iter != 0xffffffff);
-	nvif_object_fini(&object);
+	ui_perfmon_init();
 
 	initscr();
 	keypad(stdscr, TRUE);
@@ -696,10 +785,8 @@ main(int argc, char **argv)
 
 	ui_destroy();
 	endwin();
+	ui_perfmon_fini();
 
-	while (nr_signals--)
-		free(signals[nr_signals]);
-	free(signals);
 	nvif_device_ref(NULL, &device);
 	return 0;
 }
