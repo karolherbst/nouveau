@@ -154,9 +154,12 @@ nouveau_display_vblstamp(struct drm_device *dev, int head, int *max_error,
 
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
 		if (nouveau_crtc(crtc)->index == head) {
+			/*
 			return drm_calc_vbltimestamp_from_scanoutpos(dev,
 					head, max_error, time, flags, crtc,
 					&crtc->hwmode);
+					*/
+			return 0;
 		}
 	}
 
