@@ -40,11 +40,6 @@ gm20b_gr_init_gpc_mmu(struct gf100_gr_priv *priv)
 {
 	u32 val;
 
-	/* TODO this needs to be removed once secure boot works */
-	if (1) {
-		nv_wr32(priv, 0x100ce4, 0xffffffff);
-	}
-
 	/* TODO update once secure boot works */
 	val = nv_rd32(priv, 0x100c80);
 	val &= 0xf000087f;
