@@ -213,7 +213,7 @@ static int nouveau_platform_probe(struct platform_device *pdev)
 
 	gpu->clk_ref = devm_clk_get(&pdev->dev, "pllg_ref");
 	if (IS_ERR(gpu->clk_ref)) {
-		WARN(1, "failed to get gpu_ref clock\n");
+		dev_dbg(&pdev->dev, "failed to get gpu_ref clock\n");
 		gpu->clk_ref = NULL;
 	}
 
