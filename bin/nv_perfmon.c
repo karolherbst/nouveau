@@ -36,6 +36,7 @@
 #include <sys/time.h>
 
 static struct nvif_device *device;
+static struct nvif_object perfmon;
 static int nr_signals; /* number of signals for all domains */
 
 #define SEC_US  1000000
@@ -287,8 +288,7 @@ ui_main_remove(struct ui_main *item)
 }
 
 static void
-ui_perfmon_query_signals(struct nvif_object *perfmon,
-			 struct ui_perfmon_dom *dom)
+ui_perfmon_query_signals(struct ui_perfmon_dom *dom)
 {
 	struct nvif_perfmon_query_signal_v0 args = {};
 	struct ui_perfmon_sig *sig;
@@ -299,7 +299,7 @@ ui_perfmon_query_signals(struct nvif_object *perfmon,
 		u16 prev_iter = args.iter;
 
 		args.name[0] = '\0';
-		ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
+		ret = nvif_mthd(&perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
 				&args, sizeof(args));
 		assert(ret == 0);
 
@@ -312,7 +312,7 @@ ui_perfmon_query_signals(struct nvif_object *perfmon,
 			list_add_tail(&sig->head, &dom->signals);
 
 			args.iter = prev_iter;
-			ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
+			ret = nvif_mthd(&perfmon, NVIF_PERFMON_V0_QUERY_SIGNAL,
 					&args, sizeof(args));
 			assert(ret == 0);
 		}
@@ -320,7 +320,7 @@ ui_perfmon_query_signals(struct nvif_object *perfmon,
 }
 
 static void
-ui_perfmon_query_domains(struct nvif_object *perfmon)
+ui_perfmon_query_domains(void)
 {
 	struct nvif_perfmon_query_domain_v0 args = {};
 	struct ui_perfmon_dom *dom;
@@ -330,7 +330,7 @@ ui_perfmon_query_domains(struct nvif_object *perfmon)
 	do {
 		u8 prev_iter = args.iter;
 
-		ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_DOMAIN,
+		ret = nvif_mthd(&perfmon, NVIF_PERFMON_V0_QUERY_DOMAIN,
 				&args, sizeof(args));
 		assert(ret == 0);
 
@@ -342,12 +342,12 @@ ui_perfmon_query_domains(struct nvif_object *perfmon)
 			list_add_tail(&dom->head, &ui_doms_list);
 
 			args.iter = prev_iter;
-			ret = nvif_mthd(perfmon, NVIF_PERFMON_V0_QUERY_DOMAIN,
+			ret = nvif_mthd(&perfmon, NVIF_PERFMON_V0_QUERY_DOMAIN,
 					&args, sizeof(args));
 			assert(ret == 0);
 
 			/* query available signals for the domain */
-			ui_perfmon_query_signals(perfmon, dom);
+			ui_perfmon_query_signals(dom);
 		}
 	} while (args.iter != 0xff);
 }
@@ -398,7 +398,6 @@ ui_perfdom_read(struct ui_perfdom *dom)
 static void
 ui_perfmon_init(void)
 {
-	struct nvif_object perfmon;
 	int ret;
 
 	ret = nvif_object_init(nvif_object(device), NULL, 0xdeadbeef,
@@ -406,9 +405,7 @@ ui_perfmon_init(void)
 	assert(ret == 0);
 
 	/* query available domains for the device */
-	ui_perfmon_query_domains(&perfmon);
-
-	nvif_object_fini(&perfmon);
+	ui_perfmon_query_domains();
 }
 
 static void
@@ -446,6 +443,8 @@ ui_perfmon_fini(void)
 		list_del(&dom->head);
 		free(dom);
 	}
+
+	nvif_object_fini(&perfmon);
 }
 
 static void
@@ -504,8 +503,7 @@ ui_main_select(void)
 				args.ctr[i].logic_op  = 0xaaaa;
 			}
 
-			ret = nvif_object_init(nvif_object(device), NULL,
-					       perfdom->handle,
+			ret = nvif_object_init(&perfmon, NULL, perfdom->handle,
 					       NVIF_IOCTL_NEW_V0_PERFDOM,
 					       &args, sizeof(args),
 					       &perfdom->object);
