@@ -174,18 +174,7 @@ nouveau_gart_manager_new(struct ttm_mem_type_manager *man,
 
 	node->page_shift = 12;
 
-	switch (drm->device.info.family) {
-	case NV_DEVICE_INFO_V0_TESLA:
-		if (drm->device.info.chipset != 0x50)
-			node->memtype = (nvbo->tile_flags & 0x7f00) >> 8;
-		break;
-	case NV_DEVICE_INFO_V0_FERMI:
-	case NV_DEVICE_INFO_V0_KEPLER:
-		node->memtype = (nvbo->tile_flags & 0xff00) >> 8;
-		break;
-	default:
-		break;
-	}
+	nouveau_bo_update_tiling(drm, nvbo, node);
 
 	mem->mm_node = node;
 	mem->start   = 0;

@@ -172,6 +172,64 @@ nouveau_gem_object_close(struct drm_gem_object *gem, struct drm_file *file_priv)
 	ttm_bo_unreserve(&nvbo->bo);
 }
 
+extern int nouveau_staging_tiling;
+int
+nouveau_gem_ioctl_set_tiling(struct drm_device *dev, void *data,
+			     struct drm_file *file_priv)
+{
+	struct nouveau_drm *drm = nouveau_drm(dev);
+	struct nouveau_cli *cli = nouveau_cli(file_priv);
+	struct nvkm_fb *pfb = nvxx_fb(&drm->device);
+	struct drm_nouveau_gem_set_tiling *req = data;
+	struct drm_gem_object *gem;
+	struct nouveau_bo *nvbo;
+	struct nvkm_vma *vma;
+	int ret = 0;
+
+	if (!nouveau_staging_tiling)
+		return -EINVAL;
+
+	if (!pfb->memtype_valid(pfb, req->tile_flags)) {
+		NV_PRINTK(error, cli, "bad page flags: 0x%08x\n", req->tile_flags);
+		return -EINVAL;
+	}
+
+	gem = drm_gem_object_lookup(dev, file_priv, req->handle);
+	if (!gem)
+		return -ENOENT;
+
+	nvbo = nouveau_gem_object(gem);
+
+	/* We can only change tiling on PRIME-imported buffers */
+	if (nvbo->bo.type != ttm_bo_type_sg) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	if (nvbo->tile_mode != req->tile_mode ||
+	    nvbo->tile_flags != req->tile_flags) {
+		ret = ttm_bo_reserve(&nvbo->bo, false, false, false, NULL);
+		if (ret)
+			goto out;
+
+		nvbo->tile_mode = req->tile_mode;
+		nvbo->tile_flags = req->tile_flags;
+
+		nouveau_bo_update_tiling(drm, nvbo, nvbo->bo.mem.mm_node);
+
+		/* remap over existing mapping with new tile parameters */
+		vma = nouveau_bo_vma_find(nvbo, cli->vm);
+		if (vma)
+			nvkm_vm_map(vma, nvbo->bo.mem.mm_node);
+
+		ttm_bo_unreserve(&nvbo->bo);
+	}
+
+out:
+	drm_gem_object_unreference_unlocked(gem);
+	return ret;
+}
+
 int
 nouveau_gem_new(struct drm_device *dev, int size, int align, uint32_t domain,
 		uint32_t tile_mode, uint32_t tile_flags,

@@ -75,6 +75,10 @@ MODULE_PARM_DESC(runpm, "disable (0), force enable (1), optimus only default (-1
 int nouveau_runtime_pm = -1;
 module_param_named(runpm, nouveau_runtime_pm, int, 0400);
 
+MODULE_PARM_DESC(staging_tiling, "enable staging GEM_SET_TILING ioctl");
+int nouveau_staging_tiling = 0;
+module_param_named(staging_tiling, nouveau_staging_tiling, int, 0600);
+
 static struct drm_driver driver_stub;
 static struct drm_driver driver_pci;
 static struct drm_driver driver_platform;
@@ -897,6 +901,7 @@ nouveau_ioctls[] = {
 	DRM_IOCTL_DEF_DRV(NOUVEAU_GEM_CPU_FINI, nouveau_gem_ioctl_cpu_fini, DRM_UNLOCKED|DRM_AUTH|DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF_DRV(NOUVEAU_GEM_INFO, nouveau_gem_ioctl_info, DRM_UNLOCKED|DRM_AUTH|DRM_RENDER_ALLOW),
 	/* Staging ioctls */
+	DRM_IOCTL_DEF_DRV(NOUVEAU_GEM_SET_TILING, nouveau_gem_ioctl_set_tiling, DRM_UNLOCKED|DRM_AUTH|DRM_RENDER_ALLOW),
 };
 
 long
@@ -1029,6 +1034,7 @@ static void nouveau_display_options(void)
 	DRM_DEBUG_DRIVER("... runpm        : %d\n", nouveau_runtime_pm);
 	DRM_DEBUG_DRIVER("... vram_pushbuf : %d\n", nouveau_vram_pushbuf);
 	DRM_DEBUG_DRIVER("... pstate       : %d\n", nouveau_pstate);
+	DRM_DEBUG_DRIVER("... staging_tiling: %d\n", nouveau_staging_tiling);
 }
 
 static const struct dev_pm_ops nouveau_pm_ops = {

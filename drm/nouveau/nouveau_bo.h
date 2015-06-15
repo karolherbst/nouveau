@@ -69,6 +69,8 @@ nouveau_bo_ref(struct nouveau_bo *ref, struct nouveau_bo **pnvbo)
 extern struct ttm_bo_driver nouveau_bo_driver;
 
 void nouveau_bo_move_init(struct nouveau_drm *);
+void nouveau_bo_update_tiling(struct nouveau_drm *, struct nouveau_bo *,
+			      struct nvkm_mem *);
 int  nouveau_bo_new(struct drm_device *, int size, int align, u32 flags,
 		    u32 tile_mode, u32 tile_flags, struct sg_table *sg,
 		    struct reservation_object *robj,

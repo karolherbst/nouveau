@@ -178,6 +178,24 @@ nouveau_bo_fixup_align(struct nouveau_bo *nvbo, u32 flags,
 	*size = roundup(*size, PAGE_SIZE);
 }
 
+void
+nouveau_bo_update_tiling(struct nouveau_drm *drm, struct nouveau_bo *nvbo,
+			 struct nvkm_mem *mem)
+{
+	switch (drm->device.info.family) {
+	case NV_DEVICE_INFO_V0_TESLA:
+		if (drm->device.info.chipset != 0x50)
+			mem->memtype = (nvbo->tile_flags & 0x7f00) >> 8;
+		break;
+	case NV_DEVICE_INFO_V0_FERMI:
+	case NV_DEVICE_INFO_V0_KEPLER:
+		mem->memtype = (nvbo->tile_flags & 0xff00) >> 8;
+		break;
+	default:
+		break;
+	}
+}
+
 int
 nouveau_bo_new(struct drm_device *dev, int size, int align,
 	       uint32_t flags, uint32_t tile_mode, uint32_t tile_flags,
