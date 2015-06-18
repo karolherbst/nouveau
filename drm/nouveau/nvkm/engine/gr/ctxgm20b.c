@@ -48,12 +48,16 @@ gm20b_grctx_generate_main(struct gf100_gr_priv *priv, struct gf100_grctx *info)
 	idle_timeout_save = nv_rd32(priv, 0x404154);
 	nv_wr32(priv, 0x404154, 0x00000000);
 
+	/* Commit global CB manager */
 	oclass->attrib(info);
 
+	/* Commit global timeslice */
 	oclass->unkn(priv);
 
+	/* init_fs_state (ctx_state_floorsweep) */
 	gm204_grctx_generate_tpcid(priv);
 	gm20b_grctx_generate_r406028(priv);
+	/* ctx_state_floorsweep -> gr_gk20a_setup_rop_mapping */
 	gk104_grctx_generate_r418bb8(priv);
 
 	for (i = 0; i < 8; i++)
@@ -69,6 +73,7 @@ gm20b_grctx_generate_main(struct gf100_gr_priv *priv, struct gf100_grctx *info)
 	nv_wr32(priv, 0x4041c4, tmp);
 
 	gm204_grctx_generate_405b60(priv);
+	/* End init_fs_state (ctx_state_floorsweep) */
 
 	gf100_gr_wait_idle(priv);
 
@@ -79,8 +84,13 @@ gm20b_grctx_generate_main(struct gf100_gr_priv *priv, struct gf100_grctx *info)
 	gf100_gr_wait_idle(priv);
 
 	gf100_gr_icmd(priv, priv->fuc_bundle);
+	/* commit_global_ctx_buffers */
 	oclass->pagepool(info);
 	oclass->bundle(info);
+	/* commit_global_attrib_cb ops are done in ->attrib() */
+
+	/* flush L2 here? */
+	/* write ctx header? */
 }
 
 struct nvkm_oclass *

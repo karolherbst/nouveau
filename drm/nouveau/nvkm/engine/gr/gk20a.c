@@ -336,6 +336,8 @@ gk20a_gr_init(struct nvkm_object *object)
 
 	gf100_gr_zbc_init(priv);
 
+	/* Missing LTC CBC init? */
+
 	return gf100_gr_init_ctxctl(priv);
 }
 
