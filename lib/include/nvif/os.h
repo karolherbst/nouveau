@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <ctype.h>
 
 typedef uint64_t u64;
 typedef uint32_t u32;
