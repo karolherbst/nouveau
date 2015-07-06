@@ -85,7 +85,15 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 	int ret;
 
 	if (!list_empty(&pstate->list)) {
-		cstate = list_entry(pstate->list.prev, typeof(*cstate), head);
+		if (cstatei == -1)
+			cstate = list_entry(pstate->list.prev, typeof(*cstate),
+					    head);
+		else {
+			list_for_each_entry(cstate, &pstate->list, head) {
+				if (cstate->cstate == cstatei)
+					break;
+			}
+		}
 	} else {
 		cstate = &pstate->base;
 	}
@@ -207,7 +215,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstatei)
 		ram->func->tidy(ram);
 	}
 
-	return nvkm_cstate_prog(clk, pstate, 0);
+	return nvkm_cstate_prog(clk, pstate, -1);
 }
 
 static void
