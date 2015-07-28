@@ -52,6 +52,7 @@ struct nvkm_cstate {
 	struct list_head head;
 	u8  voltage;
 	u32 domain[nv_clk_src_max];
+	u8  cstate;
 };
 
 struct nvkm_pstate {
