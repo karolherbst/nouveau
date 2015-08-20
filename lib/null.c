@@ -48,15 +48,17 @@ null_pci_dev = {
 static void
 null_fini(void)
 {
-	nvkm_object_ref(NULL, (struct nvkm_object **)&null_device);
+	nvkm_device_del(&null_device);
 }
 
-static int
+static void
 null_init(const char *cfg, const char *dbg, bool init)
 {
-	return nvkm_device_create(&null_pci_dev, NVKM_BUS_PCI,
+	int ret = nvkm_device_new(&null_pci_dev, NVKM_BUS_PCI,
 				  ~0ULL, "0000:00:00.0", cfg, dbg,
 				  &null_device);
+	if (ret)
+		null_fini();
 }
 
 static void
