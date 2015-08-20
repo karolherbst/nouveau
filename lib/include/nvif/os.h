@@ -545,7 +545,7 @@ struct lock_class_key {
 };
 
 #define __mutex_init(a,b,c) do {                                               \
-	struct lock_class_key *_key = (c); (void)_key;                         \
+	struct lock_class_key *__key = (c); (void)__key;                       \
 	pthread_mutex_init(&(a)->mutex, NULL);                                 \
 } while(0)
 
