@@ -18,7 +18,8 @@ CFLAGS  += -I$(lib)/include -I$(drm)/include -I$(drm)/include/nvkm \
 	   -DCONFIG_NOUVEAU_DEBUG_DEFAULT=3 \
 	   -DCONFIG_NOUVEAU_I2C_INTERNAL \
 	   -DCONFIG_NOUVEAU_I2C_INTERNAL_DEFAULT \
-	   -DCONFIG_NOUVEAU_PLATFORM_DRIVER=y
+	   -DCONFIG_NOUVEAU_PLATFORM_DRIVER=y \
+	   -DCONFIG_AGP=y
 ENVYAS  ?= envyas
 ENVYPP   = $(CC) -E -CC -xc $(1) | $(CC) -E - | sed -e "/^\#/d"
 INSTALL ?= install

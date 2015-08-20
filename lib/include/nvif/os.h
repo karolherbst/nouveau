@@ -652,6 +652,17 @@ void  nvos_iounmap(void __iomem *ptr);
 #define memcpy_toio memcpy
 #define wmb()
 
+static inline int
+arch_phys_wc_add(u64 base, u64 size)
+{
+	return -1;
+}
+
+static inline void
+arch_phys_wc_del(int index)
+{
+}
+
 /******************************************************************************
  * io mapping
  *****************************************************************************/
@@ -989,6 +1000,49 @@ pci_disable_msi(struct pci_dev *pdev)
 #define pci_domain_nr(a) (a)->domain
 #define pci_get_bus_and_slot(a, b) NULL
 #define pci_read_config_dword(a,b,c) *(c) = 0
+
+#define PCI_VENDOR_ID_NVIDIA 0x10de
+#define PCI_VENDOR_ID_VIA 0x1106
+
+/******************************************************************************
+ * AGP
+ *****************************************************************************/
+#define PCI_AGP_COMMAND_FW 0x10
+
+#ifdef CONFIG_AGP
+struct agp_bridge_data {
+};
+
+struct agp_kern_info {
+	struct pci_dev *device;
+	unsigned long mode;
+	unsigned long aper_base;
+	size_t aper_size;
+	bool cant_use_aperture;
+};
+
+static inline struct agp_bridge_data *
+agp_backend_acquire(struct pci_dev *pdev)
+{
+	return NULL;
+}
+
+static inline void
+agp_backend_release(struct agp_bridge_data *bridge)
+{
+}
+
+static inline int
+agp_copy_info(struct agp_bridge_data *bridge, struct agp_kern_info *info)
+{
+	return -ENOSYS;
+}
+
+static inline void
+agp_enable(struct agp_bridge_data *bridge, u32 mode)
+{
+}
+#endif
 
 /******************************************************************************
  * platform device
