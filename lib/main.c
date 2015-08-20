@@ -222,7 +222,6 @@ os_fini(void)
 		free(ldev);
 	}
 
-	nvkm_object_debug();
 	pci_system_cleanup();
 }
 

@@ -49,7 +49,6 @@ static void
 null_fini(void)
 {
 	nvkm_object_ref(NULL, (struct nvkm_object **)&null_device);
-	nvkm_object_debug();
 }
 
 static int
