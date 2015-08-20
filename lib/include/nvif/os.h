@@ -120,7 +120,19 @@ typedef dma_addr_t resource_size_t;
 #define __printf(a,b)
 #define __user
 
-#define IS_ENABLED(x) (0)
+#if defined(CONFIG_ARM)
+#define IS_ENABLED_CONFIG_ARM 1
+#else
+#define IS_ENABLED_CONFIG_ARM 0
+#endif
+
+#if defined(CONFIG_IOMMU_API)
+#define IS_ENABLED_CONFIG_IOMMU_API 1
+#else
+#define IS_ENABLED_CONFIG_IOMMU_API 0
+#endif
+
+#define IS_ENABLED(x) IS_ENABLED_##x
 
 static inline int
 order_base_2(u64 base)
@@ -810,16 +822,60 @@ dma_free_attrs(struct device *dev, size_t sz, void *vaddr, dma_addr_t bus,
 {
 }
 
+/******************************************************************************
+ * Bus
+ *****************************************************************************/
+
+struct bus_type {
+};
+
+extern struct bus_type platform_bus_type;
 
 /******************************************************************************
  * IOMMU
  *****************************************************************************/
 struct iommu_domain;
 
+struct iommu_ops {
+	unsigned long pgsize_bitmap;
+};
+
+struct iommu_domain {
+	const struct iommu_ops *ops;
+};
+
 #define IOMMU_READ     (1 << 0)
 #define IOMMU_WRITE    (1 << 1)
 #define IOMMU_CACHE    (1 << 2) /* DMA cache coherency */
 #define IOMMU_NOEXEC   (1 << 3)
+
+static inline bool
+iommu_present(struct bus_type *bus)
+{
+	return false;
+}
+
+static inline struct iommu_domain *
+iommu_domain_alloc(struct bus_type *bus)
+{
+	return NULL;
+}
+
+static inline void
+iommu_domain_free(struct iommu_domain *domain)
+{
+}
+
+static inline int
+iommu_attach_device(struct iommu_domain *domain, struct device *dev)
+{
+	return -ENOSYS;
+}
+
+static inline void
+iommu_detach_device(struct iommu_domain *domain, struct device *dev)
+{
+}
 
 static inline int
 iommu_map(struct iommu_domain *domain, unsigned long iova, dma_addr_t paddr,
@@ -1328,10 +1384,33 @@ struct notifier_block {
 struct clk {
 };
 
+static inline struct clk *
+clk_get(struct device *dev, const char *id)
+{
+	return NULL;
+}
+
 static inline unsigned long
 clk_get_rate(struct clk *clk)
 {
 	return 0;
+}
+
+static inline int
+clk_set_rate(struct clk *clk, unsigned long rate)
+{
+	return -ENOSYS;
+}
+
+static inline int
+clk_prepare_enable(struct clk *clk)
+{
+	return -ENOSYS;
+}
+
+static inline void
+clk_disable_unprepare(struct clk *clk)
+{
 }
 
 /******************************************************************************
@@ -1353,25 +1432,73 @@ regulator_get_voltage(struct regulator *regulator)
 	return -ENOSYS;
 }
 
+static inline int
+regulator_enable(struct regulator *regulator)
+{
+	return -ENOSYS;
+}
+
+static inline int
+regulator_disable(struct regulator *regulator)
+{
+	return -ENOSYS;
+}
+
+static inline struct regulator *
+regulator_get(struct device *dev, const char *id)
+{
+	return NULL;
+}
+
 /******************************************************************************
- * nouveau drm platform device
+ * reset
  *****************************************************************************/
 
-struct nvkm_mm;
-
-struct nouveau_platform_gpu {
-	struct clk *clk;
-	struct regulator *vdd;
-
-	struct {
-		struct mutex mutex;
-		struct nvkm_mm *mm;
-		struct iommu_domain *domain;
-		unsigned long pgshift;
-	} iommu;
-
-	int gpu_speedo;
+struct reset_control {
 };
+
+static inline struct reset_control *
+reset_control_get(struct device *dev, const char *id)
+{
+	return NULL;
+}
+
+static inline int
+reset_control_assert(struct reset_control *reset)
+{
+	return -ENOSYS;
+}
+
+static inline int
+reset_control_deassert(struct reset_control *reset)
+{
+	return -ENOSYS;
+}
+
+/******************************************************************************
+ * devres
+ *****************************************************************************/
+
+#define devm_clk_get clk_get
+#define devm_regulator_get regulator_get
+#define devm_reset_control_get reset_control_get
+
+/******************************************************************************
+ * tegra
+ *****************************************************************************/
+struct tegra_sku_info {
+	int gpu_speedo_value;
+};
+
+extern struct tegra_sku_info tegra_sku_info;
+
+#define TEGRA_POWERGATE_3D 1
+
+static inline int
+tegra_powergate_remove_clamping(int id)
+{
+	return -ENOSYS;
+}
 
 /******************************************************************************
  * endianness (cont'd)
