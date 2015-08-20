@@ -8,7 +8,7 @@ static u64 map_page = ~0ULL;
 static CAST
 nv_rfb(struct nvif_device *device, u64 offset)
 {
-	struct pci_dev *pdev = nvxx_device(device)->pdev;
+	struct nvkm_device *nv = nvxx_device(device);
 	u64 page = (offset & ~(PAGE_SIZE - 1));
 	u64 addr = (offset &  (PAGE_SIZE - 1));
 
@@ -22,11 +22,11 @@ nv_rfb(struct nvif_device *device, u64 offset)
 		if (map)
 			iounmap(map);
 
-		if (pci_resource_len(pdev, 2)) {
-			map = ioremap(pci_resource_start(pdev, 2) +
+		if (nv->func->resource_size(nv, 2)) {
+			map = ioremap(nv->func->resource_addr(nv, 2) +
 				      page, PAGE_SIZE);
 		} else {
-			map = ioremap(pci_resource_start(pdev, 3) +
+			map = ioremap(nv->func->resource_addr(nv, 3) +
 				      page, PAGE_SIZE);
 		}
 

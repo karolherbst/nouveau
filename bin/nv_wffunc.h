@@ -8,6 +8,7 @@ static u64 map_page = ~0ULL;
 static void
 nv_wfb(struct nvif_device *device, u64 offset, CAST data)
 {
+	struct nvkm_device *nv = nvxx_device(device);
 	u64 page = (offset & ~(PAGE_SIZE - 1));
 	u64 addr = (offset &  (PAGE_SIZE - 1));
 
@@ -21,8 +22,7 @@ nv_wfb(struct nvif_device *device, u64 offset, CAST data)
 		if (map)
 			iounmap(map);
 
-		map = ioremap(pci_resource_start(nvxx_device(device)->pdev, 1) +
-			      page, PAGE_SIZE);
+		map = ioremap(nv->func->resource_addr(nv, 1) + page, PAGE_SIZE);
 		if (!map) {
 			printk("map failed\n");
 			exit(1);
