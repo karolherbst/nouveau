@@ -9,7 +9,6 @@
 struct os_device {
 	struct nvkm_device base;
 	struct list_head head;
-	char *name;
 	char *cfg;
 	char *dbg;
 };

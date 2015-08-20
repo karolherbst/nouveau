@@ -139,7 +139,6 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 {
 	struct os_device *odev;
 	struct pci_dev *ldev;
-	char *name, _name[64];
 	int ret;
 
 	ret = pci_device_probe(pdev);
@@ -148,31 +147,28 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 		return ret;
 	}
 
-	snprintf(_name, sizeof(_name), "%04x:%02x:%02x.%1x",
-		 pdev->domain, pdev->bus, pdev->dev, pdev->func);
-
 	list_for_each_entry(odev, &os_device_list, head) {
 		if (odev->base.handle == handle)
 			return -EEXIST;
 	}
 
-	ldev = calloc(1, sizeof(*ldev));
+	ldev = malloc(sizeof(*ldev));
+	snprintf(ldev->dev.name, sizeof(ldev->dev.name), "%04x:%02x:%02x.%1x",
+		 pdev->domain, pdev->bus, pdev->dev, pdev->func);
 	ldev->pdev = pdev;
 	ldev->device = pdev->dev;
 	ldev->subsystem_vendor = pdev->subvendor_id;
 	ldev->subsystem_device = pdev->subdevice_id;
-	name = strdup(_name);
 
-	ret = nvkm_device_create(ldev, NVKM_BUS_PCI, handle, name,
+	ret = nvkm_device_create(ldev, NVKM_BUS_PCI, handle, ldev->dev.name,
 				 cfg, dbg, &odev);
 	if (ret) {
 		fprintf(stderr, "failed to create device, %d\n", ret);
-		free(name);
+		free(ldev);
 		return ret;
 	}
 
 	list_add_tail(&odev->head, &os_device_list);
-	odev->name = name;
 	return 0;
 }
 
@@ -221,10 +217,9 @@ os_fini(void)
 
 	list_for_each_entry_safe(odev, temp, &os_device_list, head) {
 		struct pci_dev *ldev = odev->base.pdev;
-		char *name = odev->name;
 		list_del(&odev->head);
 		nvkm_object_ref(NULL, (struct nvkm_object **)&odev);
-		free(name); free(ldev);
+		free(ldev);
 	}
 
 	nvkm_object_debug();

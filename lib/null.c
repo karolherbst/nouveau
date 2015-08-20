@@ -38,6 +38,9 @@ static int null_client_nr = 0;
 static struct nvkm_device *null_device;
 static struct pci_dev
 null_pci_dev = {
+	.dev = {
+		.name = "0000:00:00.0",
+	},
 	.pdev = &(struct pci_device) {
 	},
 };
