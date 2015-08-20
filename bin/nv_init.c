@@ -12,7 +12,8 @@
 int
 main(int argc, char **argv)
 {
-	struct nvif_device *device;
+	struct nvif_client client;
+	struct nvif_device device;
 	bool suspend = false, wait = false;
 	int ret, c;
 
@@ -32,14 +33,13 @@ main(int argc, char **argv)
 	}
 
 	ret = u_device(NULL, argv[0], "info", true, true, ~0ULL,
-		       0x00000000, &device);
+		       0x00000000, &client, &device);
 	if (ret)
 		return ret;
 
 	if (suspend) {
-		struct nvif_client *client = nvif_client(&device->base);
-		nvif_client_suspend(client);
-		nvif_client_resume(client);
+		nvif_client_suspend(&client);
+		nvif_client_resume(&client);
 	}
 
 	while (wait && (c = getchar()) == EOF) {
@@ -47,7 +47,8 @@ main(int argc, char **argv)
 	}
 
 	printf("shutting down...\n");
-	nvif_device_ref(NULL, &device);
+	nvif_device_fini(&device);
+	nvif_client_fini(&client);
 	printf("done!\n");
 	return ret;
 }

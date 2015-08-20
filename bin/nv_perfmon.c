@@ -37,7 +37,8 @@
 
 #include "util.h"
 
-static struct nvif_device *device;
+static struct nvif_client client;
+static struct nvif_device _device, *device = &_device;
 static struct nvif_object perfmon;
 static int nr_signals; /* number of signals for all domains */
 
@@ -402,7 +403,7 @@ ui_perfmon_init(void)
 {
 	int ret;
 
-	ret = nvif_object_init(nvif_object(device), NULL, 0xdeadbeef,
+	ret = nvif_object_init(&device->object, 0xdeadbeef,
 			       NVIF_IOCTL_NEW_V0_PERFMON, NULL, 0, &perfmon);
 	assert(ret == 0);
 
@@ -505,7 +506,7 @@ ui_main_select(void)
 				args.ctr[i].logic_op  = 0xaaaa;
 			}
 
-			ret = nvif_object_init(&perfmon, NULL, perfdom->handle,
+			ret = nvif_object_init(&perfmon, perfdom->handle,
 					       NVIF_IOCTL_NEW_V0_PERFDOM,
 					       &args, sizeof(args),
 					       &perfdom->object);
@@ -832,7 +833,7 @@ main(int argc, char **argv)
 	ret = u_device(NULL, argv[0], "error", true, true,
 		       (1ULL << NVDEV_SUBDEV_TIMER) |
 		       (1ULL << NVDEV_ENGINE_PM),
-		       0x00000000, &device);
+		       0x00000000, &client, device);
 	if (ret)
 		return ret;
 
@@ -872,6 +873,7 @@ main(int argc, char **argv)
 	endwin();
 	ui_perfmon_fini();
 
-	nvif_device_ref(NULL, &device);
+	nvif_device_fini(device);
+	nvif_client_fini(&client);
 	return 0;
 }

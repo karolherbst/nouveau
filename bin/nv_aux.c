@@ -17,7 +17,8 @@ print_aux(struct nvkm_i2c_aux *aux)
 int
 main(int argc, char **argv)
 {
-	struct nvif_device *device;
+	struct nvif_client client;
+	struct nvif_device device;
 	struct nvkm_i2c_aux *aux;
 	struct nvkm_i2c *i2c;
 	int action = -1, index = -1;
@@ -63,11 +64,11 @@ main(int argc, char **argv)
 	ret = u_device("lib", argv[0], "error", true, true,
 		       (1ULL << NVDEV_SUBDEV_VBIOS) |
 		       (1ULL << NVDEV_SUBDEV_I2C),
-		       0x00000000, &device);
+		       0x00000000, &client, &device);
 	if (ret)
 		return ret;
 
-	i2c = nvxx_i2c(device);
+	i2c = nvxx_i2c(&device);
 
 	if (action < 0) {
 		list_for_each_entry(aux, &i2c->aux, head) {
@@ -102,6 +103,7 @@ main(int argc, char **argv)
 	}
 
 done:
-	nvif_device_ref(NULL, &device);
+	nvif_device_fini(&device);
+	nvif_client_fini(&client);
 	return ret;
 }

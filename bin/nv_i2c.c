@@ -40,7 +40,8 @@ find_adapter(struct nvif_device *device, int adapter)
 int
 main(int argc, char **argv)
 {
-	struct nvif_device *device;
+	struct nvif_client client;
+	struct nvif_device device;
 	struct i2c_adapter *adap;
 	int addr = -1, reg = -1, val = -1;
 	int action = -1, index = -1;
@@ -91,14 +92,14 @@ main(int argc, char **argv)
 	ret = u_device("lib", argv[0], "error", true, true,
 		       (1ULL << NVDEV_SUBDEV_VBIOS) |
 		       (1ULL << NVDEV_SUBDEV_I2C),
-		       0x00000000, &device);
+		       0x00000000, &client, &device);
 
 	if (action < 0) {
-		for (index = 0; (adap = find_adapter(device, index)); index++) {
+		for (index = 0; (adap = find_adapter(&device, index)); index++) {
 			show_adapter(adap, index);
 		}
 	} else {
-		adap = find_adapter(device, index);
+		adap = find_adapter(&device, index);
 		if (!adap) {
 			ret = -ENOENT;
 			goto done;
@@ -154,6 +155,7 @@ main(int argc, char **argv)
 	}
 
 done:
-	nvif_device_ref(NULL, &device);
+	nvif_device_fini(&device);
+	nvif_client_fini(&client);
 	return ret;
 }

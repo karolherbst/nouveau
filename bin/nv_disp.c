@@ -5,23 +5,35 @@
 static unsigned long chan = 0;
 
 static void
+nv50_disp_mthd(struct nvif_device *device, u16 mthd, u32 data)
+{
+	u32 ctrl = nvif_rd32(&device->object, 0x610300 + (chan * 8));
+	nvif_wr32(&device->object, 0x610300 + (chan * 8), ctrl | 0x00000001);
+	nvif_wr32(&device->object, 0x610304 + (chan * 8), data);
+	nvif_wr32(&device->object, 0x610300 + (chan * 8), mthd | 0x80000001);
+	while (nvif_rd32(&device->object, 0x610300 + (chan * 8)) & 0x80000000) {}
+	nvif_wr32(&device->object, 0x610300 + (chan * 8), ctrl);
+}
+
+static void
+gf119_disp_mthd(struct nvif_device *device, u16 mthd, u32 data)
+{
+	u32 ctrl = nvif_rd32(&device->object, 0x610700 + (chan * 16));
+	nvif_wr32(&device->object, 0x610700 + (chan * 16), ctrl | 0x00000001);
+	nvif_wr32(&device->object, 0x610704 + (chan * 16), data);
+	nvif_wr32(&device->object, 0x610700 + (chan * 16), mthd | 0x80000001);
+	while (nvif_rd32(&device->object, 0x610700 + (chan * 16)) & 0x80000000) {}
+	nvif_wr32(&device->object, 0x610700 + (chan * 16), ctrl);
+}
+
+static void
 nv_disp(struct nvif_device *device, u16 mthd, u32 data)
 {
 	if (device->info.chipset >= 0xd0) {
-		u32 ctrl = nvif_rd32(device, 0x610700 + (chan * 16));
-		nvif_wr32(device, 0x610700 + (chan * 16), ctrl | 0x00000001);
-		nvif_wr32(device, 0x610704 + (chan * 16), data);
-		nvif_wr32(device, 0x610700 + (chan * 16), mthd | 0x80000001);
-		while (nvif_rd32(device, 0x610700 + (chan * 16)) & 0x80000000) {}
-		nvif_wr32(device, 0x610700 + (chan * 16), ctrl);
+		nv50_disp_mthd(device, mthd, data);
 	} else
 	if (device->info.family >= NV_DEVICE_INFO_V0_TESLA) {
-		u32 ctrl = nvif_rd32(device, 0x610300 + (chan * 8));
-		nvif_wr32(device, 0x610300 + (chan * 8), ctrl | 0x00000001);
-		nvif_wr32(device, 0x610304 + (chan * 8), data);
-		nvif_wr32(device, 0x610300 + (chan * 8), mthd | 0x80000001);
-		while (nvif_rd32(device, 0x610300 + (chan * 8)) & 0x80000000) {}
-		nvif_wr32(device, 0x610300 + (chan * 8), ctrl);
+		gf119_disp_mthd(device, mthd, data);
 	} else {
 		printk("unsupported chipset\n");
 		exit(1);

@@ -15,7 +15,8 @@
 int
 MAIN(int argc, char **argv)
 {
-	struct nvif_device *device;
+	struct nvif_client client;
+	struct nvif_device _device, *device = &_device;
 	char *rstr = NULL;
 	char *vstr = NULL;
 	int quiet = 0;
@@ -43,7 +44,7 @@ MAIN(int argc, char **argv)
 	}
 
 	ret = u_device("lib", argv[0], "fatal", DETECT, true, 0ULL,
-		       0x00000000, &device);
+		       0x00000000, &client, device);
 	if (ret)
 		return ret;
 
@@ -89,6 +90,7 @@ MAIN(int argc, char **argv)
 		}
 	}
 
-	nvif_device_ref(NULL, &device);
+	nvif_device_fini(device);
+	nvif_client_fini(&client);
 	return 0;
 }
