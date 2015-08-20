@@ -7,9 +7,9 @@
 #include <nvif/class.h>
 
 static void
-print_chan(struct nvkm_i2c_port *chan)
+print_aux(struct nvkm_i2c_aux *aux)
 {
-	printf("chan 0x%02x: type %04x\n", chan->index, nv_mclass(chan));
+	printf("aux %04x\n", aux->id);
 }
 
 int
@@ -21,7 +21,7 @@ main(int argc, char **argv)
 	u64 dev = ~0ULL;
 	struct nvif_client *client;
 	struct nvif_device *device;
-	struct nvkm_i2c_port *chan;
+	struct nvkm_i2c_aux *aux;
 	struct nvkm_i2c *i2c;
 	int action = -1, index = -1;
 	int addr = -1, val = -1;
@@ -84,23 +84,22 @@ main(int argc, char **argv)
 	i2c = nvxx_i2c(device);
 
 	if (action < 0) {
-		list_for_each_entry(chan, &i2c->ports, head) {
-			if ((nv_mclass(chan) & 0x00ff) == 0x06)
-				print_chan(chan);
+		list_for_each_entry(aux, &i2c->aux, head) {
+			print_aux(aux);
 		}
 	} else {
-		chan = i2c->find(i2c, index);
-		if (!chan || (nv_mclass(chan) & 0x00ff) != 0x06) {
+		aux = nvkm_i2c_aux_find(i2c, index);
+		if (!aux) {
 			ret = -ENOENT;
 			goto done;
 		}
 
-		print_chan(chan);
+		print_aux(aux);
 	}
 
 	switch (action) {
 	case 0:
-		ret = nv_rdaux(chan, addr, &data, 1);
+		ret = nvkm_rdaux(aux, addr, &data, 1);
 		printf("%05x: ", addr);
 		if (ret < 0)
 			printf("%s\n", strerror(ret));
@@ -109,7 +108,7 @@ main(int argc, char **argv)
 		break;
 	case 1:
 		printf("%05x: %02x", addr, data);
-		ret = nv_wraux(chan, addr, &data, 1);
+		ret = nvkm_wraux(aux, addr, &data, 1);
 		if (ret < 0)
 			printf(" - %s", strerror(ret));
 		printf("\n");

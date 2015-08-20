@@ -7,9 +7,32 @@
 #include <nvif/class.h>
 
 static void
-print_port(struct nvkm_i2c_port *port)
+show_adapter(struct i2c_adapter *adap, int adapter)
 {
-	printf("port 0x%02x: type %04x\n", port->index, nv_mclass(port));
+	printf("i2c %d: %s\n", adapter, adap->name);
+}
+
+static struct i2c_adapter *
+find_adapter(struct nvif_device *device, int adapter)
+{
+	struct nvkm_i2c *i2c = nvxx_device(device)->i2c;
+	struct nvkm_i2c_bus *bus;
+	struct nvkm_i2c_aux *aux;
+	int i = 0;
+
+	if (i2c) {
+		list_for_each_entry(bus, &i2c->bus, head) {
+			if (i++ == adapter)
+				return &bus->i2c;
+		}
+
+		list_for_each_entry(aux, &i2c->aux, head) {
+			if (i++ == adapter)
+				return &aux->i2c;
+		}
+	}
+
+	return NULL;
 }
 
 int
@@ -21,8 +44,7 @@ main(int argc, char **argv)
 	u64 dev = ~0ULL;
 	struct nvif_client *client;
 	struct nvif_device *device;
-	struct nvkm_i2c_port *port;
-	struct nvkm_i2c *i2c;
+	struct i2c_adapter *adap;
 	int addr = -1, reg = -1, val = -1;
 	int action = -1, index = -1;
 	int ret, c;
@@ -87,20 +109,18 @@ main(int argc, char **argv)
 	if (ret)
 		return ret;
 
-	i2c = nvxx_i2c(device);
-
 	if (action < 0) {
-		list_for_each_entry(port, &i2c->ports, head) {
-			print_port(port);
+		for (index = 0; (adap = find_adapter(device, index)); index++) {
+			show_adapter(adap, index);
 		}
 	} else {
-		port = i2c->find(i2c, index);
-		if (!port) {
+		adap = find_adapter(device, index);
+		if (!adap) {
 			ret = -ENOENT;
 			goto done;
 		}
 
-		print_port(port);
+		show_adapter(adap, index);
 	}
 
 	switch (action) {
@@ -109,7 +129,7 @@ main(int argc, char **argv)
 			for (addr = 0; addr < 128; addr++) {
 				if ((addr & 0x0f) == 0x00)
 					printf("%02x:", addr);
-				if ((val = nv_rdi2cr(port, addr, 0x00)) >= 0)
+				if ((val = nvkm_rdi2cr(adap, addr, 0x00)) >= 0)
 					printf(" %02x", addr);
 				else
 					printf(" --");
@@ -122,7 +142,7 @@ main(int argc, char **argv)
 			for (reg = 0; reg < 256; reg++) {
 				if ((reg & 0x0f) == 0x00)
 					printf("%02x:", reg);
-				if ((val = nv_rdi2cr(port, addr, reg)) >= 0)
+				if ((val = nvkm_rdi2cr(adap, addr, reg)) >= 0)
 					printf(" %02x", val);
 				else
 					printf(" --");
@@ -133,7 +153,7 @@ main(int argc, char **argv)
 		}
 		break;
 	case 2:
-		val = nv_rdi2cr(port, addr, reg);
+		val = nvkm_rdi2cr(adap, addr, reg);
 		printf("%02x[%02x]: ", addr, reg);
 		if (val < 0)
 			printf("%s\n", strerror(val));
@@ -142,7 +162,7 @@ main(int argc, char **argv)
 		break;
 	case 3:
 		printf("%02x[%02x]: %02x", addr, reg, val);
-		ret = nv_wri2cr(port, addr, reg, val);
+		ret = nvkm_wri2cr(adap, addr, reg, val);
 		if (ret < 0)
 			printf("%s", strerror(ret));
 		printf("\n");

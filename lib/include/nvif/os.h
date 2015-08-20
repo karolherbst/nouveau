@@ -636,7 +636,8 @@ struct device {
 	char name[64];
 };
 
-#define dev_crit(d,f,a...)   printf("nouveau %s: "f, (d)->name, ##a)
+#define dev_name(d) (d)->name
+#define dev_crit(d,f,a...)   printf("nouveau %s: "f, dev_name(d), ##a)
 #define dev_err(d,f,a...)    dev_crit((d), f, ##a)
 #define dev_warn(d,f,a...)   dev_crit((d), f, ##a)
 #define dev_notice(d,f,a...) dev_crit((d), f, ##a)
