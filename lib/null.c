@@ -56,7 +56,8 @@ null_init(const char *cfg, const char *dbg, bool init)
 {
 	int ret = nvkm_device_new(&null_pci_dev, NVKM_BUS_PCI,
 				  ~0ULL, "0000:00:00.0", cfg, dbg,
-				  &null_device);
+				  os_device_detect, os_device_mmio,
+				  os_device_subdev, &null_device);
 	if (ret)
 		null_fini();
 }

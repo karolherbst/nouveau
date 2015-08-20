@@ -14,4 +14,7 @@ struct os_device {
 	struct pci_dev pdev;
 };
 
+extern bool os_device_detect;
+extern bool os_device_mmio;
+extern u64  os_device_subdev;
 #endif

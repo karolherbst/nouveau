@@ -44,6 +44,10 @@ static DEFINE_MUTEX(os_mutex);
 static LIST_HEAD(os_device_list);
 static int os_client_nr = 0;
 
+bool os_device_detect = true;
+bool os_device_mmio = true;
+u64  os_device_subdev = ~0ULL;
+
 /******************************************************************************
  * horrific stuff to implement linux's ioremap interface on top of pciaccess
  *****************************************************************************/
@@ -169,7 +173,8 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 
 	ret = nvkm_device_new(&odev->pdev, NVKM_BUS_PCI, handle,
 			      odev->pdev.dev.name, cfg, dbg,
-			      &odev->device);
+			      os_device_detect, os_device_mmio,
+			      os_device_subdev, &odev->device);
 	if (ret) {
 		fprintf(stderr, "failed to create device, %d\n", ret);
 		os_fini_device(odev);

@@ -5,6 +5,8 @@
 
 #include <unistd.h>
 
+#include "../lib/priv.h"
+
 #define U_GETOPT "a:b:c:d:"
 
 static const char *u_drv;
@@ -31,6 +33,9 @@ u_client(const char *drv, const char *name, const char *dbg,
 	 bool detect, bool mmio, u64 subdev,
 	 struct nvif_client **pclient)
 {
+	os_device_detect = detect;
+	os_device_mmio = mmio;
+	os_device_subdev = subdev;
 	return nvif_client_new(u_drv ? u_drv : drv, name, u_dev, u_cfg,
 			       u_dbg ? u_dbg : dbg, pclient);
 }
@@ -46,13 +51,6 @@ u_device(const char *drv, const char *name, const char *dbg,
 		ret = nvif_device_new(client->object, handle, NV_DEVICE,
 				      &(struct nv_device_v0) {
 					.device = ~0ULL,
-					.disable = ~(
-		(detect ? NV_DEVICE_V0_DISABLE_IDENTIFY : 0) |
-		(  mmio ? NV_DEVICE_V0_DISABLE_MMIO : 0) |
-		((subdev & (1ULL << NVDEV_SUBDEV_VBIOS)) ?
-			NV_DEVICE_V0_DISABLE_VBIOS : 0) |
-		(subdev ? NV_DEVICE_V0_DISABLE_CORE : 0)),
-					.debug0 = ~subdev,
 				      }, sizeof(struct nv_device_v0),
 				      pdevice);
 		nvif_client_ref(NULL, &client);
