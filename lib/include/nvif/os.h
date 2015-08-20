@@ -636,6 +636,11 @@ struct device {
 	struct device_driver *driver;
 };
 
+#define dev_crit(d,f,a...) printf("nouveau: "f, ##a)
+#define dev_err(d,f,a...)  dev_crit((d), f, ##a)
+#define dev_warn(d,f,a...) dev_crit((d), f, ##a)
+#define dev_info(d,f,a...) dev_crit((d), f, ##a)
+
 /******************************************************************************
  * PM runtime
  *****************************************************************************/
