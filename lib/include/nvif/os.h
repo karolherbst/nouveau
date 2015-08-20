@@ -347,7 +347,6 @@ kstrtoul(const char *s, unsigned int base, unsigned long *res)
 
 #define printk printf
 #define vprintk vprintf
-#define pr_cont printf
 
 /******************************************************************************
  * memory
