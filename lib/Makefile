@@ -31,6 +31,7 @@ srcs := $(lib)/bit.o \
 	$(lib)/intr.o \
 	$(lib)/main.o \
 	$(lib)/null.o \
+	$(lib)/rb.o \
 	$(lib)/work.o
 outp := $(lib)/libnvif.so
 

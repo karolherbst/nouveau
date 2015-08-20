@@ -552,6 +552,28 @@ struct lock_class_key {
 #include "list.h"
 
 /******************************************************************************
+ * rbtree
+ *****************************************************************************/
+struct rb_root {
+	struct rb_node *rb_node;
+};
+
+#define RB_ROOT (struct rb_root) {}
+
+struct rb_node {
+	struct rb_node *parent;
+	struct rb_node *rb_left;
+	struct rb_node *rb_right;
+};
+
+#define RB_EMPTY_NODE(a) ((a)->parent == (a))
+#define RB_CLEAR_NODE(a) ((a)->parent = (a))
+
+void rb_link_node(struct rb_node *, struct rb_node *, struct rb_node **);
+void rb_insert_color(struct rb_node *, struct rb_root *);
+void rb_erase(struct rb_node *, struct rb_root *);
+
+/******************************************************************************
  * io space
  *****************************************************************************/
 #define __iomem
