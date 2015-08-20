@@ -831,8 +831,8 @@ main(int argc, char **argv)
 	}
 
 	ret = u_device(NULL, argv[0], "error", true, true,
-		       (1ULL << NVDEV_SUBDEV_TIMER) |
-		       (1ULL << NVDEV_ENGINE_PM),
+		       (1ULL << NVKM_SUBDEV_TIMER) |
+		       (1ULL << NVKM_ENGINE_PM),
 		       0x00000000, &client, device);
 	if (ret)
 		return ret;
