@@ -91,11 +91,9 @@ null_client_suspend(void *priv)
 static void
 null_client_fini(void *priv)
 {
-	struct nvkm_object *object = priv;
+	struct nvkm_client *client = priv;
 
-	nvkm_client_fini(nv_client(object), false);
-	atomic_set(&object->refcount, 1);
-	nvkm_object_ref(NULL, &object);
+	nvkm_client_del(&client);
 
 	mutex_lock(&null_mutex);
 	if (--null_client_nr == 0)
@@ -115,7 +113,7 @@ null_client_init(const char *name, u64 device, const char *cfg,
 		null_init(cfg, dbg, true);
 	mutex_unlock(&null_mutex);
 
-	ret = nvkm_client_create(name, ~0ULL, cfg, dbg, &client);
+	ret = nvkm_client_new(name, ~0ULL, cfg, dbg, &client);
 	*ppriv = client;
 	if (ret == 0)
 		client->ntfy = nvif_notify;
