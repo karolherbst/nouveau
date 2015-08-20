@@ -105,7 +105,7 @@ static int
 null_client_init(const char *name, u64 device, const char *cfg,
 	       const char *dbg, void **ppriv)
 {
-	struct nvkm_client *client;
+	struct nvkm_client *client = NULL;
 	int ret;
 
 	mutex_lock(&null_mutex);

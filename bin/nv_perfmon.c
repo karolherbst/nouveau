@@ -588,7 +588,7 @@ ui_main_redraw(struct ui_table *t)
 		set_field_userptr(f[0], item);
 		field_opts_on(f[0], O_VISIBLE | O_ACTIVE);
 
-		snprintf(b, sizeof(b), "%10u %10u %6.2f %16"PRIu64,
+		snprintf(b, sizeof(b), "%10u %10u %6.2f %16llx",
 			    item->clk, item->ctr,
 			    (float)item->ctr * 100.0 / item->clk, item->incr);
 		set_field_buffer(f[1], 0, b);

@@ -47,6 +47,7 @@ static int os_client_nr = 0;
 /******************************************************************************
  * horrific stuff to implement linux's ioremap interface on top of pciaccess
  *****************************************************************************/
+static DEFINE_MUTEX(os_ioremap_mutex);
 static struct os_ioremap_info {
        struct pci_device *pdev;
        int refs;
@@ -56,54 +57,54 @@ static struct os_ioremap_info {
 } os_ioremap[32];
 
 void __iomem *
+nvos_ioremap_bar(struct pci_device *pdev, int bar, u64 addr)
+{
+	u64 base = pdev->regions[bar].base_addr;
+	u64 size = pdev->regions[bar].size;
+	u64 offset = addr - base;
+	void __iomem *ptr = NULL;
+	int i;
+
+	mutex_lock(&os_ioremap_mutex);
+	for (i = 0; !ptr && i < ARRAY_SIZE(os_ioremap); i++) {
+		if (os_ioremap[i].refs && os_ioremap[i].addr == base) {
+			os_ioremap[i].refs++;
+			ptr = os_ioremap[i].ptr + offset;
+		}
+	}
+
+	for (i = 0; !ptr && i < ARRAY_SIZE(os_ioremap); i++) {
+		if (!os_ioremap[i].refs &&
+		    !pci_device_map_range(pdev, base, size,
+					  PCI_DEV_MAP_FLAG_WRITABLE,
+					  &os_ioremap[i].ptr)) {
+			os_ioremap[i].pdev = pdev;
+			os_ioremap[i].refs = 1;
+			os_ioremap[i].addr = base;
+			os_ioremap[i].size = size;
+			ptr = os_ioremap[i].ptr + offset;
+		}
+	}
+	mutex_unlock(&os_ioremap_mutex);
+
+	return ptr;
+}
+
+void __iomem *
 nvos_ioremap(u64 addr, u64 size)
 {
-	struct pci_device *pdev = NULL;
-	struct os_ioremap_info *info;
 	struct os_device *odev;
-	u64 m_page = addr &  0xfff;
-	u64 m_addr = addr & ~0xfff;
-	u64 m_size = (size + 0xfff) & ~0xfff;
 	int i;
 
 	list_for_each_entry(odev, &os_device_list, head) {
-		for (i = 0; i < 6; i++) {
-			pdev = odev->base.pdev->pdev;
-			if (m_addr          >= pdev->regions[i].base_addr &&
-			    m_addr + m_size <= pdev->regions[i].base_addr +
-					       pdev->regions[i].size)
-				break;
-			pdev = NULL;
+		struct pci_device *pdev = odev->base.pdev->pdev;
+		for (i = 0; i < ARRAY_SIZE(pdev->regions); i++) {
+			if (addr        >= pdev->regions[i].base_addr &&
+			    addr + size <= pdev->regions[i].base_addr +
+					   pdev->regions[i].size) {
+				return nvos_ioremap_bar(pdev, i, addr);
+			}
 		}
-		if (pdev)
-			break;
-	}
-
-	for (i = 0, info = NULL; pdev && i < ARRAY_SIZE(os_ioremap); i++) {
-		if (os_ioremap[i].refs) {
-			if (os_ioremap[i].addr != m_addr ||
-			    os_ioremap[i].size != m_size)
-				continue;
-		} else {
-			info = &os_ioremap[i];
-			continue;
-		}
-
-		os_ioremap[i].refs++;
-		return os_ioremap[i].ptr + m_page;
-	}
-
-	if (info) {
-		if (pci_device_map_range(pdev, m_addr, m_size,
-					 PCI_DEV_MAP_FLAG_WRITABLE,
-					 &info->ptr))
-			return NULL;
-
-		info->pdev = pdev;
-		info->refs = 1;
-		info->addr = m_addr;
-		info->size = m_size;
-		return info->ptr + m_page;
 	}
 
 	return NULL;
@@ -114,17 +115,20 @@ nvos_iounmap(void __iomem *ptr)
 {
 	int i;
 
+	mutex_lock(&os_ioremap_mutex);
 	for (i = 0; ptr && i < ARRAY_SIZE(os_ioremap); i++) {
 		if (os_ioremap[i].refs &&
 		    ptr >= os_ioremap[i].ptr &&
 		    ptr <  os_ioremap[i].ptr + os_ioremap[i].size) {
 			if (!--os_ioremap[i].refs) {
-				pci_device_unmap_range(os_ioremap[i].pdev, ptr,
+				pci_device_unmap_range(os_ioremap[i].pdev,
+						       os_ioremap[i].ptr,
 						       os_ioremap[i].size);
 			}
 			break;
 		}
 	}
+	mutex_unlock(&os_ioremap_mutex);
 }
 
 /******************************************************************************
@@ -152,7 +156,7 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 			return -EEXIST;
 	}
 
-	ldev = malloc(sizeof(*ldev));
+	ldev = calloc(1, sizeof(*ldev));
 	ldev->pdev = pdev;
 	ldev->device = pdev->dev;
 	ldev->subsystem_vendor = pdev->subvendor_id;
@@ -163,6 +167,7 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 				 cfg, dbg, &odev);
 	if (ret) {
 		fprintf(stderr, "failed to create device, %d\n", ret);
+		free(name);
 		return ret;
 	}
 
@@ -196,7 +201,7 @@ os_init(const char *cfg, const char *dbg, bool init)
 			 (pdev->dev << 8) | pdev->func;
 
 		if (!init) {
-			printf("%d: 0x%010"PRIx64" PCI:%04x:%02x:%02x:%02x "
+			printf("%d: 0x%010llx PCI:%04x:%02x:%02x:%02x "
 			       "(%04x:%04x)\n", n++, handle, pdev->domain,
 			       pdev->bus, pdev->dev, pdev->func,
 			       pdev->vendor_id, pdev->device_id);

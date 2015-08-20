@@ -1,4 +1,4 @@
-LIBNVIF_CC := $(CFLAGS) -I$(drm) -fPIC
+LIBNVIF_CC := $(CFLAGS) -I$(drm) -fPIC -Wframe-larger-than=1024
 LIBNVIF_LD := $(LDFLAGS) -shared -lpciaccess -lpthread -ldrm
 
 src  := $(drm)
@@ -26,10 +26,12 @@ fucs := $(drm)/nvkm/engine/ce/fuc/gt215.fuc3.h \
 	$(drm)/nvkm/engine/sec/fuc/g98.fuc0s.h
 drms := $(addprefix $(lib)/, $(nvif-y)) \
 	$(addprefix $(lib)/, $(nvkm-y))
-srcs := $(lib)/drm.o \
+srcs := $(lib)/bit.o \
+	$(lib)/drm.o \
 	$(lib)/intr.o \
 	$(lib)/main.o \
-	$(lib)/null.o
+	$(lib)/null.o \
+	$(lib)/work.o
 outp := $(lib)/libnvif.so
 
 deps-fuc := $(fucs:$(drm)/%.h=$(lib)/%.d)

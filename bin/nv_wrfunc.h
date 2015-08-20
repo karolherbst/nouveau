@@ -64,11 +64,10 @@ MAIN(int argc, char **argv)
 		return ret;
 
 	while (rstr && *rstr != '\0') {
-		unsigned long cnt = 1;
-		unsigned long reg;
-		unsigned long val;
+		u32 cnt = 1, val;
+		u64 reg;
 
-		if ((reg = strtoul(rstr, &rstr, 0)) == ULONG_MAX)
+		if ((reg = strtoull(rstr, &rstr, 0)) == ULONG_MAX)
 			return 1;
 
 		if (*rstr == '/') {

@@ -170,8 +170,8 @@ drm_client_init(const char *name, u64 device, const char *cfg,
 	int ret, minor;
 	char path[128];
 
-	if (ret = -ENOMEM, !(drm = *ppriv = malloc(sizeof(*drm))))
-		goto fail;
+	if (!(drm = *ppriv = calloc(1, sizeof(*drm))))
+		return -ENOMEM;
 
 	for (minor = DRM_RENDER_MIN; minor <= DRM_RENDER_MAX; minor++) {
 		snprintf(path, sizeof(path), "/dev/dri/renderD%d", minor);
@@ -181,27 +181,24 @@ drm_client_init(const char *name, u64 device, const char *cfg,
 			continue;
 		if (!strcmp(ver->name, "nouveau"))
 			break;
-		free(ver);
+		drmFreeVersion(ver);
 	}
 
-	if (ret = -ENODEV, minor > DRM_RENDER_MAX)
-		goto fail;
+	if (minor > DRM_RENDER_MAX)
+		return -ENODEV;
 
 	drm->version = (ver->version_major << 24) |
 		       (ver->version_minor << 8) |
 		        ver->version_patchlevel;
-	free(ver);
-	if (ret = -ENOSYS, drm->version < 0x01000200)
-		goto fail;
+	drmFreeVersion(ver);
+	if (drm->version < 0x01000200)
+		return -ENOSYS;
 
 	if ((ret = pthread_create(&drm->event, NULL, drm_client_event, drm)))
-		goto fail;
+		return ret;
 
 	drm->done = true;
 	return 0;
-fail:
-	drm_client_fini(drm);
-	return ret;
 }
 
 const struct nvif_driver

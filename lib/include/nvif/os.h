@@ -34,22 +34,22 @@
 #include <limits.h>
 #include <ctype.h>
 
-typedef uint64_t u64;
+__extension__ typedef unsigned long long u64;
 typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
 
-typedef int64_t s64;
+__extension__ typedef long long s64;
 typedef int32_t s32;
 typedef int16_t s16;
 typedef int8_t s8;
 
 #ifndef _ASM_GENERIC_INT_LL64_H
-typedef uint64_t __u64;
+__extension__ typedef unsigned long long __u64;
 typedef uint32_t __u32;
 typedef uint16_t __u16;
 typedef uint8_t __u8;
-typedef int64_t __s64;
+__extension__ typedef long long __s64;
 typedef int32_t __s32;
 typedef int16_t __s16;
 typedef int8_t __s8;
@@ -266,28 +266,28 @@ typedef struct atomic {
 /******************************************************************************
  * ktime
  *****************************************************************************/
-#include <sys/time.h>
+#include <time.h>
 
-typedef struct timeval ktime_t;
+typedef struct timespec ktime_t;
 
 static inline ktime_t
 ktime_get(void)
 {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return tv;
-}
-
-static inline s64
-ktime_to_us(ktime_t kt)
-{
-	return kt.tv_sec * 1000000 + kt.tv_usec;
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return ts;
 }
 
 static inline s64
 ktime_to_ns(ktime_t kt)
 {
-	return ktime_to_us(kt) * 1000;
+	return (s64)kt.tv_sec * 1000000000 + kt.tv_nsec;
+}
+
+static inline s64
+ktime_to_us(ktime_t kt)
+{
+	return ktime_to_ns(kt) / 1000;
 }
 
 /******************************************************************************
@@ -424,17 +424,19 @@ get_num_physpages(void)
 static inline void
 nvos_backtrace(void)
 {
-	void *buffer[512];
+	void **buffer;
 	char **sinfo;
 	int ninfo, i;
 
-	ninfo = backtrace(buffer, sizeof(buffer));
+	buffer = malloc(sizeof(*buffer) * 512);
+	ninfo = backtrace(buffer, 512);
 	sinfo = backtrace_symbols(buffer, ninfo);
 	if (sinfo) {
 		for (i = 0; i < ninfo; i++)
 			printf("%s\n", sinfo[i]);
 		free(sinfo);
 	}
+	free(buffer);
 }
 
 #define BUG() do {                                                             \
@@ -497,7 +499,9 @@ typedef struct spinlock_t {
 
 #define DEFINE_SPINLOCK(a) spinlock_t a = { .lock = PTHREAD_MUTEX_INITIALIZER }
 
-#define spin_lock_init(a) pthread_mutex_init(&(a)->lock, NULL)
+#define spin_lock_init(a) do {                                                 \
+	(a)->lock = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;                \
+} while(0)
 #define spin_lock(a) pthread_mutex_lock(&(a)->lock)
 #define spin_unlock(a) pthread_mutex_unlock(&(a)->lock)
 #define spin_lock_irqsave(a,b) do { (b) = 1; spin_lock((a)); } while (0)
@@ -939,7 +943,7 @@ request_firmware(const struct firmware **pfw, const char *name,
 		return 0;
 	}
 	free(fw);
-	return errno;
+	return -EINVAL;
 }
 
 static inline void
@@ -952,60 +956,20 @@ release_firmware(const struct firmware *fw)
 /******************************************************************************
  * workqueues
  *****************************************************************************/
-struct work_struct;
-
-typedef void (*work_func_t)(struct work_struct *);
-
 struct work_struct {
-	work_func_t func;
-	pthread_mutex_t mutex;
-	pthread_t thread;
-	bool pending;
+	union {
+		void (*func)(struct work_struct *);
+		void (*exec)(void *);
+	};
+	struct nvos_work *nvos;
 };
 
-static inline void
-INIT_WORK(struct work_struct *work, work_func_t func)
-{
-	pthread_mutex_init(&work->mutex, NULL);
-	work->func = func;
-	work->pending = false;
-}
+#define INIT_WORK(a,b) ((a)->func = (b), (a)->nvos = NULL)
+#define schedule_work(a) BUG_ON(!nvos_work_init((a)->exec, (a), &(a)->nvos))
+#define flush_work(a) nvos_work_fini(&(a)->nvos)
 
-static inline void *
-os_work(void *arg)
-{
-	struct work_struct *work = arg;
-	work_func_t func;
-	do {
-		pthread_mutex_lock(&work->mutex);
-		if (work->pending) {
-			work->pending = false;
-			func = work->func;
-		} else {
-			func = NULL;
-		}
-		pthread_mutex_unlock(&work->mutex);
-		if (func)
-			func(work);
-	} while (func);
-	return NULL;
-}
-
-static inline void
-schedule_work(struct work_struct *work)
-{
-	pthread_mutex_lock(&work->mutex);
-	if (!work->pending) {
-		work->pending = true;
-		assert(!pthread_create(&work->thread, NULL, os_work, work));
-	}
-	pthread_mutex_unlock(&work->mutex);
-}
-
-static inline void
-flush_work(struct work_struct *work)
-{
-}
+bool nvos_work_init(void (*)(void *), void *, struct nvos_work **);
+void nvos_work_fini(struct nvos_work **);
 
 /******************************************************************************
  * waitqueues
@@ -1140,10 +1104,6 @@ i2c_transfer(struct i2c_adapter *a, struct i2c_msg *m, int num)
  * i2c bit-bang
  *****************************************************************************/
 
-static struct i2c_algorithm
-i2c_bit_algo = {
-};
-
 struct i2c_algo_bit_data {
 	int udelay;
 	unsigned long timeout;
@@ -1159,9 +1119,10 @@ struct i2c_algo_bit_data {
 static inline int
 i2c_bit_add_bus(struct i2c_adapter *a)
 {
-	(void)i2c_bit_algo;
 	return 0;
 }
+
+extern const struct i2c_algorithm i2c_bit_algo;
 
 /******************************************************************************
  * delay

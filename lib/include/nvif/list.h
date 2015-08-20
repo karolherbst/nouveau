@@ -252,7 +252,8 @@ list_empty(struct list_head *head)
  */
 #ifndef container_of
 #define container_of(ptr, type, member) ({ \
-    (type *)((char *)(ptr) - (char *) &((type *)0)->member); \
+    typeof(((type *)0)->member) *__mptr = (ptr); \
+    (type *)((char *)(__mptr) - (char *) &((type *)0)->member); \
 })
 #endif
 

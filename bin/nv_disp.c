@@ -28,7 +28,7 @@ nv_disp(struct nvif_device *device, u16 mthd, u32 data)
 	}
 }
 
-#define FMTADDR    "0x%04lx"
+#define FMTADDR    "0x%04llx"
 #define FMTDATA    "0x%08x"
 #define NAME       "nv_disp"
 #define CAST       u32

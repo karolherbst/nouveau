@@ -1,4 +1,4 @@
-#define FMTADDR "0x%06lx"
+#define FMTADDR "0x%06llx"
 #define FMTDATA "0x%02x"
 #define NAME    "nv_rd08"
 #define CAST    u8
