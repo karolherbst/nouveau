@@ -35,6 +35,8 @@
 
 #include <sys/time.h>
 
+#include "util.h"
+
 static struct nvif_device *device;
 static struct nvif_object perfmon;
 static int nr_signals; /* number of signals for all domains */
@@ -812,43 +814,25 @@ ui_resize(void)
 int
 main(int argc, char **argv)
 {
-	const char *drv = NULL;
-	const char *cfg = NULL;
-	const char *dbg = "error";
-	u64 dev = ~0ULL;
-	struct nvif_client *client;
 	int ret, c, k;
 	int scan = 0;
 
-	while ((c = getopt(argc, argv, "-a:b:c:d:s")) != -1) {
+	while ((c = getopt(argc, argv, "s"U_GETOPT)) != -1) {
 		switch (c) {
-		case 'a': dev = strtoull(optarg, NULL, 0); break;
-		case 'b': drv = optarg; break;
-		case 'c': cfg = optarg; break;
-		case 'd': dbg = optarg; break;
 		case 's':
 			scan = 1;
 			break;
-		case 1:
-			return -EINVAL;
+		default:
+			if (!u_option(c))
+				return 1;
+			break;
 		}
 	}
 
-	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
-	if (ret)
-		return ret;
-
-	ret = nvif_device_new(nvif_object(client), 0x00000000,
-			      NV_DEVICE, &(struct nv_device_v0) {
-					.device = ~0ULL,
-					.disable = ~(NV_DEVICE_V0_DISABLE_MMIO |
-						     NV_DEVICE_V0_DISABLE_VBIOS |
-						     NV_DEVICE_V0_DISABLE_CORE |
-						     NV_DEVICE_V0_DISABLE_IDENTIFY),
-					.debug0 = ~((1ULL << NVDEV_SUBDEV_TIMER) |
-						    (1ULL << NVDEV_ENGINE_PM)),
-			      }, sizeof(struct nv_device_v0), &device);
-	nvif_client_ref(NULL, &client);
+	ret = u_device(NULL, argv[0], "error", true, true,
+		       (1ULL << NVDEV_SUBDEV_TIMER) |
+		       (1ULL << NVDEV_ENGINE_PM),
+		       0x00000000, &device);
 	if (ret)
 		return ret;
 

@@ -34,7 +34,7 @@ nv_disp(struct nvif_device *device, u16 mthd, u32 data)
 #define CAST       u32
 #define WRITE(o,v) nv_disp(device, (o), (v))
 #define MAIN       main_
-#define ENABLE     (NV_DEVICE_V0_DISABLE_MMIO | NV_DEVICE_V0_DISABLE_IDENTIFY)
+#define DETECT     true
 #include "nv_wrfunc.h"
 
 int

@@ -6,6 +6,8 @@
 #include <nvif/device.h>
 #include <nvif/class.h>
 
+#include "util.h"
+
 static void
 print_aux(struct nvkm_i2c_aux *aux)
 {
@@ -15,11 +17,6 @@ print_aux(struct nvkm_i2c_aux *aux)
 int
 main(int argc, char **argv)
 {
-	const char *drv = "lib";
-	const char *cfg = NULL;
-	const char *dbg = "error";
-	u64 dev = ~0ULL;
-	struct nvif_client *client;
 	struct nvif_device *device;
 	struct nvkm_i2c_aux *aux;
 	struct nvkm_i2c *i2c;
@@ -28,12 +25,8 @@ main(int argc, char **argv)
 	int ret, c;
 	u8 data;
 
-	while ((c = getopt(argc, argv, "-a:b:c:d:")) != -1) {
+	while ((c = getopt(argc, argv, "-"U_GETOPT)) != -1) {
 		switch (c) {
-		case 'a': dev = strtoull(optarg, NULL, 0); break;
-		case 'b': drv = optarg; break;
-		case 'c': cfg = optarg; break;
-		case 'd': dbg = optarg; break;
 		case 1:
 			if (action < 0) {
 				if (!strcasecmp(optarg, "rd"))
@@ -60,24 +53,17 @@ main(int argc, char **argv)
 			} else
 				return -EINVAL;
 			break;
+		default:
+			if (!u_option(c))
+				return 1;
+			break;
 		}
 	}
 
-	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
-	if (ret)
-		return ret;
-
-	ret = nvif_device_new(nvif_object(client), 0x00000000, NV_DEVICE,
-			      &(struct nv_device_v0) {
-					.device = ~0ULL,
-					.disable = ~(NV_DEVICE_V0_DISABLE_MMIO |
-						     NV_DEVICE_V0_DISABLE_IDENTIFY|
-						     NV_DEVICE_V0_DISABLE_VBIOS |
-						     NV_DEVICE_V0_DISABLE_CORE),
-					.debug0 = ~((1 << NVDEV_SUBDEV_VBIOS) |
-						    (1 << NVDEV_SUBDEV_I2C)),
-			      }, sizeof(struct nv_device_v0), &device);
-	nvif_client_ref(NULL, &client);
+	ret = u_device("lib", argv[0], "error", true, true,
+		       (1ULL << NVDEV_SUBDEV_VBIOS) |
+		       (1ULL << NVDEV_SUBDEV_I2C),
+		       0x00000000, &device);
 	if (ret)
 		return ret;
 

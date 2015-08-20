@@ -6,6 +6,8 @@
 #include <nvif/device.h>
 #include <nvif/class.h>
 
+#include "util.h"
+
 static void
 show_adapter(struct i2c_adapter *adap, int adapter)
 {
@@ -38,23 +40,14 @@ find_adapter(struct nvif_device *device, int adapter)
 int
 main(int argc, char **argv)
 {
-	const char *drv = "lib";
-	const char *cfg = NULL;
-	const char *dbg = "error";
-	u64 dev = ~0ULL;
-	struct nvif_client *client;
 	struct nvif_device *device;
 	struct i2c_adapter *adap;
 	int addr = -1, reg = -1, val = -1;
 	int action = -1, index = -1;
 	int ret, c;
 
-	while ((c = getopt(argc, argv, "-a:b:c:d:")) != -1) {
+	while ((c = getopt(argc, argv, "-"U_GETOPT)) != -1) {
 		switch (c) {
-		case 'a': dev = strtoull(optarg, NULL, 0); break;
-		case 'b': drv = optarg; break;
-		case 'c': cfg = optarg; break;
-		case 'd': dbg = optarg; break;
 		case 1:
 			if (action < 0) {
 				if (!strcasecmp(optarg, "scan"))
@@ -88,26 +81,17 @@ main(int argc, char **argv)
 			} else
 				return -EINVAL;
 			break;
+		default:
+			if (!u_option(c))
+				return 1;
+			break;
 		}
 	}
 
-	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
-	if (ret)
-		return ret;
-
-	ret = nvif_device_new(nvif_object(client), 0, NV_DEVICE,
-			      &(struct nv_device_v0) {
-					.device = ~0ULL,
-					.disable = ~(NV_DEVICE_V0_DISABLE_MMIO |
-						     NV_DEVICE_V0_DISABLE_IDENTIFY|
-						     NV_DEVICE_V0_DISABLE_VBIOS |
-						     NV_DEVICE_V0_DISABLE_CORE),
-					.debug0 = ~((1 << NVDEV_SUBDEV_VBIOS) |
-						    (1 << NVDEV_SUBDEV_I2C)),
-			      }, sizeof(struct nv_device_v0), &device);
-	nvif_client_ref(NULL, &client);
-	if (ret)
-		return ret;
+	ret = u_device("lib", argv[0], "error", true, true,
+		       (1ULL << NVDEV_SUBDEV_VBIOS) |
+		       (1ULL << NVDEV_SUBDEV_I2C),
+		       0x00000000, &device);
 
 	if (action < 0) {
 		for (index = 0; (adap = find_adapter(device, index)); index++) {

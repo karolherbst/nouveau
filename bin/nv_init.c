@@ -7,49 +7,37 @@
 #include <nvif/device.h>
 #include <nvif/class.h>
 
+#include "util.h"
+
 int
 main(int argc, char **argv)
 {
-	const char *drv = NULL;
-	const char *cfg = NULL;
-	const char *dbg = "info";
-	u64 dev = ~0ULL;
-	struct nvif_client *client;
 	struct nvif_device *device;
 	bool suspend = false, wait = false;
 	int ret, c;
 
-	while ((c = getopt(argc, argv, "-a:b:c:d:sw")) != -1) {
+	while ((c = getopt(argc, argv, "sw"U_GETOPT)) != -1) {
 		switch (c) {
-		case 'a': dev = strtoull(optarg, NULL, 0); break;
-		case 'b': drv = optarg; break;
-		case 'c': cfg = optarg; break;
-		case 'd': dbg = optarg; break;
 		case 's':
 			suspend = true;
 			break;
 		case 'w':
 			wait = true;
 			break;
-		case 1:
-			return -EINVAL;
+		default:
+			if (!u_option(c))
+				return 1;
+			break;
 		}
 	}
 
-	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
-	if (ret)
-		return ret;
-
-	ret = nvif_device_new(nvif_object(client), 0, NV_DEVICE,
-			      &(struct nv_device_v0) {
-					.device = ~0ULL,
-					.disable = 0ULL,
-					.debug0 = 0ULL,
-			      }, sizeof(struct nv_device_v0), &device);
+	ret = u_device(NULL, argv[0], "info", true, true, ~0ULL,
+		       0x00000000, &device);
 	if (ret)
 		return ret;
 
 	if (suspend) {
+		struct nvif_client *client = nvif_client(&device->base);
 		nvif_client_suspend(client);
 		nvif_client_resume(client);
 	}
@@ -60,7 +48,6 @@ main(int argc, char **argv)
 
 	printf("shutting down...\n");
 	nvif_device_ref(NULL, &device);
-	nvif_client_ref(NULL, &client);
 	printf("done!\n");
 	return ret;
 }

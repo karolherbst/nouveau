@@ -6,34 +6,23 @@
 #include <nvif/device.h>
 #include <nvif/class.h>
 
-#ifndef ENABLE
-#define ENABLE NV_DEVICE_V0_DISABLE_MMIO
+#ifndef DETECT
+#define DETECT false
 #endif
-#ifndef DEBUG0
-#define DEBUG0 0ULL
-#endif
+
+#include "util.h"
 
 int
 MAIN(int argc, char **argv)
 {
-	const char *drv = "lib";
-	const char *cfg = NULL;
-	const char *dbg = "fatal";
-	u64 dev = ~0ULL;
-	struct nvif_client *client;
 	struct nvif_device *device;
-	struct nv_device_v0 args = {};
 	char *rstr = NULL;
 	char *vstr = NULL;
 	int quiet = 0;
 	int ret, c;
 
-	while ((c = getopt(argc, argv, "-a:b:c:d:q")) != -1) {
+	while ((c = getopt(argc, argv, "-q"U_GETOPT)) != -1) {
 		switch (c) {
-		case 'a': dev = strtoull(optarg, NULL, 0); break;
-		case 'b': drv = optarg; break;
-		case 'c': cfg = optarg; break;
-		case 'd': dbg = optarg; break;
 		case 'q':
 			quiet = 1;
 			break;
@@ -46,20 +35,15 @@ MAIN(int argc, char **argv)
 				rstr = optarg;
 			}
 			break;
+		default:
+			if (!u_option(c))
+				return 1;
+			break;
 		}
 	}
 
-	ret = nvif_client_new(drv, argv[0], dev, cfg, dbg, &client);
-	if (ret)
-		return ret;
-
-	args.device  = ~0ULL;
-	args.disable = ~ENABLE;
-	args.debug0  = ~DEBUG0;
-
-	ret = nvif_device_new(nvif_object(client), 0, NV_DEVICE,
-			     &args, sizeof(args), &device);
-	nvif_client_ref(NULL, &client);
+	ret = u_device("lib", argv[0], "fatal", DETECT, true, 0ULL,
+		       0x00000000, &device);
 	if (ret)
 		return ret;
 

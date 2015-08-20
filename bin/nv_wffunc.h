@@ -35,5 +35,5 @@ nv_wfb(struct nvif_device *device, u64 offset, CAST data)
 }
 
 #define WRITE(o,v) nv_wfb(device, (o), (v))
-#define ENABLE    (NV_DEVICE_V0_DISABLE_MMIO | NV_DEVICE_V0_DISABLE_IDENTIFY)
+#define DETECT true
 #include "nv_wrfunc.h"
