@@ -840,6 +840,7 @@ struct pci_bus {
 struct pci_dev {
 	struct pci_device *pdev;
 	struct device dev;
+	u16 vendor;
 	u16 device;
 	u16 subsystem_vendor;
 	u16 subsystem_device;

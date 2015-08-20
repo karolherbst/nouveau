@@ -161,7 +161,8 @@ os_init_device(struct pci_device *pdev, const char *cfg, const char *dbg)
 		 "%04x:%02x:%02x.%1x",
 		 pdev->domain, pdev->bus, pdev->dev, pdev->func);
 	odev->pdev.pdev = pdev;
-	odev->pdev.device = pdev->vendor_id;
+	odev->pdev.vendor = pdev->vendor_id;
+	odev->pdev.device = pdev->device_id;
 	odev->pdev.subsystem_vendor = pdev->subvendor_id;
 	odev->pdev.subsystem_device = pdev->subdevice_id;
 	odev->pdev._bus.domain = pdev->domain;
