@@ -93,6 +93,10 @@ typedef dma_addr_t resource_size_t;
 #define ERR_PTR(err) ((void *)(long)(err))
 #define PTR_ERR(ptr) ((long)(ptr))
 #define IS_ERR(ptr)  ((unsigned long)(ptr) >= (unsigned long)-4095)
+#define IS_ERR_OR_NULL(ptr) ({                                                 \
+	void *_ptr = (ptr);                                                    \
+	(!_ptr || IS_ERR(_ptr));                                               \
+})
 
 #define jiffies (ktime_to_ns(ktime_get()))
 #define nsecs_to_jiffies(a) (a)
@@ -599,6 +603,7 @@ void  nvos_iounmap(void __iomem *ptr);
 #define iowrite32(b,a) *((volatile u32 *)(a)) = (b)
 #define iowrite32_native iowrite32
 
+#define memset_io memset
 #define memcpy_fromio memcpy
 #define memcpy_toio memcpy
 #define wmb()
