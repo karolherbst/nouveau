@@ -207,10 +207,16 @@ hweight32(u32 v) {
 	return i;
 }
 
+#define BITS_PER_LONG (sizeof(unsigned long) * 8)
+#define BITS_TO_LONGS(b) DIV_ROUND_UP((b), BITS_PER_LONG)
+#define DECLARE_BITMAP(n,b) unsigned long n[BITS_TO_LONGS(b)]
+#define BITMAP_POS(b) ((b) / BITS_PER_LONG)
+#define BITMAP_BIT(b) ((b) % BITS_PER_LONG)
+
 static inline int
 test_bit(int bit, volatile unsigned long *ptr)
 {
-	return !!(*ptr & (1 << bit));
+	return !!(ptr[BITMAP_POS(bit)] & (1UL << BITMAP_BIT(bit)));
 }
 
 static inline int
@@ -245,6 +251,44 @@ static inline void
 set_bit(int bit, volatile unsigned long *ptr)
 {
 	test_and_set_bit(bit, ptr);
+}
+
+static inline void
+__clear_bit(long bit, volatile unsigned long *addr)
+{
+	addr[BITMAP_POS(bit)] &= ~(1UL << BITMAP_BIT(bit));
+}
+
+static inline void
+__set_bit(long bit, volatile unsigned long *addr)
+{
+	addr[BITMAP_POS(bit)] |= (1UL << BITMAP_BIT(bit));
+}
+
+static inline long
+find_first_zero_bit(volatile unsigned long *addr, int bits)
+{
+	int bit;
+	for (bit = 0; bit < bits; bit++) {
+		if (!test_bit(bit, addr))
+			break;
+	}
+	return bit;
+}
+
+static inline void
+bitmap_fill(unsigned long *addr, unsigned int bits)
+{
+	int bit;
+	for (bit = 0; bit < bits; bit++)
+		__set_bit(bit, addr);
+}
+
+static inline void
+bitmap_clear(unsigned long *addr, unsigned int pos, unsigned int bits)
+{
+	while (bits--)
+		__clear_bit(pos++, addr);
 }
 
 /******************************************************************************
