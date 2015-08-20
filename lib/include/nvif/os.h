@@ -1212,14 +1212,9 @@ struct nouveau_platform_gpu {
 		struct iommu_domain *domain;
 		unsigned long pgshift;
 	} iommu;
-};
 
-struct nouveau_platform_device {
-	struct nouveau_platform_gpu *gpu;
 	int gpu_speedo;
 };
-
-#define nv_device_to_platform(x) NULL
 
 /******************************************************************************
  * endianness (cont'd)
