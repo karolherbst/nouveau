@@ -21,7 +21,7 @@ fucs := $(drm)/nvkm/engine/ce/fuc/gt215.fuc3.h \
 	$(drm)/nvkm/engine/gr/fuc/gpcgm107.fuc5.h \
 	$(drm)/nvkm/subdev/pmu/fuc/gt215.fuc3.h \
 	$(drm)/nvkm/subdev/pmu/fuc/gf100.fuc3.h \
-	$(drm)/nvkm/subdev/pmu/fuc/gf110.fuc4.h \
+	$(drm)/nvkm/subdev/pmu/fuc/gf119.fuc4.h \
 	$(drm)/nvkm/subdev/pmu/fuc/gk208.fuc5.h \
 	$(drm)/nvkm/engine/sec/fuc/g98.fuc0s.h
 drms := $(addprefix $(lib)/, $(nvif-y)) \
