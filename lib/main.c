@@ -29,14 +29,9 @@
 #include <nvif/class.h>
 #include <nvif/event.h>
 
-#include <core/object.h>
-#include <core/handle.h>
-#include <core/client.h>
-#include <core/device.h>
+#include <core/pci.h>
 #include <core/ioctl.h>
 #include <core/event.h>
-
-#include <subdev/mc.h>
 
 #include "priv.h"
 
@@ -147,7 +142,7 @@ os_fini_device(struct os_device *odev)
 }
 
 static int
-os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char *dbg)
+os_init_device(struct pci_device *pdev, const char *cfg, const char *dbg)
 {
 	struct os_device *odev;
 	int ret;
@@ -169,12 +164,15 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 	odev->pdev.device = pdev->vendor_id;
 	odev->pdev.subsystem_vendor = pdev->subvendor_id;
 	odev->pdev.subsystem_device = pdev->subdevice_id;
+	odev->pdev._bus.domain = pdev->domain;
+	odev->pdev._bus.number = pdev->bus;
+	odev->pdev.bus = &odev->pdev._bus;
+	odev->pdev.devfn = PCI_DEVFN(pdev->dev, pdev->func);
 	list_add_tail(&odev->head, &os_device_list);
 
-	ret = nvkm_device_new(&odev->pdev, NVKM_BUS_PCI, handle,
-			      odev->pdev.dev.name, cfg, dbg,
-			      os_device_detect, os_device_mmio,
-			      os_device_subdev, &odev->device);
+	ret = nvkm_device_pci_new(&odev->pdev, cfg, dbg, os_device_detect,
+				  os_device_mmio, os_device_subdev,
+				  &odev->device);
 	if (ret) {
 		fprintf(stderr, "failed to create device, %d\n", ret);
 		os_fini_device(odev);
@@ -185,12 +183,11 @@ os_init_device(struct pci_device *pdev, u64 handle, const char *cfg, const char 
 }
 
 static int
-os_init(const char *cfg, const char *dbg, bool init)
+os_init(const char *cfg, const char *dbg)
 {
 	struct pci_device_iterator *iter;
 	struct pci_device *pdev;
-	u64 handle;
-	int ret, n = 0;
+	int ret;
 
 	ret = pci_system_init();
 	if (ret) {
@@ -205,18 +202,7 @@ os_init(const char *cfg, const char *dbg, bool init)
 		if (pdev->vendor_id != 0x10de)
 			continue;
 
-		handle = ((u64)pdev->domain << 32) | (pdev->bus << 16) |
-			 (pdev->dev << 8) | pdev->func;
-
-		if (!init) {
-			printf("%d: 0x%010llx PCI:%04x:%02x:%02x:%02x "
-			       "(%04x:%04x)\n", n++, handle, pdev->domain,
-			       pdev->bus, pdev->dev, pdev->func,
-			       pdev->vendor_id, pdev->device_id);
-			continue;
-		}
-
-		os_init_device(pdev, handle, cfg, dbg);
+		os_init_device(pdev, cfg, dbg);
 	}
 	pci_iterator_destroy(iter);
 	return 0;
@@ -286,7 +272,7 @@ os_client_init(const char *name, u64 device, const char *cfg,
 
 	mutex_lock(&os_mutex);
 	if (os_client_nr++ == 0)
-		os_init(cfg, dbg, true);
+		os_init(cfg, dbg);
 	mutex_unlock(&os_mutex);
 
 	ret = nvkm_client_new(name, device, cfg, dbg, &client);

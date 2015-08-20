@@ -783,6 +783,11 @@ iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
 
 #define PCI_CAP_ID_AGP 0x02
 
+struct pci_bus {
+	u16 domain;
+	u8  number;
+};
+
 struct pci_dev {
 	struct pci_device *pdev;
 	struct device dev;
@@ -790,7 +795,26 @@ struct pci_dev {
 	u16 subsystem_vendor;
 	u16 subsystem_device;
 	int irq;
+	struct pci_bus _bus;
+	struct pci_bus *bus;
+	u8 devfn;
 };
+
+static inline void
+pci_disable_device(struct pci_dev *pdev)
+{
+}
+
+static inline int
+pci_enable_device(struct pci_dev *pdev)
+{
+	return 0;
+}
+
+static inline void
+pci_set_master(struct pci_dev *pdev)
+{
+}
 
 static inline struct device_node *
 pci_device_to_OF_node(const struct pci_dev *pdev)
@@ -909,7 +933,10 @@ pci_disable_msi(struct pci_dev *pdev)
 {
 }
 
-#define PCI_DEVFN(a,b) 0
+#define PCI_DEVFN(a,b) (((a) << 3) | (b))
+#define PCI_SLOT(a) ((a) >> 3)
+#define PCI_FUNC(a) ((a) & 0x07)
+#define pci_domain_nr(a) (a)->domain
 #define pci_get_bus_and_slot(a, b) NULL
 #define pci_read_config_dword(a,b,c) *(c) = 0
 
@@ -919,6 +946,7 @@ pci_disable_msi(struct pci_dev *pdev)
 
 struct platform_device {
 	struct device dev;
+	u64 id;
 };
 
 static inline struct resource *

@@ -30,6 +30,7 @@
 #include <nvif/event.h>
 
 #include <core/ioctl.h>
+#include <core/pci.h>
 
 #include "priv.h"
 
@@ -43,6 +44,7 @@ null_pci_dev = {
 	},
 	.pdev = &(struct pci_device) {
 	},
+	.bus = &null_pci_dev._bus,
 };
 
 static void
@@ -54,10 +56,9 @@ null_fini(void)
 static void
 null_init(const char *cfg, const char *dbg, bool init)
 {
-	int ret = nvkm_device_new(&null_pci_dev, NVKM_BUS_PCI,
-				  ~0ULL, "0000:00:00.0", cfg, dbg,
-				  os_device_detect, os_device_mmio,
-				  os_device_subdev, &null_device);
+	int ret = nvkm_device_pci_new(&null_pci_dev, cfg, dbg, os_device_detect,
+				      os_device_mmio, os_device_subdev,
+				      &null_device);
 	if (ret)
 		null_fini();
 }
