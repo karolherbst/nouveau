@@ -55,6 +55,7 @@ typedef int16_t __s16;
 typedef int8_t __s8;
 #endif
 
+typedef u64 phys_addr_t;
 typedef u64 dma_addr_t;
 typedef dma_addr_t resource_size_t;
 
@@ -480,6 +481,30 @@ get_num_physpages(void)
 	return 0;
 }
 
+typedef struct {
+	unsigned long pgprot;
+} pgprot_t;
+
+#define __pgprot(x) ((pgprot_t) { (x) } )
+#define pgprot_noncached(prot) (prot)
+#define pgprot_writecombine pgprot_noncached
+
+#define PAGE_KERNEL __pgprot(0)
+
+#define VM_MAP 4
+
+static inline void *
+vmap(struct page **pages, unsigned int count,
+     unsigned long flags, pgprot_t prot)
+{
+	return NULL;
+}
+
+static inline void
+vunmap(const void *addr)
+{
+}
+
 /******************************************************************************
  * assertions
  *****************************************************************************/
@@ -897,6 +922,34 @@ iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
 }
 
 /******************************************************************************
+ * DMA
+ *****************************************************************************/
+static inline dma_addr_t
+dma_map_page(struct device *pdev, struct page *page, int offset,
+	     int length, unsigned flags)
+{
+	return 0;
+}
+
+
+static inline bool
+dma_mapping_error(struct device *pdev, dma_addr_t addr)
+{
+	return true;
+}
+
+static inline void
+dma_unmap_page(struct device *pdev, dma_addr_t addr, int size, unsigned flags)
+{
+}
+
+static inline phys_addr_t
+dma_to_phys(struct device *dev, dma_addr_t addr)
+{
+	return 0;
+}
+
+/******************************************************************************
  * PCI
  *****************************************************************************/
 #include <pciaccess.h>
@@ -973,25 +1026,6 @@ static inline u64
 pci_resource_len(struct pci_dev *pdev, int bar)
 {
 	return pdev->pdev->regions[bar].size;
-}
-
-static inline dma_addr_t
-dma_map_page(struct device *pdev, struct page *page, int offset,
-	     int length, unsigned flags)
-{
-	return 0;
-}
-
-
-static inline bool
-dma_mapping_error(struct device *pdev, dma_addr_t addr)
-{
-	return true;
-}
-
-static inline void
-dma_unmap_page(struct device *pdev, dma_addr_t addr, int size, unsigned flags)
-{
 }
 
 static inline int
