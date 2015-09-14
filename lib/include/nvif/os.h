@@ -1057,6 +1057,9 @@ pci_disable_msi(struct pci_dev *pdev)
 #define pci_get_bus_and_slot(a, b) NULL
 #define pci_read_config_dword(a,b,c) *(c) = 0
 
+#define PCI_ANY_ID (~0)
+
+#define PCI_VENDOR_ID_SI 0x1039
 #define PCI_VENDOR_ID_NVIDIA 0x10de
 #define PCI_VENDOR_ID_VIA 0x1106
 
