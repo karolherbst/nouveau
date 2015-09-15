@@ -952,9 +952,16 @@ dma_unmap_page(struct device *pdev, dma_addr_t addr, int size, unsigned flags)
 
 #define PCI_CAP_ID_AGP 0x02
 
+enum pci_bus_speed {
+	PCIE_SPEED_2_5GT,
+	PCIE_SPEED_5_0GT,
+	PCIE_SPEED_8_0GT,
+};
+
 struct pci_bus {
 	u16 domain;
 	u8  number;
+	enum pci_bus_speed max_bus_speed;
 };
 
 struct pci_dev {
