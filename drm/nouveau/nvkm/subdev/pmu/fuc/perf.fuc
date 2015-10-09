@@ -30,12 +30,30 @@ process(PROC_PERF, #perf_init, #perf_recv)
  * PERF data segment
  *****************************************************************************/
 #ifdef INCLUDE_DATA
+perf_attr_start:
+// parameters
+perf_polling_period_us: .b32 100000
+
+// engine usage (0x0-0xff)
+perf_eng_gr:   .b8 0
+perf_eng_vid:  .b8 0
+perf_eng_mc:   .b8 0
+#if NVKM_PPWR_CHIPSET >= GF100
+perf_eng_pcie: .b8 0
+#endif
+.align 4
 #endif
 
 /******************************************************************************
  * PERF code segment
  *****************************************************************************/
 #ifdef INCLUDE_CODE
+
+#define TICK_CNT 0
+#define GR_CNT   1
+#define VID_CNT  2
+#define MC_CNT   3
+#define PCIE_CNT 4
 
 // description
 //
@@ -46,6 +64,86 @@ process(PROC_PERF, #perf_init, #perf_recv)
 // $r11 - data1
 // $r0  - zero
 perf_recv:
+	imm32($r10, PROC_HOST)
+	cmp b32 $r14 $r10
+	bra ne #perf_recv_not_host
+		cmp b32 $r13 PERF_MSG_LOAD
+		bra ne #perf_recv_exit
+			clear b32 $r11
+			clear b32 $r12
+#if NVKM_PPWR_CHIPSET >= GF100
+			ld(b8, $r12, #perf_eng_pcie)
+			shl b32 $r12 8
+#endif
+			ld(b8, $r12, #perf_eng_mc)
+			shl b32 $r12 8
+			ld(b8, $r12, #perf_eng_vid)
+			shl b32 $r12 8
+			ld(b8, $r12, #perf_eng_gr)
+			call(send)
+			bra #perf_recv_exit
+perf_recv_not_host:
+	call(perf_counter_readout)
+	ld(b32, $r14, #perf_polling_period_us)
+	call(ticks_from_us)
+	call(timer)
+perf_recv_exit:
+	ret
+
+// description
+//
+// $r15 - current (perf)
+// $r0  - zero
+perf_counter_readout:
+	push $r1 // ticks
+	push $r2 // gr
+	push $r3 // video
+	push $r4 // mc
+#if NVKM_PPWR_CHIPSET >= GF100
+	push $r5 // pcie
+#endif
+
+	nv_iord($r1, NV_PPWR_COUNTER_COUNT(TICK_CNT))
+	nv_iord($r2, NV_PPWR_COUNTER_COUNT(GR_CNT))
+	nv_iord($r3, NV_PPWR_COUNTER_COUNT(VID_CNT))
+	nv_iord($r4, NV_PPWR_COUNTER_COUNT(MC_CNT))
+#if NVKM_PPWR_CHIPSET >= GF100
+	nv_iord($r5, NV_PPWR_COUNTER_COUNT(PCIE_CNT))
+#endif
+
+	// reset the counters
+	imm32($r14, NV_PPWR_COUNTER_COUNT_RESET)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(TICK_CNT), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(GR_CNT), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(VID_CNT), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(MC_CNT), $r14)
+#if NVKM_PPWR_CHIPSET >= GF100
+	nv_iowr(NV_PPWR_COUNTER_COUNT(PCIE_CNT), $r14)
+#endif
+
+	div $r1 $r1 0xff
+
+	div $r2 $r2 $r1
+	st(b8, #perf_eng_gr, $r2)
+
+	div $r3 $r3 $r1
+	st(b8, #perf_eng_vid, $r3)
+
+	div $r4 $r4 $r1
+	st(b8, #perf_eng_mc, $r4)
+
+#if NVKM_PPWR_CHIPSET >= GF100
+	div $r5 $r5 $r1
+	st(b8, #perf_eng_pcie, $r5)
+#endif
+
+#if NVKM_PPWR_CHIPSET >= GF100
+	pop $r5
+#endif
+	pop $r4
+	pop $r3
+	pop $r2
+	pop $r1
 	ret
 
 // description
@@ -53,5 +151,69 @@ perf_recv:
 // $r15 - current (perf)
 // $r0  - zero
 perf_init:
+	// set up the total ticks counter first
+	imm32($r14, NV_PPWR_COUNTER_MODE_ALWAYS)
+	nv_iowr(NV_PPWR_COUNTER_MODE(TICK_CNT), $r14)
+
+	// set up the other counters, with fermi there are more
+	imm32($r14, NV_PPWR_COUNTER_MODE_IF_NOT_ALL)
+	nv_iowr(NV_PPWR_COUNTER_MODE(GR_CNT), $r14)
+	nv_iowr(NV_PPWR_COUNTER_MODE(VID_CNT), $r14)
+	nv_iowr(NV_PPWR_COUNTER_MODE(MC_CNT), $r14)
+#if NVKM_PPWR_CHIPSET >= GF100
+	nv_iowr(NV_PPWR_COUNTER_MODE(PCIE_CNT), $r14)
+#endif
+
+	// core load counter
+	imm32($r14,
+		  NV_PPWR_COUNTER_SIG_GR
+		| NV_PPWR_COUNTER_SIG_GR_GPC
+		| NV_PPWR_COUNTER_SIG_GR_ROP
+#if NVKM_PPWR_CHIPSET >= GF100
+		| NV_PPWR_COUNTER_SIG_GR_HUB
+		| NV_PPWR_COUNTER_SIG_PCOPY0
+		| NV_PPWR_COUNTER_SIG_PCOPY1
+#endif
+#if NVKM_PPWR_CHIPSET >= GK104
+		| NV_PPWR_COUNTER_SIG_PCOPY2
+#endif
+	)
+	nv_iowr(NV_PPWR_COUNTER_MASK(GR_CNT), $r14)
+
+	// video load counter
+	imm32($r14,
+		  NV_PPWR_COUNTER_SIG_PVLD
+		| NV_PPWR_COUNTER_SIG_PPDEC
+		| NV_PPWR_COUNTER_SIG_PPPP
+#if NVKM_PPWR_CHIPSET >= GK104
+		| NV_PPWR_COUNTER_SIG_PVENC
+#endif
+	)
+	nv_iowr(NV_PPWR_COUNTER_MASK(VID_CNT), $r14)
+
+	// memory load counter
+	imm32($r14,
+#if NVKM_PPWR_CHIPSET >= GF100
+		  NV_PPWR_COUNTER_SIG_BFB_PART0_REQ
+#else
+		  NV_PPWR_COUNTER_SIG_FB_PART0_REQ
+#endif
+	)
+	nv_iowr(NV_PPWR_COUNTER_MASK(MC_CNT), $r14)
+
+	// pcie load counter
+#if NVKM_PPWR_CHIPSET >= GF100
+	imm32($r14, NV_PPWR_COUNTER_SIG_PCIE)
+	nv_iowr(NV_PPWR_COUNTER_MASK(PCIE_CNT), $r14)
+#endif
+
+	// initial read out
+	call(perf_counter_readout)
+
+	// schedule the next read out
+	ld(b32, $r14, #perf_polling_period_us)
+	call #ticks_from_us
+	call(timer)
+
 	ret
 #endif
