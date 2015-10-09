@@ -21,10 +21,10 @@
  *
  * Authors: Ben Skeggs
  */
-#define gf119_pmu_code gk110_pmu_code
-#define gf119_pmu_data gk110_pmu_data
+#define gk104_pmu_code gk110_pmu_code
+#define gk104_pmu_data gk110_pmu_data
 #include "priv.h"
-#include "fuc/gf119.fuc4.h"
+#include "fuc/gk104.fuc4.h"
 
 #include <subdev/timer.h>
 

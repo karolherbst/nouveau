@@ -25,6 +25,7 @@
 #define GT215 0xa3
 #define GF100 0xc0
 #define GF119 0xd9
+#define GK104 0xe4
 #define GK208 0x108
 
 #include "os.h"
