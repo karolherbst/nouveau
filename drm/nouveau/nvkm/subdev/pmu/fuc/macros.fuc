@@ -66,6 +66,30 @@
 #define NV_PPWR_RFIFO_GET                                                0x04cc
 #define NV_PPWR_H2D                                                      0x04d0
 #define NV_PPWR_D2H                                                      0x04dc
+#define NV_PPWR_COUNTER_MASK(i)                            (0x10 * (i) + 0x0504)
+#define NV_PPWR_COUNTER_COUNT(i)                           (0x10 * (i) + 0x0508)
+#define NV_PPWR_COUNTER_COUNT_RESET                                  0x80000000
+#define NV_PPWR_COUNTER_MODE(i)                            (0x10 * (i) + 0x050c)
+#define NV_PPWR_COUNTER_MODE_NEVER                                            0
+#define NV_PPWR_COUNTER_MODE_IF_ALL                                           1
+#define NV_PPWR_COUNTER_MODE_IF_NOT_ALL                                       2
+#define NV_PPWR_COUNTER_MODE_ALWAYS                                           3
+#define NV_PPWR_COUNTER_SIG_GR                                       0x00000001
+#define NV_PPWR_COUNTER_SIG_GR_HUB                                   0x00000002
+#define NV_PPWR_COUNTER_SIG_GR_GPC                                   0x00000004
+#define NV_PPWR_COUNTER_SIG_GR_ROP                                   0x00000008
+#define NV_PPWR_COUNTER_SIG_PVLD                                     0x00000010
+#define NV_PPWR_COUNTER_SIG_PPDEC                                    0x00000020
+#define NV_PPWR_COUNTER_SIG_PPPP                                     0x00000040
+#define NV_PPWR_COUNTER_SIG_BFB_PART0_REQ                            0x00000080
+#define NV_PPWR_COUNTER_SIG_FB_PART0_REQ                             0x00000100
+#define NV_PPWR_COUNTER_SIG_BFB_NISO                                 0x00000200
+#define NV_PPWR_COUNTER_SIG_PMFB                                     0x00001000
+#define NV_PPWR_COUNTER_SIG_PVENC                                    0x00020000
+#define NV_PPWR_COUNTER_SIG_PCOPY0                                   0x00080000
+#define NV_PPWR_COUNTER_SIG_PCOPY1                                   0x00100000
+#define NV_PPWR_COUNTER_SIG_PCOPY2                                   0x00200000
+#define NV_PPWR_COUNTER_SIG_PCIE                                     0x20000000
 #if NVKM_PPWR_CHIPSET < GK208
 #define NV_PPWR_DSCRATCH(i)                                   (4 * (i) + 0x05d0)
 #endif
