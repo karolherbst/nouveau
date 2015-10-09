@@ -21,10 +21,8 @@
  *
  * Authors: Ben Skeggs
  */
-#define gf119_pmu_code gk104_pmu_code
-#define gf119_pmu_data gk104_pmu_data
 #include "priv.h"
-#include "fuc/gf119.fuc4.h"
+#include "fuc/gk104.fuc4.h"
 
 #include <core/option.h>
 #include <subdev/fuse.h>
