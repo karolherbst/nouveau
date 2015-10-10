@@ -31,6 +31,8 @@
 #include <linux/debugfs.h>
 #include <nvif/class.h>
 #include <nvif/if0001.h>
+#include <nvkm/subdev/pmu.h>
+
 #include "nouveau_debugfs.h"
 #include "nouveau_drv.h"
 
@@ -180,8 +182,29 @@ static const struct file_operations nouveau_pstate_fops = {
 	.write = nouveau_debugfs_pstate_set,
 };
 
+static int
+nouveau_debugfs_current_load(struct seq_file *m, void *data)
+{
+	struct drm_info_node *node = (struct drm_info_node *) m->private;
+	struct nouveau_drm *drm = nouveau_drm(node->minor->dev);
+	struct nvkm_pmu *pmu = nvxx_pmu(&drm->client.device);
+	struct nvkm_pmu_load_data load_data = { 0 };
+
+	if (!pm_runtime_suspended(drm->dev->dev)) {
+		int ret = nvkm_pmu_get_perf_data(pmu, &load_data);
+		if (ret < 0)
+			return ret;
+	}
+
+	seq_printf(m, "core, mem,  vid,  pci\n");
+	seq_printf(m, "0x%2.2x, 0x%2.2x, 0x%2.2x, 0x%2.2x\n", load_data.core,
+		   load_data.mem, load_data.video, load_data.pcie);
+	return 0;
+}
+
 static struct drm_info_list nouveau_debugfs_list[] = {
 	{ "vbios.rom", nouveau_debugfs_vbios_image, 0, NULL },
+	{ "current_load", nouveau_debugfs_current_load, 0, NULL },
 };
 #define NOUVEAU_DEBUGFS_ENTRIES ARRAY_SIZE(nouveau_debugfs_list)
 

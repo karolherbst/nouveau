@@ -49,6 +49,14 @@ nvkm_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	return pmu->func->send(pmu, reply, process, message, data0, data1);
 }
 
+int
+nvkm_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_load_data *data)
+{
+	if (!pmu || !pmu->func->get_perf_data)
+		return -ENODEV;
+	return pmu->func->get_perf_data(pmu, data);
+}
+
 static void
 nvkm_pmu_intr(struct nvkm_subdev *subdev)
 {
