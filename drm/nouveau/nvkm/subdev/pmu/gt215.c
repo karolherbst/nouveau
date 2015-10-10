@@ -26,6 +26,24 @@
 
 #include <subdev/timer.h>
 
+#define get_counter_index(v, i) (((v) >> ((i)*8)) & 0xff)
+
+int
+gt215_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_load_data *data)
+{
+	u32 result[2];
+
+	int ret = nvkm_pmu_send(pmu, result, PROC_PERF, PERF_MSG_LOAD, 0, 0);
+	if (ret < 0)
+		return ret;
+
+	data->core = get_counter_index(result[0], PERF_MSG_LOAD_CORE_IDX);
+	data->video = get_counter_index(result[0], PERF_MSG_LOAD_VID_IDX);
+	data->mem = get_counter_index(result[0], PERF_MSG_LOAD_MEM_IDX);
+	data->pcie = get_counter_index(result[0], PERF_MSG_LOAD_PCIE_IDX);
+	return 0;
+}
+
 int
 gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	       u32 process, u32 message, u32 data0, u32 data1)
@@ -247,6 +265,7 @@ gt215_pmu = {
 	.intr = gt215_pmu_intr,
 	.send = gt215_pmu_send,
 	.recv = gt215_pmu_recv,
+	.get_perf_data = gt215_pmu_get_perf_data,
 };
 
 int
