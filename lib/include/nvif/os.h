@@ -134,6 +134,12 @@ typedef dma_addr_t resource_size_t;
 
 #define IS_ENABLED(x) IS_ENABLED_##x
 
+static inline bool
+is_power_of_2(unsigned long n)
+{
+	return (n != 0 && ((n & (n - 1)) == 0));
+}
+
 static inline int
 order_base_2(u64 base)
 {
