@@ -31,6 +31,8 @@
 #include <nvif/client.h>
 #include <nvif/device.h>
 #include <nvif/class.h>
+#include <nvif/if0002.h>
+#include <nvif/if0003.h>
 #include <nvif/ioctl.h>
 
 #include <sys/time.h>
