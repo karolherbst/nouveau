@@ -89,11 +89,11 @@ drm_client_notify(void *repv, u32 repc)
 	u32 size = repc;
 	u64 token;
 	u8  route;
-	int ret;
+	int ret = -ENODEV;
 
 	printf("notify %d\n", repc);
 
-	if (nvif_unpack(rep->v0, 0, 0, true)) {
+	if (!(ret = nvif_unpack(ret, &data, &size, rep->v0, 0, 0, true))) {
 		token = rep->v0.token;
 		route = rep->v0.route;
 	} else
