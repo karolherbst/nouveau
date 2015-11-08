@@ -404,7 +404,7 @@ ui_perfmon_init(void)
 	int ret;
 
 	ret = nvif_object_init(&device->object, 0xdeadbeef,
-			       NVIF_IOCTL_NEW_V0_PERFMON, NULL, 0, &perfmon);
+			       NVIF_CLASS_PERFMON, NULL, 0, &perfmon);
 	assert(ret == 0);
 
 	/* query available domains for the device */
@@ -507,7 +507,7 @@ ui_main_select(void)
 			}
 
 			ret = nvif_object_init(&perfmon, perfdom->handle,
-					       NVIF_IOCTL_NEW_V0_PERFDOM,
+					       NVIF_CLASS_PERFDOM,
 					       &args, sizeof(args),
 					       &perfdom->object);
 			assert(ret == 0);
