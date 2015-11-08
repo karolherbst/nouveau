@@ -2,6 +2,7 @@
 #define __UTIL_H__
 #include <nvif/client.h>
 #include <nvif/device.h>
+#include <nvif/if0000.h>
 
 #include <unistd.h>
 
