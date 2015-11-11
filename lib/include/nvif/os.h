@@ -943,12 +943,6 @@ dma_unmap_page(struct device *pdev, dma_addr_t addr, int size, unsigned flags)
 {
 }
 
-static inline phys_addr_t
-dma_to_phys(struct device *dev, dma_addr_t addr)
-{
-	return 0;
-}
-
 /******************************************************************************
  * PCI
  *****************************************************************************/
