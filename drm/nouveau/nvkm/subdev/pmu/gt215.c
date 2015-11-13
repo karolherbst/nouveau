@@ -44,6 +44,36 @@ gt215_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_load_data *data)
 	return 0;
 }
 
+static int
+wait_for_pmu_reply(struct nvkm_pmu *pmu, u32 reply[2])
+{
+	struct nvkm_subdev *subdev = &pmu->subdev;
+	struct nvkm_device *device = subdev->device;
+	unsigned long js = msecs_to_jiffies(1000);
+
+	if (!wait_event_timeout(pmu->recv.wait, pmu->recv.process == 0, js)) {
+		u32 addr = nvkm_rd32(device, 0x10a4cc);
+		nvkm_error(subdev, "wait on reply timed out\n");
+
+		if (addr == nvkm_rd32(device, 0x10a4c8))
+			return -ETIMEDOUT;
+
+		nvkm_error(subdev, "found queued message without getting an"
+			   "interrupt\n");
+		schedule_work(&pmu->recv.work);
+
+		if (!wait_event_timeout(pmu->recv.wait, pmu->recv.process == 0,
+					js)) {
+			nvkm_error(subdev, "failed to repair PMU state\n");
+			return -ETIMEDOUT;
+		}
+	}
+
+	reply[0] = pmu->recv.data[0];
+	reply[1] = pmu->recv.data[1];
+	return 0;
+}
+
 int
 gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	       u32 process, u32 message, u32 data0, u32 data1)
@@ -51,6 +81,7 @@ gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	struct nvkm_subdev *subdev = &pmu->subdev;
 	struct nvkm_device *device = subdev->device;
 	u32 addr;
+	int ret = 0;
 
 	mutex_lock(&subdev->mutex);
 	/* wait for a free slot in the fifo */
@@ -92,13 +123,15 @@ gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 
 	/* wait for reply, if requested */
 	if (reply) {
-		wait_event(pmu->recv.wait, (pmu->recv.process == 0));
-		reply[0] = pmu->recv.data[0];
-		reply[1] = pmu->recv.data[1];
+		ret = wait_for_pmu_reply(pmu, reply);
+		if (ret < 0) {
+			reply[0] = 0;
+			reply[1] = 0;
+		}
 	}
 
 	mutex_unlock(&subdev->mutex);
-	return 0;
+	return ret;
 }
 
 void
