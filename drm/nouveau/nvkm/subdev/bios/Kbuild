@@ -1,4 +1,5 @@
 nvkm-y += nvkm/subdev/bios/base.o
+nvkm-y += nvkm/subdev/bios/baseclock.o
 nvkm-y += nvkm/subdev/bios/bit.o
 nvkm-y += nvkm/subdev/bios/boost.o
 nvkm-y += nvkm/subdev/bios/conn.o
