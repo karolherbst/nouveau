@@ -15,6 +15,11 @@ struct nvkm_volt {
 
 	u32 max_uv;
 	u32 min_uv;
+
+	/* max voltage map entries, might be affected by temperature */
+	u8 max0_id;
+	u8 max1_id;
+	u8 max2_id;
 };
 
 int nvkm_volt_map_min(struct nvkm_volt *volt, u8 id);
