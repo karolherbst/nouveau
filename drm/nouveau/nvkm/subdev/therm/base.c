@@ -337,6 +337,8 @@ nvkm_therm_init(struct nvkm_subdev *subdev)
 
 	nvkm_therm_sensor_init(therm);
 	nvkm_therm_fan_init(therm);
+	if (therm->func->fsrm_verify)
+		therm->func->fsrm_verify(therm);
 	return 0;
 }
 
