@@ -90,6 +90,7 @@ main(int argc, char **argv)
 	}
 
 	ret = u_device("lib", argv[0], "error", true, true,
+		       (1ULL << NVKM_SUBDEV_PCI) |
 		       (1ULL << NVKM_SUBDEV_VBIOS) |
 		       (1ULL << NVKM_SUBDEV_I2C),
 		       0x00000000, &client, &device);
