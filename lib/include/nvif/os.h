@@ -233,7 +233,7 @@ hweight32(u32 v) {
 #define BITMAP_BIT(b) ((b) % BITS_PER_LONG)
 
 static inline int
-test_bit(int bit, volatile unsigned long *ptr)
+test_bit(int bit, const volatile unsigned long *ptr)
 {
 	return !!(ptr[BITMAP_POS(bit)] & (1UL << BITMAP_BIT(bit)));
 }
@@ -285,6 +285,17 @@ __set_bit(long bit, volatile unsigned long *addr)
 }
 
 static inline long
+find_next_bit(const volatile unsigned long *addr, int bits, int bit)
+{
+	while (bit < bits) {
+		if (test_bit(bit, addr))
+			break;
+		bit++;
+	}
+	return bit;
+}
+
+static inline long
 find_first_zero_bit(volatile unsigned long *addr, int bits)
 {
 	int bit;
@@ -309,6 +320,10 @@ bitmap_clear(unsigned long *addr, unsigned int pos, unsigned int bits)
 	while (bits--)
 		__clear_bit(pos++, addr);
 }
+
+#define for_each_set_bit(bit, addr, size)                                      \
+	for ((bit) = find_next_bit((addr), (size), 0); (bit) < (size);         \
+	     (bit) = find_next_bit((addr), (size), (bit) + 1))
 
 /******************************************************************************
  * atomics
