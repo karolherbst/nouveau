@@ -64,6 +64,7 @@ typedef dma_addr_t resource_size_t;
  *****************************************************************************/
 #define noinline __attribute__ ((noinline))
 #define __packed __attribute__ ((packed))
+#define __aligned(a) __attribute__((aligned(a)))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define min(a,b) ((a) > (b) ? (b) : (a))
 #define max_t(t,a,b) max((t)(a), (t)(b))
@@ -90,6 +91,7 @@ typedef dma_addr_t resource_size_t;
 #define likely(a) (a)
 #define unlikely(a) (a)
 #define BIT(a) (1UL << (a))
+#define ALIGN(a,b) (((a) + ((b) - 1)) & ~((b) - 1))
 
 #define ERR_PTR(err) ((void *)(long)(err))
 #define PTR_ERR(ptr) ((long)(ptr))
@@ -1231,6 +1233,8 @@ release_firmware(const struct firmware *fw)
 	free(fw->data);
 	free((void *)fw);
 }
+
+#define MODULE_FIRMWARE(a)
 
 /******************************************************************************
  * workqueues
