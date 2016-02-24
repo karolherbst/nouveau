@@ -28,6 +28,7 @@ drms := $(addprefix $(lib)/, $(nvif-y)) \
 	$(addprefix $(lib)/, $(nvkm-y))
 srcs := $(lib)/bit.o \
 	$(lib)/drm.o \
+	$(lib)/firmware.o \
 	$(lib)/intr.o \
 	$(lib)/main.o \
 	$(lib)/null.o \
