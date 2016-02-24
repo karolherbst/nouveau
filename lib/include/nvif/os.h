@@ -1211,28 +1211,8 @@ struct firmware {
 	void *data;
 };
 
-static inline int
-request_firmware(const struct firmware **pfw, const char *name,
-		 struct device *dev)
-{
-	struct firmware *fw = *(void **)pfw = malloc(sizeof(*fw));
-	int fd = open(name, O_RDONLY);
-	if (fd >= 0) {
-		off_t len = lseek(fd, 0, SEEK_END);
-		fw->data = malloc(len);
-		fw->size = pread(fd, fw->data, len, 0);
-		return 0;
-	}
-	free(fw);
-	return -EINVAL;
-}
-
-static inline void
-release_firmware(const struct firmware *fw)
-{
-	free(fw->data);
-	free((void *)fw);
-}
+int request_firmware(const struct firmware **, const char *, struct device *);
+void release_firmware(const struct firmware *);
 
 #define MODULE_FIRMWARE(a)
 
