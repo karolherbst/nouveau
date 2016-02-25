@@ -941,6 +941,8 @@ iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
 /******************************************************************************
  * DMA
  *****************************************************************************/
+#define DMA_BIT_MASK(a) (((a) == 64) ? ~0ULL : ((1ULL << (a)) - 1))
+
 static inline dma_addr_t
 dma_map_page(struct device *pdev, struct page *page, int offset,
 	     int length, unsigned flags)
@@ -958,6 +960,12 @@ dma_mapping_error(struct device *pdev, dma_addr_t addr)
 static inline void
 dma_unmap_page(struct device *pdev, dma_addr_t addr, int size, unsigned flags)
 {
+}
+
+static inline int
+dma_set_mask(struct device *dev, u64 mask)
+{
+	return 0;
 }
 
 /******************************************************************************
