@@ -74,6 +74,78 @@ nvkm_clk_adjust(struct nvkm_clk *clk, bool adjust,
 /******************************************************************************
  * C-States
  *****************************************************************************/
+static bool
+nvkm_cstate_valid(struct nvkm_clk *clk, struct nvkm_cstate *cstate, u32 max_volt, int temp)
+{
+	struct nvkm_volt *volt = clk->subdev.device->volt;
+	int voltage;
+
+	if (!volt)
+		return true;
+
+	voltage = nvkm_volt_map(volt, cstate->voltage, temp);
+	if (voltage < 0)
+		return false;
+	return voltage <= min(max_volt, volt->max_uv) &&
+	       voltage >= volt->min_uv;
+}
+
+static struct nvkm_cstate *
+nvkm_cstate_find_best(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
+		      struct nvkm_cstate *start)
+{
+	struct nvkm_device *device = clk->subdev.device;
+	struct nvkm_therm *therm = device->therm;
+	struct nvkm_volt *volt = device->volt;
+	struct nvkm_cstate *cstate;
+	int max_volt, temp = 0;
+
+	if (!pstate || !start)
+		return NULL;
+
+	if (!volt)
+		return list_entry(pstate->list.prev, typeof(*cstate), head);
+
+	if (therm) {
+		/* ignore error code */
+		temp = max(0, nvkm_therm_temp_get(therm));
+	}
+
+	max_volt = volt->max_uv;
+	if (volt->max0_id != 0xff)
+		max_volt = min(max_volt,
+			       nvkm_volt_map(volt, volt->max0_id, temp));
+	if (volt->max1_id != 0xff)
+		max_volt = min(max_volt,
+			       nvkm_volt_map(volt, volt->max1_id, temp));
+	if (volt->max2_id != 0xff)
+		max_volt = min(max_volt,
+			       nvkm_volt_map(volt, volt->max2_id, temp));
+
+	for (cstate = start; &cstate->head != &pstate->list;
+	     cstate = list_entry(cstate->head.prev, typeof(*cstate), head)) {
+		if (nvkm_cstate_valid(clk, cstate, max_volt, temp))
+			break;
+	}
+
+	return cstate;
+}
+
+static struct nvkm_cstate *
+nvkm_cstate_get(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
+{
+	struct nvkm_cstate *cstate;
+	if (cstatei == -1)
+		return list_entry(pstate->list.prev, typeof(*cstate), head);
+	else {
+		list_for_each_entry(cstate, &pstate->list, head) {
+			if (cstate->cstate == cstatei)
+				return cstate;
+		}
+	}
+	return NULL;
+}
+
 static int
 nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 {
@@ -85,15 +157,8 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 	int ret;
 
 	if (!list_empty(&pstate->list)) {
-		if (cstatei == -1)
-			cstate = list_entry(pstate->list.prev, typeof(*cstate),
-					    head);
-		else {
-			list_for_each_entry(cstate, &pstate->list, head) {
-				if (cstate->cstate == cstatei)
-					break;
-			}
-		}
+		cstate = nvkm_cstate_get(clk, pstate, cstatei);
+		cstate = nvkm_cstate_find_best(clk, pstate, cstate);
 	} else {
 		cstate = &pstate->base;
 	}
