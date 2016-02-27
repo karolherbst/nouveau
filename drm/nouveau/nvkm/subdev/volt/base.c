@@ -87,7 +87,7 @@ nvkm_volt_map_min(struct nvkm_volt *volt, u8 id)
 	return id ? id * 10000 : -ENODEV;
 }
 
-static int
+int
 nvkm_volt_map(struct nvkm_volt *volt, u8 id)
 {
 	struct nvkm_bios *bios = volt->subdev.device->bios;
