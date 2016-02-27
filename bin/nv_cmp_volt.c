@@ -108,7 +108,7 @@ main(int argc, char **argv)
 
 		new_voltage = nvkm_volt_get(volt);
 		new_temp = nvkm_rd32(device, 0x20400);//nvkm_therm_temp_get(therm);
-		new_nouveau_voltage = max(nvkm_volt_map(volt, best_cstate->voltage), nvkm_volt_map(volt, best_pstate->base.voltage));
+		new_nouveau_voltage = max(nvkm_volt_map(volt, best_cstate->voltage, new_temp), nvkm_volt_map(volt, best_pstate->base.voltage, new_temp));
 		new_pstate = best_pstate->pstate;
 		new_cstate = best_cstate->cstate;
 
