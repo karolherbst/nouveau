@@ -29,7 +29,7 @@ gm107_fb = {
 	.dtor = gf100_fb_dtor,
 	.init = gf100_fb_init,
 	.intr = gf100_fb_intr,
-	.ram_new = gm107_ram_new,
+	.ram_new = gk104_ram_new,
 	.memtype_valid = gf100_fb_memtype_valid,
 };
 
