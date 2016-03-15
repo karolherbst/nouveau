@@ -73,30 +73,34 @@ nvbios_volt_parse(struct nvkm_bios *bios, u8 *ver, u8 *hdr, u8 *cnt, u8 *len,
 	memset(info, 0x00, sizeof(*info));
 	switch (!!volt * *ver) {
 	case 0x12:
-		info->type    = NVBIOS_VOLT_GPIO;
-		info->vidmask = nvbios_rd08(bios, volt + 0x04);
+		info->type        = NVBIOS_VOLT_GPIO;
+		info->vidmask     = nvbios_rd08(bios, volt + 0x04);
+		info->entry_based = true;
 		break;
 	case 0x20:
-		info->type    = NVBIOS_VOLT_GPIO;
-		info->vidmask = nvbios_rd08(bios, volt + 0x05);
+		info->type        = NVBIOS_VOLT_GPIO;
+		info->vidmask     = nvbios_rd08(bios, volt + 0x05);
+		info->entry_based = true;
 		break;
 	case 0x30:
-		info->type    = NVBIOS_VOLT_GPIO;
-		info->vidmask = nvbios_rd08(bios, volt + 0x04);
+		info->type        = NVBIOS_VOLT_GPIO;
+		info->vidmask     = nvbios_rd08(bios, volt + 0x04);
+		info->entry_based = true;
 		break;
 	case 0x40:
-		info->type    = NVBIOS_VOLT_GPIO;
-		info->base    = nvbios_rd32(bios, volt + 0x04);
-		info->step    = nvbios_rd16(bios, volt + 0x08);
-		info->vidmask = nvbios_rd08(bios, volt + 0x0b);
+		info->type        = NVBIOS_VOLT_GPIO;
+		info->base        = nvbios_rd32(bios, volt + 0x04);
+		info->step        = nvbios_rd16(bios, volt + 0x08);
+		info->vidmask     = nvbios_rd08(bios, volt + 0x0b);
+		info->entry_based = false; /* XXX: find the flag byte */
 		/*XXX*/
-		info->min     = 0;
-		info->max     = info->base;
+		info->min         = 0;
+		info->max         = info->base;
 		break;
 	case 0x50:
-		info->min     = nvbios_rd32(bios, volt + 0x0a);
-		info->max     = nvbios_rd32(bios, volt + 0x0e);
-		info->base    = nvbios_rd32(bios, volt + 0x12) & 0x00ffffff;
+		info->min  = nvbios_rd32(bios, volt + 0x0a);
+		info->max  = nvbios_rd32(bios, volt + 0x0e);
+		info->base = nvbios_rd32(bios, volt + 0x12) & 0x00ffffff;
 
 		/* offset 4 seems to be a flag byte */
 		if (nvbios_rd32(bios, volt + 0x4) & 1) {
@@ -104,9 +108,11 @@ nvbios_volt_parse(struct nvkm_bios *bios, u8 *ver, u8 *hdr, u8 *cnt, u8 *len,
 			info->pwm_freq  = nvbios_rd32(bios, volt + 0x5) / 1000;
 			info->pwm_range = nvbios_rd32(bios, volt + 0x16);
 		} else {
-			info->type      = NVBIOS_VOLT_GPIO;
-			info->vidmask   = nvbios_rd08(bios, volt + 0x06);
-			info->step      = nvbios_rd16(bios, volt + 0x16);
+			info->type        = NVBIOS_VOLT_GPIO;
+			info->vidmask     = nvbios_rd08(bios, volt + 0x06);
+			info->step        = nvbios_rd16(bios, volt + 0x16);
+			info->entry_based =
+				!(nvbios_rd08(bios, volt + 0x4) & 0x2);
 		}
 		break;
 	}

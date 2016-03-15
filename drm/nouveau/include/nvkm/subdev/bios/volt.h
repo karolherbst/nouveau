@@ -13,8 +13,9 @@ struct nvbios_volt {
 	u32 base;
 
 	/* GPIO mode */
-	u8  vidmask;
-	s16 step;
+	bool entry_based;
+	u8   vidmask;
+	s16  step;
 
 	/* PWM mode */
 	u32 pwm_freq;
