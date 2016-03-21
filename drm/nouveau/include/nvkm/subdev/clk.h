@@ -105,6 +105,7 @@ struct nvkm_clk {
 	u8  boost_mode;
 	u32 base_khz;
 	u32 boost_khz;
+	u32 max_khz;
 
 	/*XXX: die, these are here *only* to support the completely
 	 *     bat-shit insane what-was-nouveau_hw.c code
