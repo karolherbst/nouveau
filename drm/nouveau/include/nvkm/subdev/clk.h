@@ -95,6 +95,11 @@ struct nvkm_clk {
 	int ustate_ac; /* user-requested (-1 disabled, -2 perfmon) */
 	int ustate_dc; /* user-requested (-1 disabled, -2 perfmon) */
 	int astate; /* perfmon adjustment (base) */
+	struct nvkm_cstate *set_cstate;
+#define NVKM_CLK_CSTATE_DEFAULT -1
+#define NVKM_CLK_CSTATE_BASE    -2
+#define NVKM_CLK_CSTATE_HIGHEST -3
+	int exp_cstate;
 
 	bool allow_reclock;
 #define NVKM_CLK_BOOST_NONE 0x0

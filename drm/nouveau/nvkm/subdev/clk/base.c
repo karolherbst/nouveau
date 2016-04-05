@@ -152,9 +152,14 @@ static struct nvkm_cstate *
 nvkm_cstate_get(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 {
 	struct nvkm_cstate *cstate;
-	if (cstatei == -1)
+	switch (cstatei) {
+	case NVKM_CLK_CSTATE_HIGHEST:
 		return list_entry(pstate->list.prev, typeof(*cstate), head);
-	else {
+	case NVKM_CLK_CSTATE_BASE:
+		return &pstate->base;
+	case NVKM_CLK_CSTATE_DEFAULT:
+		return NULL;
+	default:
 		list_for_each_entry(cstate, &pstate->list, head) {
 			if (cstate->cstate == cstatei)
 				return cstate;
@@ -172,6 +177,9 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 	struct nvkm_volt *volt = device->volt;
 	struct nvkm_cstate *cstate;
 	int ret;
+
+	if (cstatei == NVKM_CLK_CSTATE_DEFAULT)
+		return 0;
 
 	if (!list_empty(&pstate->list)) {
 		cstate = nvkm_cstate_get(clk, pstate, cstatei);
@@ -199,6 +207,7 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 
 	ret = clk->func->calc(clk, cstate);
 	if (ret == 0) {
+		clk->set_cstate = cstate;
 		ret = clk->func->prog(clk);
 		clk->func->tidy(clk);
 	}
@@ -303,7 +312,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstatei)
 		ram->func->tidy(ram);
 	}
 
-	return nvkm_cstate_prog(clk, pstate, -1);
+	return nvkm_cstate_prog(clk, pstate, clk->exp_cstate);
 }
 
 static void
@@ -321,9 +330,9 @@ nvkm_clk_update_work(struct work_struct *work)
 		pstate = clk->pstate->pstate;
 	else
 		pstate = -1;
-	nvkm_trace(subdev, "P %d PWR %d U(AC) %d U(DC) %d A %d\n",
+	nvkm_trace(subdev, "P %d PWR %d U(AC) %d U(DC) %d A %d C %d\n",
 		   pstate, clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
-		   clk->astate);
+		   clk->astate, clk->exp_cstate);
 
 	pstate = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
 	if (clk->state_nr && pstate != -1) {
@@ -541,6 +550,7 @@ nvkm_clk_ustate(struct nvkm_clk *clk, int req, int pwr)
 	if (ret >= 0) {
 		if (ret -= 2, pwr) clk->ustate_ac = ret;
 		else		   clk->ustate_dc = ret;
+		clk->exp_cstate = NVKM_CLK_CSTATE_HIGHEST;
 		return nvkm_clk_update(clk, true);
 	}
 	return ret;
@@ -553,6 +563,7 @@ nvkm_clk_astate(struct nvkm_clk *clk, int req, int rel, bool wait)
 	if ( rel) clk->astate += rel;
 	clk->astate = min(clk->astate, clk->state_nr - 1);
 	clk->astate = max(clk->astate, 0);
+	clk->exp_cstate = NVKM_CLK_CSTATE_BASE;
 	return nvkm_clk_update(clk, wait);
 }
 
@@ -614,6 +625,8 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 
 	clk->astate = clk->state_nr - 1;
 	clk->pstate = NULL;
+	clk->exp_cstate = NVKM_CLK_CSTATE_DEFAULT;
+	clk->set_cstate = NULL;
 	nvkm_clk_update(clk, true);
 	return 0;
 }
@@ -698,15 +711,20 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	if (mode) {
 		clk->ustate_ac = nvkm_clk_nstate(clk, mode, arglen);
 		clk->ustate_dc = nvkm_clk_nstate(clk, mode, arglen);
+		clk->exp_cstate = NVKM_CLK_CSTATE_HIGHEST;
 	}
 
 	mode = nvkm_stropt(device->cfgopt, "NvClkModeAC", &arglen);
-	if (mode)
+	if (mode) {
 		clk->ustate_ac = nvkm_clk_nstate(clk, mode, arglen);
+		clk->exp_cstate = NVKM_CLK_CSTATE_HIGHEST;
+	}
 
 	mode = nvkm_stropt(device->cfgopt, "NvClkModeDC", &arglen);
-	if (mode)
+	if (mode) {
 		clk->ustate_dc = nvkm_clk_nstate(clk, mode, arglen);
+		clk->exp_cstate = NVKM_CLK_CSTATE_HIGHEST;
+	}
 
 	return 0;
 }
