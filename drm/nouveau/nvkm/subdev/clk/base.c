@@ -288,7 +288,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstatei)
 	}
 
 	nvkm_debug(subdev, "setting performance state %d\n", pstatei);
-	clk->pstate = pstatei;
+	clk->pstate = pstate;
 
 	nvkm_pcie_set_link(pci, pstate->pcie_speed, pstate->pcie_width);
 
@@ -317,15 +317,19 @@ nvkm_clk_update_work(struct work_struct *work)
 		return;
 	clk->pwrsrc = power_supply_is_system_supplied();
 
+	if (clk->pstate)
+		pstate = clk->pstate->pstate;
+	else
+		pstate = -1;
 	nvkm_trace(subdev, "P %d PWR %d U(AC) %d U(DC) %d A %d\n",
-		   clk->pstate, clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
+		   pstate, clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
 		   clk->astate);
 
 	pstate = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
 	if (clk->state_nr && pstate != -1) {
 		pstate = (pstate < 0) ? clk->astate : pstate;
 	} else {
-		pstate = clk->pstate = -1;
+		pstate = -1;
 	}
 
 	nvkm_trace(subdev, "-> %d\n", pstate);
@@ -609,7 +613,7 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 		return clk->func->init(clk);
 
 	clk->astate = clk->state_nr - 1;
-	clk->pstate = -1;
+	clk->pstate = NULL;
 	nvkm_clk_update(clk, true);
 	return 0;
 }
