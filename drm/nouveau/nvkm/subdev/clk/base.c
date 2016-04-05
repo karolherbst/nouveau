@@ -188,6 +188,11 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 		cstate = &pstate->base;
 	}
 
+	if (!cstate) {
+		nvkm_error(subdev, "failed to set cstate %d\n", cstatei);
+		return -EINVAL;
+	}
+
 	if (therm) {
 		ret = nvkm_therm_cstate(therm, pstate->fanspeed, +1);
 		if (ret && ret != -ENODEV) {
@@ -318,6 +323,24 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 	return nvkm_cstate_prog(clk, pstate, clk->exp_cstate);
 }
 
+static int
+nvkm_clk_update_volt(struct nvkm_clk *clk)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_volt *volt = subdev->device->volt;
+	struct nvkm_therm *therm = subdev->device->therm;
+	int ret;
+
+	if (!volt || !therm || !clk->pstate || !clk->set_cstate)
+		return -EINVAL;
+
+	ret =  nvkm_volt_set_id(volt, clk->set_cstate->voltage,
+				clk->pstate->base.voltage, -1);
+	ret |= nvkm_volt_set_id(volt, clk->set_cstate->voltage,
+				clk->pstate->base.voltage, +1);
+	return ret;
+}
+
 static void
 nvkm_clk_update_work(struct work_struct *work)
 {
@@ -344,13 +367,43 @@ nvkm_clk_update_work(struct work_struct *work)
 		pstate = -1;
 	}
 
-	nvkm_trace(subdev, "-> %d\n", pstate);
-	ret = nvkm_pstate_prog(clk, pstate);
-	if (ret) {
-		nvkm_error(subdev, "error setting pstate %d: %d\n",
-			   pstate, ret);
+	if (!clk->pstate || clk->pstate->pstate != pstate) {
+		nvkm_trace(subdev, "-> P %d\n", pstate);
+		ret = nvkm_pstate_prog(clk, pstate);
+		if (ret) {
+			nvkm_error(subdev, "error setting pstate %d: %d\n",
+				   pstate, ret);
+		}
+	} else if (!clk->set_cstate ||
+		   clk->set_cstate->cstate != clk->exp_cstate) {
+
+		struct nvkm_cstate *cstate = nvkm_cstate_get(clk, clk->pstate, clk->exp_cstate);
+		if (!cstate) {
+			nvkm_error(subdev, "couldn't find fitting cstate\n");
+			goto update_err;
+		}
+
+		cstate = nvkm_cstate_find_best(clk, clk->pstate, cstate);
+		if (!cstate) {
+			nvkm_error(subdev, "couldn't find best cstate\n");
+			goto update_err;
+		}
+
+		if (cstate != clk->set_cstate) {
+			nvkm_trace(subdev, "-> C %d\n", cstate->cstate);
+			ret = nvkm_cstate_prog(clk, clk->pstate, cstate->cstate);
+			if (ret) {
+				nvkm_error(subdev, "error setting cstate %d: %d\n",
+					   cstate->cstate, ret);
+			}
+		} else {
+			nvkm_clk_update_volt(clk);
+		}
+	} else {
+		nvkm_clk_update_volt(clk);
 	}
 
+update_err:
 	wake_up_all(&clk->wait);
 	nvkm_notify_get(&clk->pwrsrc_ntfy);
 }
