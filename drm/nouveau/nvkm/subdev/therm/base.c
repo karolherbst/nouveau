@@ -23,6 +23,8 @@
  */
 #include "priv.h"
 
+#include <subdev/clk.h>
+
 int
 nvkm_therm_temp_get(struct nvkm_therm *therm)
 {
@@ -153,7 +155,10 @@ nvkm_therm_alarm(struct nvkm_alarm *alarm)
 {
 	struct nvkm_therm *therm =
 	       container_of(alarm, struct nvkm_therm, alarm);
+	struct nvkm_clk *clk = therm->subdev.device->clk;
 	nvkm_therm_update(therm, -1);
+	if (clk)
+		nvkm_clk_update(clk, false);
 }
 
 int
