@@ -23,6 +23,7 @@
  */
 #include "priv.h"
 
+#include <subdev/clk.h>
 #include <subdev/timer.h>
 
 void
@@ -122,12 +123,37 @@ nvkm_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	return ret;
 }
 
+#define get_counter_index(v, i) (((v) >> ((i)*8)) & 0xff)
+
+static void
+nvkm_pmu_parse_perf_data(u32 result, struct nvkm_pmu_load_data *data)
+{
+	data->core = get_counter_index(result, PERF_MSG_LOAD_CORE_IDX);
+	data->video = get_counter_index(result, PERF_MSG_LOAD_VID_IDX);
+	data->mem = get_counter_index(result, PERF_MSG_LOAD_MEM_IDX);
+	data->pcie = get_counter_index(result, PERF_MSG_LOAD_PCIE_IDX);
+}
+
+static void
+nvkm_pmu_handle_reclk_request(struct work_struct *work)
+{
+	struct nvkm_pmu *pmu = container_of(work, struct nvkm_pmu, intr.work);
+	struct nvkm_clk *clk = pmu->subdev.device->clk;
+
+	if (clk) {
+		struct nvkm_pmu_load_data data;
+		nvkm_pmu_parse_perf_data(pmu->intr.data[0], &data);
+		nvkm_clk_dyn_reclk(clk, &data);
+	}
+}
+
 static void
 nvkm_pmu_recv(struct work_struct *work)
 {
 	struct nvkm_pmu *pmu = container_of(work, struct nvkm_pmu, recv.work);
 	struct nvkm_subdev *subdev = &pmu->subdev;
 	struct nvkm_device *device = subdev->device;
+	struct nvkm_clk *clk = device->clk;
 	u32 process, message, data0, data1;
 
 	/* nothing to do if GET == PUT */
@@ -152,6 +178,12 @@ nvkm_pmu_recv(struct work_struct *work)
 	/* release data segment access */
 	nvkm_wr32(device, 0x10a580, 0x00000000);
 
+	if (clk && process == PROC_PERF && message == HOST_MSG_RECLOCK) {
+		pmu->intr.data[0] = data0;
+		schedule_work(&pmu->intr.work);
+		return;
+	}
+
 	/* wake process if it's waiting on a synchronous reply */
 	if (pmu->recv.process) {
 		if (process == pmu->recv.process &&
@@ -175,8 +207,6 @@ nvkm_pmu_recv(struct work_struct *work)
 		  process, message, data0, data1);
 }
 
-#define get_counter_index(v, i) (((v) >> ((i)*8)) & 0xff)
-
 int
 nvkm_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_load_data *data)
 {
@@ -186,10 +216,7 @@ nvkm_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_load_data *data)
 	if (ret < 0)
 		return ret;
 
-	data->core = get_counter_index(result[0], PERF_MSG_LOAD_CORE_IDX);
-	data->video = get_counter_index(result[0], PERF_MSG_LOAD_VID_IDX);
-	data->mem = get_counter_index(result[0], PERF_MSG_LOAD_MEM_IDX);
-	data->pcie = get_counter_index(result[0], PERF_MSG_LOAD_PCIE_IDX);
+	nvkm_pmu_parse_perf_data(result[0], data);
 	return 0;
 }
 
@@ -240,6 +267,7 @@ nvkm_pmu_fini(struct nvkm_subdev *subdev, bool suspend)
 
 	nvkm_wr32(device, 0x10a014, 0x00000060);
 	flush_work(&pmu->recv.work);
+	flush_work(&pmu->intr.work);
 	return 0;
 }
 
@@ -329,5 +357,6 @@ nvkm_pmu_new_(const struct nvkm_pmu_func *func, struct nvkm_device *device,
 	pmu->func = func;
 	INIT_WORK(&pmu->recv.work, nvkm_pmu_recv);
 	init_waitqueue_head(&pmu->recv.wait);
+	INIT_WORK(&pmu->intr.work, nvkm_pmu_handle_reclk_request);
 	return 0;
 }

@@ -62,5 +62,15 @@
 #define PERF_MSG_LOAD_VID_IDX  0x1
 #define PERF_MSG_LOAD_MEM_IDX  0x2
 #define PERF_MSG_LOAD_PCIE_IDX 0x3
+#define PERF_TARGET_LOAD_ENGINES 0xaf
+#define PERF_TARGET_LOAD_MEM     0xaf
+#define PERF_TARGET_LOAD_PCIE    0x5f
+#define PERF_TARGET_SAFETY       0x10
+
+#define PERF_MSG_ACK_RECLOCK 2
+
+/* HOST: message identigiers */
+/* NOTE: these have to be unique so we just add 0x10000 */
+#define HOST_MSG_RECLOCK 0x10001
 
 #endif

@@ -5,6 +5,7 @@
 #include <subdev/pci.h>
 struct nvbios_pll;
 struct nvkm_pll_vals;
+struct nvkm_pmu_load_data;
 
 enum nv_clk_src {
 	nv_clk_src_crystal,
@@ -122,6 +123,8 @@ int nvkm_clk_read(struct nvkm_clk *, enum nv_clk_src);
 int nvkm_clk_ustate(struct nvkm_clk *, int req, int pwr);
 int nvkm_clk_astate(struct nvkm_clk *, int req, int rel, bool wait);
 int nvkm_clk_update(struct nvkm_clk *, bool wait);
+
+int nvkm_clk_dyn_reclk(struct nvkm_clk *, struct nvkm_pmu_load_data *data);
 
 int nv04_clk_new(struct nvkm_device *, int, struct nvkm_clk **);
 int nv40_clk_new(struct nvkm_device *, int, struct nvkm_clk **);
