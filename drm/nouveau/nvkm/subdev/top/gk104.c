@@ -91,6 +91,7 @@ gk104_top_oneinit(struct nvkm_top *top)
 					  nvkm_subdev_name[info->index],
 			   info->addr, info->fault, info->engine, info->runlist,
 			   info->intr, info->reset);
+		info = NULL;
 	}
 
 	return 0;
