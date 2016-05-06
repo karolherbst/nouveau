@@ -76,6 +76,7 @@ typedef dma_addr_t resource_size_t;
 #define upper_32_bits(a) ((a) >> 32)
 #define lower_32_bits(a) ((a) & 0xffffffff)
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+#define DIV_ROUND_UP_ULL(n,d) DIV_ROUND_UP((n),(d))
 #define DIV_ROUND_CLOSEST(x, divisor)(			\
 {							\
 	typeof(x) __x = x;				\
@@ -94,6 +95,7 @@ typedef dma_addr_t resource_size_t;
 #define BIT(a) (1UL << (a))
 #define BIT_ULL(a) (1ULL << (a))
 #define ALIGN(a,b) (((a) + ((b) - 1)) & ~((b) - 1))
+#define IS_ALIGNED(a,b) (!((a) & ((b) - 1)))
 
 #define ERR_PTR(err) ((void *)(long)(err))
 #define PTR_ERR(ptr) ((long)(ptr))
@@ -695,12 +697,16 @@ struct rb_node {
 	struct rb_node *rb_right;
 };
 
+#define rb_entry(a,b,c) container_of(a,b,c)
+
 #define RB_EMPTY_NODE(a) ((a)->parent == (a))
 #define RB_CLEAR_NODE(a) ((a)->parent = (a))
 
 void rb_link_node(struct rb_node *, struct rb_node *, struct rb_node **);
 void rb_insert_color(struct rb_node *, struct rb_root *);
 void rb_erase(struct rb_node *, struct rb_root *);
+struct rb_node *rb_first(struct rb_root *);
+struct rb_node *rb_next(struct rb_node *);
 
 /******************************************************************************
  * io space
@@ -1429,7 +1435,7 @@ extern const struct i2c_algorithm i2c_bit_algo;
 static inline int
 orderly_poweroff(bool force)
 {
-	BUG_ON(1);
+	BUG();
 }
 
 /******************************************************************************

@@ -29,6 +29,8 @@ void
 rb_link_node(struct rb_node *node, struct rb_node *parent, struct rb_node **ptr)
 {
 	node->parent = parent;
+	node->rb_left = NULL;
+	node->rb_right = NULL;
 	*ptr = node;
 }
 
@@ -89,4 +91,28 @@ rb_erase(struct rb_node *node, struct rb_root *root)
 	} else {
 		*ptr = NULL;
 	}
+}
+
+struct rb_node *
+rb_first(struct rb_root *root)
+{
+	struct rb_node *node = root->rb_node;
+	while (node && node->rb_left)
+		node = node->rb_left;
+	return node;
+}
+
+struct rb_node *
+rb_next(struct rb_node *node)
+{
+	struct rb_node *parent;
+	if (node->rb_right) {
+		node = node->rb_right;
+		while (node->rb_left)
+			node = node->rb_left;
+		return node;
+	}
+	while ((parent = node->parent) && node == parent->rb_right)
+		node = parent;
+	return parent;
 }
