@@ -242,21 +242,25 @@ os_client_ioctl(void *priv, bool super, void *data, u32 size, void **hack)
 static int
 os_client_resume(void *priv)
 {
-	return nvkm_client_init(priv);
+	struct nvkm_client *client = priv;
+	return nvkm_object_init(&client->object);
 }
 
 static int
 os_client_suspend(void *priv)
 {
-	return nvkm_client_fini(priv, true);
+	struct nvkm_client *client = priv;
+	return nvkm_object_fini(&client->object, true);
 }
 
 static void
 os_client_fini(void *priv)
 {
 	struct nvkm_client *client = priv;
+	struct nvkm_object *object = &client->object;
 
-	nvkm_client_del(&client);
+	nvkm_object_fini(object, false);
+	nvkm_object_del(&object);
 
 	mutex_lock(&os_mutex);
 	if (--os_client_nr == 0)
