@@ -2,6 +2,7 @@
 #define __UTIL_H__
 #include <nvif/client.h>
 #include <nvif/device.h>
+#include <nvif/driver.h>
 #include <nvif/if0000.h>
 
 #include <unistd.h>
@@ -36,8 +37,8 @@ u_client(const char *drv, const char *name, const char *dbg,
 	os_device_detect = detect;
 	os_device_mmio = mmio;
 	os_device_subdev = subdev;
-	return nvif_client_init(u_drv ? u_drv : drv, name, ~0ULL, u_cfg,
-				u_dbg ? u_dbg : dbg, client);
+	return nvif_driver_init(u_drv ? u_drv : drv, u_cfg,
+				u_dbg ? u_dbg : dbg, name, ~0ULL, client);
 }
 
 static inline struct nvif_client_devlist_v0 *
