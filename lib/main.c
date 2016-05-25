@@ -274,10 +274,8 @@ os_client_init(const char *name, u64 device, const char *cfg,
 		os_init(cfg, dbg);
 	mutex_unlock(&os_mutex);
 
-	ret = nvkm_client_new(name, device, cfg, dbg, &client);
+	ret = nvkm_client_new(name, device, cfg, dbg, nvif_notify, &client);
 	*ppriv = client;
-	if (ret == 0)
-		client->ntfy = nvif_notify;
 	return ret;
 }
 
