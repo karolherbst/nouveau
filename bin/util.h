@@ -40,11 +40,11 @@ u_client(const char *drv, const char *name, const char *dbg,
 				u_dbg ? u_dbg : dbg, client);
 }
 
-static inline struct nv_client_devlist_v0 *
+static inline struct nvif_client_devlist_v0 *
 u_device_list(struct nvif_client *client)
 {
 	struct nvif_object *object = &client->object;
-	struct nv_client_devlist_v0 *args;
+	struct nvif_client_devlist_v0 *args;
 	int count = 0;
 
 	for (;;) {
@@ -54,7 +54,7 @@ u_device_list(struct nvif_client *client)
 		args->version = 0;
 		args->count = count;
 
-		if (nvif_object_mthd(object, NV_CLIENT_DEVLIST, args, size)) {
+		if (nvif_object_mthd(object, NVIF_CLIENT_V0_DEVLIST, args, size)) {
 			free(args);
 			return NULL;
 		}
@@ -69,7 +69,7 @@ u_device_list(struct nvif_client *client)
 static inline void
 u_device_show(struct nvif_client *client)
 {
-	struct nv_client_devlist_v0 *args = u_device_list(client);
+	struct nvif_client_devlist_v0 *args = u_device_list(client);
 	int i;
 	printf("device(s):\n");
 	for (i = 0; args && i < args->count; i++)
@@ -80,7 +80,7 @@ u_device_show(struct nvif_client *client)
 static inline u64
 u_device_name(struct nvif_client *client, int idx)
 {
-	struct nv_client_devlist_v0 *args = u_device_list(client);
+	struct nvif_client_devlist_v0 *args = u_device_list(client);
 	u64 device = ~0ULL;
 	if (args) {
 		if (idx >= 0 && idx < args->count)
