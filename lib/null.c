@@ -115,10 +115,8 @@ null_client_init(const char *name, u64 device, const char *cfg,
 		null_init(cfg, dbg, true);
 	mutex_unlock(&null_mutex);
 
-	ret = nvkm_client_new(name, ~0ULL, cfg, dbg, &client);
+	ret = nvkm_client_new(name, ~0ULL, cfg, dbg, nvif_notify, &client);
 	*ppriv = client;
-	if (ret == 0)
-		client->ntfy = nvif_notify;
 	return ret;
 }
 
