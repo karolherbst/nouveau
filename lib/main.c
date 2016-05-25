@@ -256,12 +256,6 @@ os_client_suspend(void *priv)
 static void
 os_client_fini(void *priv)
 {
-	struct nvkm_client *client = priv;
-	struct nvkm_object *object = &client->object;
-
-	nvkm_object_fini(object, false);
-	nvkm_object_del(&object);
-
 	mutex_lock(&os_mutex);
 	if (--os_client_nr == 0)
 		os_fini();

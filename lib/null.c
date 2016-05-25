@@ -97,12 +97,6 @@ null_client_suspend(void *priv)
 static void
 null_client_fini(void *priv)
 {
-	struct nvkm_client *client = priv;
-	struct nvkm_object *object = &client->object;
-
-	nvkm_object_fini(object, false);
-	nvkm_object_del(&object);
-
 	mutex_lock(&null_mutex);
 	if (--null_client_nr == 0)
 		null_fini();
