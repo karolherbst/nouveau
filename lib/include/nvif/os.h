@@ -136,6 +136,12 @@ typedef dma_addr_t resource_size_t;
 #define IS_ENABLED_CONFIG_IOMMU_API 0
 #endif
 
+#if defined(CONFIG_ARCH_TEGRA)
+#define IS_ENABLED_CONFIG_ARCH_TEGRA 1
+#else
+#define IS_ENABLED_CONFIG_ARCH_TEGRA 0
+#endif
+
 #define IS_ENABLED(x) IS_ENABLED_##x
 
 static inline bool
@@ -229,6 +235,7 @@ hweight32(u32 v) {
 	return i;
 }
 
+#define BITS_PER_BYTE 8
 #define BITS_PER_LONG (sizeof(unsigned long) * 8)
 #define BITS_TO_LONGS(b) DIV_ROUND_UP((b), BITS_PER_LONG)
 #define DECLARE_BITMAP(n,b) unsigned long n[BITS_TO_LONGS(b)]
@@ -1550,6 +1557,13 @@ extern struct tegra_sku_info tegra_sku_info;
 static inline int
 tegra_powergate_remove_clamping(int id)
 {
+	return -ENOSYS;
+}
+
+static inline int
+tegra_fuse_readl(unsigned long offset, u32 *value)
+{
+	*value = 0;
 	return -ENOSYS;
 }
 
