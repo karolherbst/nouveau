@@ -1540,6 +1540,7 @@ reset_control_deassert(struct reset_control *reset)
  *****************************************************************************/
 struct tegra_sku_info {
 	int gpu_speedo_value;
+	int gpu_speedo_id;
 };
 
 extern struct tegra_sku_info tegra_sku_info;
