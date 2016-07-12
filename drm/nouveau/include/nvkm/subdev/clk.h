@@ -101,6 +101,8 @@ struct nvkm_clk {
 	int ustate_ac; /* user-requested (-1 disabled, -2 perfmon) */
 	int ustate_dc; /* user-requested (-1 disabled, -2 perfmon) */
 	int astate; /* perfmon adjustment (base) */
+	struct nvkm_cstate *cstate;
+	int exp_cstateid;
 	u8  temp;
 
 	bool allow_reclock;
