@@ -55,24 +55,22 @@ gk20a_pmu_dvfs_target(struct gk20a_pmu *pmu, int *state)
 	return nvkm_clk_astate(clk, *state, 0, false);
 }
 
-static void
-gk20a_pmu_dvfs_get_cur_state(struct gk20a_pmu *pmu, int *state)
-{
-	struct nvkm_clk *clk = pmu->base.subdev.device->clk;
-
-	*state = clk->pstate;
-}
-
 static int
 gk20a_pmu_dvfs_get_target_state(struct gk20a_pmu *pmu,
 				int *state, int load)
 {
 	struct gk20a_pmu_dvfs_data *data = pmu->data;
 	struct nvkm_clk *clk = pmu->base.subdev.device->clk;
+	struct nvkm_pstate *pstate = clk->pstate;
 	int cur_level, level;
 
+	if (!pstate) {
+		*state = 0;
+		return 1;
+	}
+
 	/* For GK20A, the performance level is directly mapped to pstate */
-	level = cur_level = clk->pstate;
+	level = cur_level = clk->pstate->pstate;
 
 	if (load > data->p_load_max) {
 		level = min(clk->state_nr - 1, level + (clk->state_nr / 3));
@@ -141,8 +139,6 @@ gk20a_pmu_dvfs_work(struct nvkm_alarm *alarm)
 	data->avg_load /= data->p_smooth + 1;
 	nvkm_trace(subdev, "utilization = %d %%, avg_load = %d %%\n",
 		   utilization, data->avg_load);
-
-	gk20a_pmu_dvfs_get_cur_state(pmu, &state);
 
 	if (gk20a_pmu_dvfs_get_target_state(pmu, &state, data->avg_load)) {
 		nvkm_trace(subdev, "set new state to %d\n", state);

@@ -52,7 +52,10 @@ nvkm_control_mthd_pstate_info(struct nvkm_control *ctrl, void *data, u32 size)
 		args->v0.ustate_ac = clk->ustate_ac;
 		args->v0.ustate_dc = clk->ustate_dc;
 		args->v0.pwrsrc = clk->pwrsrc;
-		args->v0.pstate = clk->pstate;
+		if (clk->pstate)
+			args->v0.pstate = clk->pstate->pstate;
+		else
+			args->v0.pstate = NVKM_CLK_PSTATE_DEFAULT;
 	} else {
 		args->v0.count = 0;
 		args->v0.ustate_ac = NVIF_CONTROL_PSTATE_INFO_V0_USTATE_DISABLE;
