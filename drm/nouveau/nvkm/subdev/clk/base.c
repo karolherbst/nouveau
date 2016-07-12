@@ -107,7 +107,7 @@ nvkm_cstate_valid(struct nvkm_clk *clk, struct nvkm_cstate *cstate,
 	return voltage <= min(max_volt, volt->max_uv);
 }
 
-static struct nvkm_cstate *
+struct nvkm_cstate *
 nvkm_cstate_find_best(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 		      struct nvkm_cstate *start)
 {
@@ -142,7 +142,7 @@ nvkm_cstate_find_best(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 	return cstate;
 }
 
-static struct nvkm_cstate *
+struct nvkm_cstate *
 nvkm_cstate_get(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 {
 	struct nvkm_cstate *cstate;
@@ -162,7 +162,7 @@ nvkm_cstate_get(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 	return NULL;
 }
 
-static int
+int
 nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 {
 	struct nvkm_subdev *subdev = &clk->subdev;
@@ -180,6 +180,11 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 		cstate = nvkm_cstate_find_best(clk, pstate, cstate);
 	} else {
 		cstate = &pstate->base;
+	}
+
+	if (!cstate) {
+		nvkm_error(subdev, "failed to set cstate %d\n", cstatei);
+		return -EINVAL;
 	}
 
 	if (therm) {
