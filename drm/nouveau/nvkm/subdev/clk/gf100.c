@@ -461,12 +461,12 @@ gf100_clk_update_volt(struct nvkm_clk *clk)
 }
 
 void
-gf100_clk_update(struct nvkm_clk *clk, int pstate)
+gf100_clk_update(struct nvkm_clk *clk, int pstate, bool force)
 {
 	struct nvkm_subdev *subdev = &clk->subdev;
 	int ret;
 
-	if (!clk->pstate || clk->pstate->pstate != pstate) {
+	if (!clk->pstate || clk->pstate->pstate != pstate || force) {
 		nvkm_trace(subdev, "-> P %d\n", pstate);
 		ret = nvkm_pstate_prog(clk, pstate);
 		if (ret) {

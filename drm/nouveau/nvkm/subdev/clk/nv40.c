@@ -202,12 +202,12 @@ nv40_clk_tidy(struct nvkm_clk *obj)
 }
 
 void
-nv40_clk_update(struct nvkm_clk *clk, int pstate)
+nv40_clk_update(struct nvkm_clk *clk, int pstate, bool force)
 {
 	struct nvkm_subdev *subdev = &clk->subdev;
 	int ret;
 
-	if (clk->pstate && pstate == clk->pstate->pstate)
+	if (!force && clk->pstate && pstate == clk->pstate->pstate)
 		return;
 
 	nvkm_trace(subdev, "-> %d\n", pstate);

@@ -316,7 +316,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 }
 
 static void
-nvkm_clk_update_impl(struct nvkm_clk *clk)
+nvkm_clk_update_impl(struct nvkm_clk *clk, bool force)
 {
 	struct nvkm_subdev *subdev = &clk->subdev;
 	int pstate;
@@ -341,7 +341,7 @@ nvkm_clk_update_impl(struct nvkm_clk *clk)
 		pstate = NVKM_CLK_PSTATE_DEFAULT;
 	}
 
-	clk->func->update(clk, pstate);
+	clk->func->update(clk, pstate, force);
 }
 
 static void
@@ -352,7 +352,7 @@ nvkm_clk_update_work(struct work_struct *work)
 	if (!atomic_xchg(&clk->waiting, 0))
 		return;
 
-	nvkm_clk_update_impl(clk);
+	nvkm_clk_update_impl(clk, false);
 
 	wake_up_all(&clk->wait);
 	nvkm_notify_get(&clk->pwrsrc_ntfy);
@@ -632,12 +632,7 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 	if (clk->func->init)
 		return clk->func->init(clk);
 
-	clk->astate = NVKM_CLK_PSTATE_DEFAULT;
-	clk->pstate = NULL;
-	clk->exp_cstate = NVKM_CLK_CSTATE_DEFAULT;
-	clk->set_cstate = NULL;
-	clk->temp = 90; /* reasonable default value */
-	nvkm_clk_update(clk, true);
+	nvkm_clk_update_impl(clk, true);
 	return 0;
 }
 
@@ -690,8 +685,16 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	clk->func = func;
 	INIT_LIST_HEAD(&clk->states);
 	clk->domains = func->domains;
+
+	clk->pstate = NULL;
+	clk->astate = NVKM_CLK_PSTATE_DEFAULT;
 	clk->ustate_ac = -1;
 	clk->ustate_dc = -1;
+	clk->temp = 90; /* reasonable default value */
+
+	clk->exp_cstate = NVKM_CLK_CSTATE_DEFAULT;
+	clk->set_cstate = NULL;
+
 	clk->allow_reclock = allow_reclock;
 
 	INIT_WORK(&clk->work, nvkm_clk_update_work);

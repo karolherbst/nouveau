@@ -10,7 +10,7 @@ struct nvkm_clk_func {
 	int (*calc)(struct nvkm_clk *, struct nvkm_cstate *);
 	int (*prog)(struct nvkm_clk *);
 	void (*tidy)(struct nvkm_clk *);
-	void (*update)(struct nvkm_clk *, int pstate);
+	void (*update)(struct nvkm_clk *, int pstate, bool force);
 	struct nvkm_pstate *pstates;
 	int nr_pstates;
 	struct nvkm_domain domains[];
@@ -30,6 +30,6 @@ int nv04_clk_pll_calc(struct nvkm_clk *, struct nvbios_pll *, int clk,
 		      struct nvkm_pll_vals *);
 int nv04_clk_pll_prog(struct nvkm_clk *, u32 reg1, struct nvkm_pll_vals *);
 
-void nv40_clk_update(struct nvkm_clk *, int pstate);
-void gf100_clk_update(struct nvkm_clk *, int pstate);
+void nv40_clk_update(struct nvkm_clk *, int pstate, bool force);
+void gf100_clk_update(struct nvkm_clk *, int pstate, bool force);
 #endif
