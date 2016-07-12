@@ -625,11 +625,10 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 	if (clk->func->init)
 		return clk->func->init(clk);
 
-	clk->astate = NVKM_CLK_PSTATE_DEFAULT;
+	/* after a resume we have no idea what clocks are set, reset the state
+	 */
 	clk->pstate = NULL;
-	clk->exp_cstateid = NVKM_CLK_CSTATE_DEFAULT;
 	clk->cstate = NULL;
-	clk->temp = 90; /* reasonable default value */
 	nvkm_clk_update(clk, true);
 	return 0;
 }
@@ -683,8 +682,13 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	clk->func = func;
 	INIT_LIST_HEAD(&clk->states);
 	clk->domains = func->domains;
+
+	clk->astate = NVKM_CLK_PSTATE_DEFAULT;
 	clk->ustate_ac = -1;
 	clk->ustate_dc = -1;
+	clk->exp_cstateid = NVKM_CLK_CSTATE_DEFAULT;
+	clk->temp = 90; /* reasonable default value */
+
 	clk->allow_reclock = allow_reclock;
 
 	INIT_WORK(&clk->work, nvkm_clk_update_work);
