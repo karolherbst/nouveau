@@ -7,11 +7,11 @@
 struct nvbios_pll;
 struct nvkm_pll_vals;
 
-#define NVKM_CLK_PSTATE_BOOT    -1 /* POSTed default */
+#define NVKM_CLK_PSTATE_BOOT -1 /* POSTed default */
 
-#define NVKM_CLK_CSTATE_DEFAULT -1 /* POSTed default */
-#define NVKM_CLK_CSTATE_BASE    -2 /* pstate base */
-#define NVKM_CLK_CSTATE_AUTO    -3 /* highest possible */
+#define NVKM_CLK_CSTATE_BOOT -1 /* POSTed default */
+#define NVKM_CLK_CSTATE_BASE -2 /* pstate base */
+#define NVKM_CLK_CSTATE_AUTO -3 /* highest possible */
 
 enum nv_clk_src {
 	nv_clk_src_crystal,
@@ -102,6 +102,7 @@ struct nvkm_clk {
 	int ustate_ac; /* user-requested (-1 disabled, -2 perfmon) */
 	int ustate_dc; /* user-requested (-1 disabled, -2 perfmon) */
 	int astate; /* perfmon adjustment (base) */
+	int cstate_id;
 	int temp;
 
 	bool allow_reclock;

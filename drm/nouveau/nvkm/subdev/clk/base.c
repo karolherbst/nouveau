@@ -167,6 +167,9 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 	struct nvkm_cstate *cstate;
 	int ret;
 
+	if (cstate_id == NVKM_CLK_CSTATE_BOOT)
+		return 0;
+
 	if (!list_empty(&pstate->cstates)) {
 		cstate = nvkm_cstate_get(clk, pstate, cstate_id);
 		cstate = nvkm_cstate_find_best(clk, pstate, cstate);
@@ -196,6 +199,7 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 		ret = clk->func->prog(clk);
 		clk->func->tidy(clk);
 	}
+	clk->cstate_id = cstate->id;
 
 	if (volt) {
 		ret = nvkm_volt_set_id(volt, cstate->voltage,
@@ -603,6 +607,7 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 
 	clk->astate = NVKM_CLK_PSTATE_BOOT;
 	clk->pstate_id = NVKM_CLK_PSTATE_BOOT;
+	clk->cstate_id = NVKM_CLK_CSTATE_BOOT;
 	clk->temp = 90; /* reasonable default value */
 	nvkm_clk_update(clk, true);
 	return 0;
