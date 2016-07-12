@@ -28,6 +28,7 @@
 #include <subdev/bios.h>
 #include <subdev/bios/pll.h>
 #include <subdev/timer.h>
+#include <subdev/volt.h>
 
 struct gf100_clk_info {
 	u32 freq;
@@ -445,13 +446,74 @@ gf100_clk_tidy(struct nvkm_clk *base)
 	memset(clk->eng, 0x00, sizeof(clk->eng));
 }
 
+static int
+gf100_clk_update_volt(struct nvkm_clk *clk)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_volt *volt = subdev->device->volt;
+	struct nvkm_therm *therm = subdev->device->therm;
+
+	if (!volt || !therm || !clk->pstate || !clk->cstate)
+		return -EINVAL;
+
+	return nvkm_volt_set_id(volt, clk->cstate->voltage,
+				clk->pstate->base.voltage, clk->temp, 0);
+}
+
+void
+gf100_clk_update(struct nvkm_clk *clk, int pstate)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	int ret;
+
+	if (!clk->pstate || clk->pstate->pstate != pstate) {
+		nvkm_trace(subdev, "-> P %d\n", pstate);
+		ret = nvkm_pstate_prog(clk, pstate);
+		if (ret) {
+			nvkm_error(subdev, "error setting pstate %d: %d\n",
+				   pstate, ret);
+		}
+	} else if (!clk->cstate || clk->cstate->id != clk->exp_cstateid) {
+
+		struct nvkm_cstate *cstate =
+			nvkm_cstate_get(clk, clk->pstate, clk->exp_cstateid);
+
+		if (!cstate) {
+			nvkm_error(subdev, "can't find cstate %i\n",
+				   clk->exp_cstateid);
+			return;
+		}
+
+		cstate = nvkm_cstate_find_best(clk, clk->pstate, cstate);
+		if (!cstate) {
+			nvkm_error(subdev, "can't find best cstate for %i\n",
+				   cstate->id);
+			return;
+		}
+
+		if (cstate != clk->cstate) {
+			nvkm_trace(subdev, "-> C %d\n", cstate->id);
+			ret = nvkm_cstate_prog(clk, clk->pstate, cstate->id);
+			if (ret) {
+				nvkm_error(subdev,
+					   "error setting cstate %d: %d\n",
+					   cstate->id, ret);
+			}
+		} else {
+			gf100_clk_update_volt(clk);
+		}
+	} else {
+		gf100_clk_update_volt(clk);
+	}
+}
+
 static const struct nvkm_clk_func
 gf100_clk = {
 	.read = gf100_clk_read,
 	.calc = gf100_clk_calc,
 	.prog = gf100_clk_prog,
 	.tidy = gf100_clk_tidy,
-	.update = nv40_clk_update,
+	.update = gf100_clk_update,
 	.domains = {
 		{ nv_clk_src_crystal, 0xff },
 		{ nv_clk_src_href   , 0xff },
