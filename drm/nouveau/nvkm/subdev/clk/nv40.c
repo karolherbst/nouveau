@@ -201,12 +201,30 @@ nv40_clk_tidy(struct nvkm_clk *obj)
 {
 }
 
+void
+nv40_clk_update(struct nvkm_clk *clk, int pstate)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	int ret;
+
+	if (clk->pstate && pstate == clk->pstate->pstate)
+		return;
+
+	nvkm_trace(subdev, "-> %d\n", pstate);
+	ret = nvkm_pstate_prog(clk, pstate);
+	if (ret) {
+		nvkm_error(subdev, "error setting pstate %d: %d\n",
+			   pstate, ret);
+	}
+}
+
 static const struct nvkm_clk_func
 nv40_clk = {
 	.read = nv40_clk_read,
 	.calc = nv40_clk_calc,
 	.prog = nv40_clk_prog,
 	.tidy = nv40_clk_tidy,
+	.update = nv40_clk_update,
 	.domains = {
 		{ nv_clk_src_crystal, 0xff },
 		{ nv_clk_src_href   , 0xff },

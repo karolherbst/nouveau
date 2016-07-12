@@ -271,7 +271,7 @@ nvkm_cstate_new(struct nvkm_clk *clk, int idx, struct nvkm_pstate *pstate)
 /******************************************************************************
  * P-States
  *****************************************************************************/
-static int
+int
 nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 {
 	struct nvkm_subdev *subdev = &clk->subdev;
@@ -316,6 +316,9 @@ nvkm_clk_update_impl(struct nvkm_clk *clk)
 	struct nvkm_subdev *subdev = &clk->subdev;
 	int pstate;
 
+	if (!clk->func->update)
+		return;
+
 	clk->pwrsrc = power_supply_is_system_supplied();
 
 	if (clk->pstate)
@@ -333,14 +336,7 @@ nvkm_clk_update_impl(struct nvkm_clk *clk)
 		pstate = NVKM_CLK_PSTATE_DEFAULT;
 	}
 
-	nvkm_trace(subdev, "-> %d\n", pstate);
-	if (!clk->pstate || pstate != clk->pstate->pstate) {
-		int ret = nvkm_pstate_prog(clk, pstate);
-		if (ret) {
-			nvkm_error(subdev, "error setting pstate %d: %d\n",
-				   pstate, ret);
-		}
-	}
+	clk->func->update(clk, pstate);
 }
 
 static void

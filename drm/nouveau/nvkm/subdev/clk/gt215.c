@@ -520,6 +520,7 @@ gt215_clk = {
 	.calc = gt215_clk_calc,
 	.prog = gt215_clk_prog,
 	.tidy = gt215_clk_tidy,
+	.update = nv40_clk_update,
 	.domains = {
 		{ nv_clk_src_crystal  , 0xff },
 		{ nv_clk_src_core     , 0x00, 0, "core", 1000 },
