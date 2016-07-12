@@ -167,6 +167,63 @@ nvkm_control_mthd_pstate_user(struct nvkm_control *ctrl, void *data, u32 size)
 }
 
 static int
+nvkm_control_mthd_boost_info(struct nvkm_control *ctrl, void *data, u32 size)
+{
+	union {
+		struct nvif_control_boost_info_v0 v0;
+	} *args = data;
+	struct nvkm_clk *clk = ctrl->device->clk;
+	int ret = -ENOSYS;
+
+	if (!clk)
+		return -ENODEV;
+
+	if (!clk->base_limit.max_khz && !clk->boost_limit.max_khz)
+		return -ENODEV;
+
+	nvif_ioctl(&ctrl->object, "control boost info size %d\n", size);
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+		nvif_ioctl(&ctrl->object, "control boost info vers %d\n",
+			   args->v0.version);
+	} else
+		return ret;
+
+	args->v0.mode = clk->boost_mode;
+	args->v0.base_mhz = clk->base_limit.max_khz / 2000;
+	args->v0.boost_mhz = clk->boost_limit.max_khz / 2000;
+	args->v0.max_mhz = clk->max_khz / 2000;
+	return 0;
+}
+
+static int
+nvkm_control_mthd_boost_set(struct nvkm_control *ctrl, void *data, u32 size)
+{
+	union {
+		struct nvif_control_boost_set_v0 v0;
+	} *args = data;
+	struct nvkm_clk *clk = ctrl->device->clk;
+	int ret = -ENOSYS;
+
+	if (!clk)
+		return -ENODEV;
+
+	if (!clk->base_limit.max_khz && !clk->boost_limit.max_khz)
+		return -ENODEV;
+
+	nvif_ioctl(&ctrl->object, "control boost set size %d\n", size);
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+		nvif_ioctl(&ctrl->object, "control boost set vers %d\n",
+			   args->v0.version);
+	} else
+		return ret;
+
+	if (args->v0.mode > 2)
+		return -EINVAL;
+	clk->boost_mode = args->v0.mode;
+	return nvkm_clk_update(clk, true);
+}
+
+static int
 nvkm_control_mthd(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 {
 	struct nvkm_control *ctrl = nvkm_control(object);
@@ -177,6 +234,10 @@ nvkm_control_mthd(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 		return nvkm_control_mthd_pstate_attr(ctrl, data, size);
 	case NVIF_CONTROL_PSTATE_USER:
 		return nvkm_control_mthd_pstate_user(ctrl, data, size);
+	case NVIF_CONTROL_BOOST_INFO:
+		return nvkm_control_mthd_boost_info(ctrl, data, size);
+	case NVIF_CONTROL_BOOST_SET:
+		return nvkm_control_mthd_boost_set(ctrl, data, size);
 	default:
 		break;
 	}
