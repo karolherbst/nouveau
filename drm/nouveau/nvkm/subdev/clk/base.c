@@ -263,21 +263,27 @@ nvkm_cstate_new(struct nvkm_clk *clk, int idx, struct nvkm_pstate *pstate)
  * P-States
  *****************************************************************************/
 static int
-nvkm_pstate_prog(struct nvkm_clk *clk, int pstate_idx)
+nvkm_pstate_prog(struct nvkm_clk *clk, int pstate_id)
 {
 	struct nvkm_subdev *subdev = &clk->subdev;
 	struct nvkm_fb *fb = subdev->device->fb;
 	struct nvkm_pci *pci = subdev->device->pci;
 	struct nvkm_pstate *pstate;
-	int ret, idx = 0;
+	int ret;
+
+	if (pstate_id == NVKM_CLK_PSTATE_BOOT)
+		return 0;
 
 	list_for_each_entry(pstate, &clk->pstates, head) {
-		if (idx++ == pstate_idx)
+		if (pstate->id == pstate_id)
 			break;
 	}
 
-	nvkm_debug(subdev, "setting performance state %d\n", pstate_idx);
-	clk->pstate_idx = pstate_idx;
+	if (!pstate)
+		return -EINVAL;
+
+	nvkm_debug(subdev, "setting performance state %x\n", pstate_id);
+	clk->pstate_id = pstate_id;
 
 	nvkm_pcie_set_link(pci, pstate->pcie_speed, pstate->pcie_width);
 
@@ -300,30 +306,28 @@ nvkm_clk_update_work(struct work_struct *work)
 {
 	struct nvkm_clk *clk = container_of(work, typeof(*clk), work);
 	struct nvkm_subdev *subdev = &clk->subdev;
-	int pstate_idx;
+	int pstate_id;
 
 	if (!atomic_xchg(&clk->waiting, 0))
 		return;
 	clk->pwrsrc = power_supply_is_system_supplied();
 
-	nvkm_trace(subdev, "P %d PWR %d U(AC) %d U(DC) %d A %d T %d°C\n",
-		   clk->pstate_idx, clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
+	nvkm_trace(subdev, "P %x PWR %d U(AC) %d U(DC) %d A %d T %d°C\n",
+		   clk->pstate_id, clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
 		   clk->astate, clk->temp);
 
-	pstate_idx = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
-	if (clk->pstates_cnt && pstate_idx != NVKM_CLK_PSTATE_BOOT) {
-		pstate_idx = (pstate_idx < 0) ? clk->astate : pstate_idx;
-		pstate_idx = min(pstate_idx, clk->pstates_cnt - 1);
-	} else {
-		pstate_idx = clk->pstate_idx = NVKM_CLK_PSTATE_BOOT;
-	}
+	pstate_id = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
+	if (clk->pstates_cnt && pstate_id != NVKM_CLK_PSTATE_BOOT)
+		pstate_id = (pstate_id < 0) ? clk->astate : pstate_id;
+	else
+		pstate_id = NVKM_CLK_PSTATE_BOOT;
 
-	nvkm_trace(subdev, "-> %d\n", pstate_idx);
-	if (pstate_idx != clk->pstate_idx) {
-		int ret = nvkm_pstate_prog(clk, pstate_idx);
+	nvkm_trace(subdev, "-> %x\n", pstate_id);
+	if (pstate_id != clk->pstate_id) {
+		int ret = nvkm_pstate_prog(clk, pstate_id);
 		if (ret) {
 			nvkm_error(subdev, "error setting pstate %d: %d\n",
-				   pstate_idx, ret);
+				   pstate_id, ret);
 		}
 	}
 
@@ -475,30 +479,6 @@ nvkm_pstate_new(struct nvkm_clk *clk, int idx)
  * Adjustment triggers
  *****************************************************************************/
 static int
-nvkm_clk_ustate_update(struct nvkm_clk *clk, int req)
-{
-	struct nvkm_pstate *pstate;
-	int i = 0;
-
-	if (!clk->allow_reclock)
-		return -ENOSYS;
-
-	if (req != -1 && req != -2) {
-		list_for_each_entry(pstate, &clk->pstates, head) {
-			if (pstate->id == req)
-				break;
-			i++;
-		}
-
-		if (pstate->id != req)
-			return -EINVAL;
-		req = i;
-	}
-
-	return req + 2;
-}
-
-static int
 nvkm_clk_nstate(struct nvkm_clk *clk, const char *mode, int arglen)
 {
 	int ret = 1;
@@ -512,26 +492,38 @@ nvkm_clk_nstate(struct nvkm_clk *clk, const char *mode, int arglen)
 
 		((char *)mode)[arglen] = '\0';
 		if (!kstrtol(mode, 0, &v)) {
-			ret = nvkm_clk_ustate_update(clk, v);
+			ret = v;
 			if (ret < 0)
 				ret = 1;
 		}
 		((char *)mode)[arglen] = save;
 	}
 
-	return ret - 2;
+	return -EINVAL;
 }
 
 int
 nvkm_clk_ustate(struct nvkm_clk *clk, int req, int pwr)
 {
-	int ret = nvkm_clk_ustate_update(clk, req);
-	if (ret >= 0) {
-		if (ret -= 2, pwr) clk->ustate_ac = ret;
-		else		   clk->ustate_dc = ret;
-		return nvkm_clk_update(clk, true);
+	struct nvkm_pstate *pstate;
+	bool valid = false;
+
+	list_for_each_entry(pstate, &clk->pstates, head) {
+		if (pstate->id == req) {
+			valid = true;
+			break;
+		}
 	}
-	return ret;
+
+	if (!valid)
+		return -EINVAL;
+
+	if (pwr)
+		clk->ustate_ac = req;
+	else
+		clk->ustate_dc = req;
+
+	return nvkm_clk_update(clk, true);
 }
 
 int
@@ -609,8 +601,8 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 	if (clk->func->init)
 		return clk->func->init(clk);
 
-	clk->astate = clk->pstates_cnt - 1;
-	clk->pstate_idx = NVKM_CLK_PSTATE_BOOT;
+	clk->astate = NVKM_CLK_PSTATE_BOOT;
+	clk->pstate_id = NVKM_CLK_PSTATE_BOOT;
 	clk->temp = 90; /* reasonable default value */
 	nvkm_clk_update(clk, true);
 	return 0;

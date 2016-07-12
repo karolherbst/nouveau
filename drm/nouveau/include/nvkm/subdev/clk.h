@@ -98,7 +98,7 @@ struct nvkm_clk {
 
 	struct nvkm_notify pwrsrc_ntfy;
 	int pwrsrc;
-	int pstate_idx; /* current */
+	int pstate_id; /* current */
 	int ustate_ac; /* user-requested (-1 disabled, -2 perfmon) */
 	int ustate_dc; /* user-requested (-1 disabled, -2 perfmon) */
 	int astate; /* perfmon adjustment (base) */
