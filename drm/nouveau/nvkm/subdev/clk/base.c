@@ -311,14 +311,11 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 }
 
 static void
-nvkm_clk_update_work(struct work_struct *work)
+nvkm_clk_update_impl(struct nvkm_clk *clk)
 {
-	struct nvkm_clk *clk = container_of(work, typeof(*clk), work);
 	struct nvkm_subdev *subdev = &clk->subdev;
 	int pstate;
 
-	if (!atomic_xchg(&clk->waiting, 0))
-		return;
 	clk->pwrsrc = power_supply_is_system_supplied();
 
 	if (clk->pstate)
@@ -344,6 +341,17 @@ nvkm_clk_update_work(struct work_struct *work)
 				   pstate, ret);
 		}
 	}
+}
+
+static void
+nvkm_clk_update_work(struct work_struct *work)
+{
+	struct nvkm_clk *clk = container_of(work, typeof(*clk), work);
+
+	if (!atomic_xchg(&clk->waiting, 0))
+		return;
+
+	nvkm_clk_update_impl(clk);
 
 	wake_up_all(&clk->wait);
 	nvkm_notify_get(&clk->pwrsrc_ntfy);
