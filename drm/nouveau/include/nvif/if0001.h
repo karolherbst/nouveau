@@ -4,6 +4,8 @@
 #define NVIF_CONTROL_PSTATE_INFO                                           0x00
 #define NVIF_CONTROL_PSTATE_ATTR                                           0x01
 #define NVIF_CONTROL_PSTATE_USER                                           0x02
+#define NVIF_CONTROL_BOOST_INFO                                            0x03
+#define NVIF_CONTROL_BOOST_SET                                             0x04
 
 struct nvif_control_pstate_info_v0 {
 	__u8  version;
@@ -42,5 +44,18 @@ struct nvif_control_pstate_user_v0 {
 	__s8  ustate; /*  in: pstate identifier */
 	__s8  pwrsrc; /*  in: target power source */
 	__u8  pad03[5];
+};
+
+struct nvif_control_boost_info_v0 {
+	__u8  version;
+	__u8  mode;
+	__u16 base_mhz;
+	__u16 boost_mhz;
+	__u16 max_mhz;
+};
+
+struct nvif_control_boost_set_v0 {
+	__u8  version;
+	__u8  mode;
 };
 #endif
