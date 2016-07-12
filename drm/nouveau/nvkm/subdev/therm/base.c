@@ -24,6 +24,8 @@
 #include <nvkm/core/option.h>
 #include "priv.h"
 
+#include <subdev/clk.h>
+
 int
 nvkm_therm_temp_get(struct nvkm_therm *therm)
 {
@@ -103,6 +105,7 @@ nvkm_therm_update(struct nvkm_therm *therm, int mode)
 {
 	struct nvkm_subdev *subdev = &therm->subdev;
 	struct nvkm_timer *tmr = subdev->device->timer;
+	struct nvkm_clk *clk = subdev->device->clk;
 	unsigned long flags;
 	bool immd = true;
 	bool poll = true;
@@ -159,6 +162,9 @@ nvkm_therm_update(struct nvkm_therm *therm, int mode)
 		nvkm_debug(subdev, "FAN target request: %d%%\n", duty);
 		nvkm_therm_fan_set(therm, immd, duty);
 	}
+
+	if (clk)
+		nvkm_clk_tstate(clk, temp);
 }
 
 int
