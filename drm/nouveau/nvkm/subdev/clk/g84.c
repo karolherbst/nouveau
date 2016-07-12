@@ -29,6 +29,7 @@ g84_clk = {
 	.calc = nv50_clk_calc,
 	.prog = nv50_clk_prog,
 	.tidy = nv50_clk_tidy,
+	.update = nv40_clk_update,
 	.domains = {
 		{ nv_clk_src_crystal, 0xff },
 		{ nv_clk_src_href   , 0xff },

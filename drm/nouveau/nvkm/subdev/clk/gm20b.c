@@ -880,6 +880,7 @@ gm20b_clk_speedo0 = {
 	.calc = gk20a_clk_calc,
 	.prog = gk20a_clk_prog,
 	.tidy = gk20a_clk_tidy,
+	.update = nv40_clk_update,
 	.pstates = gm20b_pstates,
 	/* Speedo 0 only supports 12 voltages */
 	.nr_pstates = ARRAY_SIZE(gm20b_pstates) - 1,

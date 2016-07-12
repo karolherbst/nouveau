@@ -400,6 +400,7 @@ mcp77_clk = {
 	.calc = mcp77_clk_calc,
 	.prog = mcp77_clk_prog,
 	.tidy = mcp77_clk_tidy,
+	.update = nv40_clk_update,
 	.domains = {
 		{ nv_clk_src_crystal, 0xff },
 		{ nv_clk_src_href   , 0xff },
