@@ -108,7 +108,6 @@ nvkm_therm_update(struct nvkm_therm *therm, int mode)
 	struct nvkm_clk *clk = subdev->device->clk;
 	unsigned long flags;
 	bool immd = true;
-	bool poll = true;
 	int duty = -1;
 	int temp;
 
@@ -123,11 +122,9 @@ nvkm_therm_update(struct nvkm_therm *therm, int mode)
 
 	switch (mode) {
 	case NVKM_THERM_CTRL_MANUAL:
-		nvkm_timer_alarm(tmr, 0, &therm->alarm);
 		duty = nvkm_therm_fan_get(therm);
 		if (duty < 0)
 			duty = 100;
-		poll = false;
 		break;
 	case NVKM_THERM_CTRL_AUTO:
 		switch(therm->fan->bios.fan_mode) {
@@ -143,18 +140,16 @@ nvkm_therm_update(struct nvkm_therm *therm, int mode)
 			else
 				duty = nvkm_therm_update_linear_fallback(therm,
 									 temp);
-			poll = false;
 			break;
 		}
 		immd = false;
 		break;
 	case NVKM_THERM_CTRL_NONE:
 	default:
-		nvkm_timer_alarm(tmr, 0, &therm->alarm);
-		poll = false;
+		break;
 	}
 
-	if (poll)
+	if (list_empty(&therm->alarm.head))
 		nvkm_timer_alarm(tmr, 1000000000ULL, &therm->alarm);
 	spin_unlock_irqrestore(&therm->lock, flags);
 
@@ -352,6 +347,11 @@ static int
 nvkm_therm_fini(struct nvkm_subdev *subdev, bool suspend)
 {
 	struct nvkm_therm *therm = nvkm_therm(subdev);
+	struct nvkm_timer *tmr = subdev->device->timer;
+
+	/* cancel the timer */
+	if (!list_empty(&therm->alarm.head))
+		nvkm_timer_alarm(tmr, 0, &therm->alarm);
 
 	if (therm->func->fini)
 		therm->func->fini(therm);
