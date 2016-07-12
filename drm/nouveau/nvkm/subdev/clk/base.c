@@ -274,6 +274,8 @@ nvkm_cstate_new(struct nvkm_clk *clk, int idx, struct nvkm_pstate *pstate)
 			u32 freq = nvkm_clk_adjust(clk, true, pstate->id,
 						   domain->bios, cstepX.freq);
 			cstate->domain[domain->name] = freq;
+			if (domain->flags & NVKM_CLK_DOM_FLAG_VPSTATE)
+				clk->max_khz = max(clk->max_khz, freq);
 		}
 		domain++;
 	}
