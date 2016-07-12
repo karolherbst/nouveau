@@ -488,7 +488,7 @@ gk104_clk = {
 	.calc = gk104_clk_calc,
 	.prog = gk104_clk_prog,
 	.tidy = gk104_clk_tidy,
-	.update = nv40_clk_update,
+	.update = gf100_clk_update,
 	.domains = {
 		{ nv_clk_src_crystal, 0xff },
 		{ nv_clk_src_href   , 0xff },
