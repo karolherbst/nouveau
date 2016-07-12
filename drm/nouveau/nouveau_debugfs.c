@@ -130,6 +130,9 @@ nouveau_debugfs_pstate_set(struct file *file, const char __user *ubuf,
 	if (!debugfs)
 		return -ENODEV;
 
+	if (pm_runtime_suspended(node->minor->kdev))
+		return -EAGAIN;
+
 	if (len >= sizeof(buf))
 		return -EINVAL;
 
