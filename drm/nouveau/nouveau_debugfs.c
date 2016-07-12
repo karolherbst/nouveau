@@ -184,6 +184,86 @@ static const struct file_operations nouveau_pstate_fops = {
 	.write = nouveau_debugfs_pstate_set,
 };
 
+static void
+nouveau_debugfs_boost_get_entry(struct seq_file *m, u8 mode, u8 entry,
+				u16 value)
+{
+	if (value) {
+		if (mode == entry)
+			seq_printf(m, "*%i", entry);
+		else
+			seq_printf(m, " %i", entry);
+		seq_printf(m, ": %u MHz\n", value);
+	}
+}
+
+static int
+nouveau_debugfs_boost_get(struct seq_file *m, void *data)
+{
+	struct drm_device *drm = m->private;
+	struct nouveau_debugfs *debugfs = nouveau_debugfs(drm);
+	struct nvif_object *ctrl = &debugfs->ctrl;
+	struct nvif_control_boost_info_v0 info = {};
+	int ret;
+
+	ret = nvif_mthd(ctrl, NVIF_CONTROL_BOOST_INFO, &info, sizeof(info));
+	if (ret)
+		return ret;
+
+	nouveau_debugfs_boost_get_entry(m, info.mode, 0, info.base_mhz);
+	nouveau_debugfs_boost_get_entry(m, info.mode, 1, info.boost_mhz);
+	nouveau_debugfs_boost_get_entry(m, info.mode, 2, info.max_mhz);
+	return 0;
+}
+
+static ssize_t
+nouveau_debugfs_boost_set(struct file *file, const char __user *ubuf,
+			  size_t len, loff_t *offp)
+{
+	struct seq_file *m = file->private_data;
+	struct drm_device *drm = m->private;
+	struct nouveau_debugfs *debugfs = nouveau_debugfs(drm);
+	struct nvif_object *ctrl = &debugfs->ctrl;
+	struct nvif_control_boost_set_v0 args = {};
+	char buf[3] = {};
+	long ret;
+	u8 value;
+
+	if (len >= sizeof(buf))
+		return -EINVAL;
+
+	if (copy_from_user(buf, ubuf, len))
+		return -EFAULT;
+
+	ret = kstrtou8(buf, 10, &value);
+	if (ret)
+		return ret;
+
+	args.mode = value;
+	ret = pm_runtime_get_sync(drm->dev);
+	if (IS_ERR_VALUE(ret) && ret != -EACCES)
+		return ret;
+	ret = nvif_mthd(ctrl, NVIF_CONTROL_BOOST_SET, &args, sizeof(args));
+	pm_runtime_put_autosuspend(drm->dev);
+	if (ret)
+		return ret;
+
+	return len;
+}
+
+static int
+nouveau_debugfs_boost_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, nouveau_debugfs_boost_get, inode->i_private);
+}
+
+static const struct file_operations nouveau_boost_fops = {
+	.owner = THIS_MODULE,
+	.open = nouveau_debugfs_boost_open,
+	.read = seq_read,
+	.write = nouveau_debugfs_boost_set,
+};
+
 static struct drm_info_list nouveau_debugfs_list[] = {
 	{ "vbios.rom", nouveau_debugfs_vbios_image, 0, NULL },
 };
@@ -193,6 +273,7 @@ static const struct nouveau_debugfs_files {
 	const char *name;
 	const struct file_operations *fops;
 } nouveau_debugfs_files[] = {
+	{"boost", &nouveau_boost_fops},
 	{"pstate", &nouveau_pstate_fops},
 };
 
