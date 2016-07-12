@@ -123,6 +123,7 @@ int nvkm_clk_ustate(struct nvkm_clk *, int req, int pwr);
 int nvkm_clk_astate(struct nvkm_clk *, int req, int rel, bool wait);
 int nvkm_clk_dstate(struct nvkm_clk *, int req, int rel);
 int nvkm_clk_tstate(struct nvkm_clk *, u8 temperature);
+int nvkm_clk_update(struct nvkm_clk *, bool wait);
 
 int nv04_clk_new(struct nvkm_device *, int, struct nvkm_clk **);
 int nv40_clk_new(struct nvkm_device *, int, struct nvkm_clk **);
