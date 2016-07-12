@@ -600,6 +600,7 @@ gk20a_clk = {
 	.calc = gk20a_clk_calc,
 	.prog = gk20a_clk_prog,
 	.tidy = gk20a_clk_tidy,
+	.update = nv40_clk_update,
 	.pstates = gk20a_pstates,
 	.nr_pstates = ARRAY_SIZE(gk20a_pstates),
 	.domains = {

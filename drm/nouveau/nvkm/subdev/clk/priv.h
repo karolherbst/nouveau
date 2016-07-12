@@ -10,6 +10,7 @@ struct nvkm_clk_func {
 	int (*calc)(struct nvkm_clk *, struct nvkm_cstate *);
 	int (*prog)(struct nvkm_clk *);
 	void (*tidy)(struct nvkm_clk *);
+	void (*update)(struct nvkm_clk *, int pstate);
 	struct nvkm_pstate *pstates;
 	int nr_pstates;
 	struct nvkm_domain domains[];
@@ -20,7 +21,11 @@ int nvkm_clk_ctor(const struct nvkm_clk_func *, struct nvkm_device *, int,
 int nvkm_clk_new_(const struct nvkm_clk_func *, struct nvkm_device *, int,
 		  bool allow_reclock, struct nvkm_clk **);
 
+int nvkm_pstate_prog(struct nvkm_clk *, int pstateid);
+
 int nv04_clk_pll_calc(struct nvkm_clk *, struct nvbios_pll *, int clk,
 		      struct nvkm_pll_vals *);
 int nv04_clk_pll_prog(struct nvkm_clk *, u32 reg1, struct nvkm_pll_vals *);
+
+void nv40_clk_update(struct nvkm_clk *, int pstate);
 #endif
