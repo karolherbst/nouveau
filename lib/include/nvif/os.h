@@ -124,12 +124,6 @@ typedef dma_addr_t resource_size_t;
 #define __printf(a,b)
 #define __user
 
-#if defined(CONFIG_ARM)
-#define IS_ENABLED_CONFIG_ARM 1
-#else
-#define IS_ENABLED_CONFIG_ARM 0
-#endif
-
 #if defined(CONFIG_IOMMU_API)
 #define IS_ENABLED_CONFIG_IOMMU_API 1
 #else
