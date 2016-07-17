@@ -56,6 +56,7 @@ struct nvkm_therm {
 	int mode;
 	int cstate;
 	int suspend;
+	u8  last_temp;
 
 	/* bios */
 	struct nvbios_therm_sensor bios_sensor;
