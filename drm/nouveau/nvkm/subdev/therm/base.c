@@ -33,12 +33,11 @@ nvkm_therm_temp_get(struct nvkm_therm *therm)
 }
 
 static int
-nvkm_therm_update_trip(struct nvkm_therm *therm)
+nvkm_therm_update_trip(struct nvkm_therm *therm, u8 temp)
 {
 	struct nvbios_therm_trip_point *trip = therm->fan->bios.trip,
 				       *cur_trip = NULL,
 				       *last_trip = therm->last_trip;
-	u8  temp = therm->func->temp_get(therm);
 	u16 duty, i;
 
 	/* look for the trip point corresponding to the current temperature */
@@ -66,9 +65,8 @@ nvkm_therm_update_trip(struct nvkm_therm *therm)
 
 static int
 nvkm_therm_compute_linear_duty(struct nvkm_therm *therm, u8 linear_min_temp,
-                               u8 linear_max_temp)
+                               u8 linear_max_temp, u8 temp)
 {
-	u8  temp = therm->func->temp_get(therm);
 	u16 duty;
 
 	/* handle the non-linear part first */
@@ -86,18 +84,18 @@ nvkm_therm_compute_linear_duty(struct nvkm_therm *therm, u8 linear_min_temp,
 }
 
 static int
-nvkm_therm_update_linear(struct nvkm_therm *therm)
+nvkm_therm_update_linear(struct nvkm_therm *therm, u8 temp)
 {
 	u8  min = therm->fan->bios.linear_min_temp;
 	u8  max = therm->fan->bios.linear_max_temp;
-	return nvkm_therm_compute_linear_duty(therm, min, max);
+	return nvkm_therm_compute_linear_duty(therm, min, max, temp);
 }
 
 static int
-nvkm_therm_update_linear_fallback(struct nvkm_therm *therm)
+nvkm_therm_update_linear_fallback(struct nvkm_therm *therm, u8 temp)
 {
 	u8 max = therm->bios_sensor.thrs_fan_boost.temp;
-	return nvkm_therm_compute_linear_duty(therm, 30, max);
+	return nvkm_therm_compute_linear_duty(therm, 30, max, temp);
 }
 
 static void
@@ -109,6 +107,11 @@ nvkm_therm_update(struct nvkm_therm *therm, int mode)
 	bool immd = true;
 	bool poll = true;
 	int duty = -1;
+	int temp;
+
+	temp = nvkm_therm_temp_get(therm);
+	if (temp < 0)
+		return;
 
 	spin_lock_irqsave(&therm->lock, flags);
 	if (mode < 0)
@@ -126,16 +129,17 @@ nvkm_therm_update(struct nvkm_therm *therm, int mode)
 	case NVKM_THERM_CTRL_AUTO:
 		switch(therm->fan->bios.fan_mode) {
 		case NVBIOS_THERM_FAN_TRIP:
-			duty = nvkm_therm_update_trip(therm);
+			duty = nvkm_therm_update_trip(therm, temp);
 			break;
 		case NVBIOS_THERM_FAN_LINEAR:
-			duty = nvkm_therm_update_linear(therm);
+			duty = nvkm_therm_update_linear(therm, temp);
 			break;
 		case NVBIOS_THERM_FAN_OTHER:
 			if (therm->cstate)
 				duty = therm->cstate;
 			else
-				duty = nvkm_therm_update_linear_fallback(therm);
+				duty = nvkm_therm_update_linear_fallback(therm,
+									 temp);
 			poll = false;
 			break;
 		}
