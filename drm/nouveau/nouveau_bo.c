@@ -1048,7 +1048,6 @@ nouveau_bo_move_m2mf(struct ttm_buffer_object *bo, int evict, bool intr,
 				ret = ttm_bo_move_accel_cleanup(bo,
 								&fence->base,
 								evict,
-								no_wait_gpu,
 								new_mem);
 				nouveau_fence_unref(&fence);
 			}
@@ -1259,6 +1258,10 @@ nouveau_bo_move(struct ttm_buffer_object *bo, bool evict, bool intr,
 	struct nouveau_drm_tile *new_tile = NULL;
 	int ret = 0;
 
+	ret = ttm_bo_wait(bo, intr, no_wait_gpu);
+	if (ret)
+		return ret;
+
 	if (nvbo->pin_refcnt)
 		NV_WARN(drm, "Moving pinned object %p!\n", nvbo);
 
@@ -1294,7 +1297,7 @@ nouveau_bo_move(struct ttm_buffer_object *bo, bool evict, bool intr,
 	/* Fallback to software copy. */
 	ret = ttm_bo_wait(bo, intr, no_wait_gpu);
 	if (ret == 0)
-		ret = ttm_bo_move_memcpy(bo, evict, no_wait_gpu, new_mem);
+		ret = ttm_bo_move_memcpy(bo, evict, intr, no_wait_gpu, new_mem);
 
 out:
 	if (drm->device.info.family < NV_DEVICE_INFO_V0_TESLA) {
