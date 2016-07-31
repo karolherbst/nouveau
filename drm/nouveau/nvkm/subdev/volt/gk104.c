@@ -40,10 +40,15 @@ gk104_volt_get(struct nvkm_volt *base)
 {
 	struct nvbios_volt *bios = &gk104_volt(base)->bios;
 	struct nvkm_device *device = base->subdev.device;
-	u32 div, duty;
+	int div, duty;
 
 	div  = nvkm_rd32(device, 0x20340);
+	if (div < 0)
+		return div;
+
 	duty = nvkm_rd32(device, 0x20344);
+	if (duty < 0)
+		return duty;
 
 	return bios->base + bios->pwm_range * duty / div;
 }
