@@ -25,6 +25,7 @@
 #include "priv.h"
 #include "pll.h"
 
+#include <core/option.h>
 #include <subdev/timer.h>
 #include <subdev/bios.h>
 #include <subdev/bios/pll.h>
@@ -507,10 +508,17 @@ int
 gk104_clk_new(struct nvkm_device *device, int index, struct nvkm_clk **pclk)
 {
 	struct gk104_clk *clk;
+	bool reclocking;
 
 	if (!(clk = kzalloc(sizeof(*clk), GFP_KERNEL)))
 		return -ENOMEM;
 	*pclk = &clk->base;
 
-	return nvkm_clk_ctor(&gk104_clk, device, index, true, &clk->base);
+	if (device->chipset >= 0x120)
+		reclocking = nvkm_boolopt(device->cfgopt, "NvFanless", false);
+	else
+		reclocking = true;
+
+	return nvkm_clk_ctor(&gk104_clk, device, index, reclocking,
+			     &clk->base);
 }
