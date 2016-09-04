@@ -853,22 +853,16 @@ enum dma_attr {
 	DMA_ATTR_MAX,
 };
 
-struct dma_attrs {
-};
-
-static inline void init_dma_attrs(struct dma_attrs *attrs) {}
-static inline void dma_set_attr(enum dma_attr attr, struct dma_attrs *attrs) {}
-
 static inline void *
 dma_alloc_attrs(struct device *dev, size_t sz, dma_addr_t *hdl, gfp_t gfp,
-		struct dma_attrs *attrs)
+		unsigned long attrs)
 {
 	return NULL;
 }
 
 static inline void
 dma_free_attrs(struct device *dev, size_t sz, void *vaddr, dma_addr_t bus,
-	       struct dma_attrs *attrs)
+	       unsigned long attrs)
 {
 }
 
