@@ -88,6 +88,7 @@ typedef dma_addr_t resource_size_t;
 )
 #define do_div(a,b) (a) = (a) / (b)
 #define div_u64(a,b) (a) / (b)
+#define div64_s64(a,b) (a) / (b)
 #define likely(a) (a)
 #define unlikely(a) (a)
 #define BIT(a) (1UL << (a))
