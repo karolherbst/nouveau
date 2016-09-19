@@ -1,0 +1,81 @@
+language: c
+compiler: gcc
+os: linux
+
+git:
+  depth: 250
+
+cache:
+  directories:
+    - linux.git.bare
+
+addons:
+  apt:
+    packages:
+    - bc
+    - libpciaccess-dev
+
+matrix:
+  include:
+  - env: CONFIG_64BIT=n
+  - env: CONFIG_DEBUG=n
+  - env: CONFIG_HWMON=n
+  - env: CONFIG_LEDS_CLASS=n
+
+script:
+  - git clone --bare git://people.freedesktop.org/~airlied/linux linux.git.bare -b drm-next --single-branch || git -C linux.git.bare fetch origin drm-next
+  - git init --separate-git-dir linux.git.bare linux.git
+  - git -C linux.git reset --hard
+  - git -C linux.git checkout $(git log --oneline  --grep='drm-next' | head -n 1 | cut -d\  -f3) || true
+  - rm -f linux.git.bare/index linux.git.bare/FETCH_HEAD linux.git.bare/ORIG_HEAD linux.git.bare/HEAD linux.git.bare/logs/HEAD || true
+  - rm -rf linux.git/drivers/gpu/drm/nouveau
+  - ln -s ../../../../drm/nouveau linux.git/drivers/gpu/drm/nouveau
+  - cd linux.git
+
+  - echo patching kernel
+  - sed 's/if (warn_unresolved) {/if (false) {/g' -i scripts/mod/modpost.c
+  - |
+    echo 'diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+    index 151a050..8abc033 100644
+    --- a/drivers/gpu/drm/Kconfig
+    +++ b/drivers/gpu/drm/Kconfig
+    @@ -53,7 +53,7 @@ config DRM_LOAD_EDID_FIRMWARE
+     	  EDID data are given in Documentation/EDID/HOWTO.txt.
+     
+     config DRM_TTM
+    -	tristate
+    +	tristate "TTM"
+     	depends on DRM
+     	help
+     	  GPU memory management subsystem for devices with multiple' | patch -p1
+
+  - make defconfig
+
+  - echo Modding .config file
+
+  - echo CONFIG_64BIT=${CONFIG_64BIT:=y} >> .config
+  - echo CONFIG_HWMON=${CONFIG_HWMON:=y} >> .config
+  - echo CONFIG_DEBUG_KERNEL=${CONFIG_DEBUG:=y} >> .config
+  - echo CONFIG_LEDS_CLASS=${CONFIG_LEDS_CLASS:=y} >> .config
+
+  - echo CONFIG_NET=n >> .config
+  - echo CONFIG_DRM_I915=n >> .config
+  - echo CONFIG_DRM_TTM=y >> .config
+  - echo CONFIG_ACPI_WMI=y >> .config
+
+  - echo CONFIG_DRM_NOUVEAU=m >> .config
+  - echo CONFIG_NOUVEAU_DEBUG=7 >> .config
+  - echo CONFIG_NOUVEAU_DEBUG_DEFAULT=5 >> .config
+  - echo CONFIG_DRM_NOUVEAU_BACKLIGHT=y >> .config
+
+  - make olddefconfig
+  - echo config used
+  - cat .config
+
+  - make -j2 vmlinux >/dev/null
+  - make -j2 modules_prepare
+  - make -j2 SUBDIRS=drivers/gpu/drm/nouveau
+
+  - echo compiling libnouveau
+  - cd ../
+  - make -j2
