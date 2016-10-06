@@ -971,6 +971,12 @@ dma_set_mask(struct device *dev, u64 mask)
 	return 0;
 }
 
+static inline int
+dma_set_mask_and_coherent(struct device *dev, u64 mask)
+{
+	return 0;
+}
+
 /******************************************************************************
  * PCI
  *****************************************************************************/
