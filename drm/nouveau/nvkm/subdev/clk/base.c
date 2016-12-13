@@ -29,6 +29,8 @@
 #include <subdev/bios/perf.h>
 #include <subdev/bios/vpstate.h>
 #include <subdev/fb.h>
+#include <subdev/pmu.h>
+#include <subdev/pmu/fuc/os.h>
 #include <subdev/therm.h>
 #include <subdev/volt.h>
 
@@ -342,7 +344,7 @@ nvkm_clk_update_work(struct work_struct *work)
 		   clk->astate, clk->exp_cstateid, clk->temp);
 
 	pstate = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
-	if (clk->state_nr && pstate != -1) {
+	if (clk->state_nr) {
 		pstate = (pstate < 0) ? clk->astate : pstate;
 	} else {
 		pstate = NVKM_CLK_PSTATE_DEFAULT;
@@ -540,6 +542,8 @@ nvkm_clk_nstate(struct nvkm_clk *clk, const char *mode, int arglen)
 int
 nvkm_clk_ustate(struct nvkm_clk *clk, int req, int pwr)
 {
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_pmu *pmu = subdev->device->pmu;
 	struct nvkm_pstate *pstate;
 	bool valid = false;
 
@@ -559,17 +563,23 @@ nvkm_clk_ustate(struct nvkm_clk *clk, int req, int pwr)
 		clk->ustate_dc = req;
 
 	clk->exp_cstateid = NVKM_CLK_CSTATE_HIGHEST;
+	// notify PMU
+	nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_ACK_RECLOCK, 0, 0);
 	return nvkm_clk_update(clk, true);
 }
 
 int
 nvkm_clk_astate(struct nvkm_clk *clk, int req, int rel, bool wait)
 {
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_pmu *pmu = subdev->device->pmu;
 	if (!rel) clk->astate  = req;
 	if ( rel) clk->astate += rel;
 	clk->astate = min(clk->astate, clk->state_nr - 1);
 	clk->astate = max(clk->astate, 0);
 	clk->exp_cstateid = NVKM_CLK_CSTATE_BASE;
+	// notify PMU
+	nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_ACK_RECLOCK, 0, 0);
 	return nvkm_clk_update(clk, wait);
 }
 
@@ -589,6 +599,138 @@ nvkm_clk_pwrsrc(struct nvkm_notify *notify)
 		container_of(notify, typeof(*clk), pwrsrc_ntfy);
 	nvkm_clk_update(clk, false);
 	return NVKM_NOTIFY_DROP;
+}
+
+static int
+score_of_state(u8 cur_load, u8 target_load, int cur, int check)
+{
+	int needed_change = (cur_load * 0xff) / target_load;
+	int speed_change = (check * 0xff) / (cur + ((check - cur) / 4));
+	return speed_change - needed_change;
+}
+
+static int pcie_enum_to_speed[] = {
+	25,
+	50,
+	80
+};
+
+#define __tmp(i, score, pstate) if ((last_pstate_scores[i] < 0 && last_pstate_scores[i] < pcie_score) || (last_pstate_scores[i] >= 0 && last_pstate_scores[i] > pcie_score)) { \
+	last_pstate[i] = pstate; \
+	last_pstate_scores[i] = score; \
+}
+
+static int
+calc_needed_pstate(struct nvkm_clk *clk, struct nvkm_pmu_load_data *data)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_pstate *pstate;
+	int last_pstate[2];
+	int last_pstate_scores[2] = { 0 };
+	int old_pcie_speed, old_mem_speed;
+
+	if (!clk->pstate)
+		return -1;
+
+	last_pstate[0] = clk->pstate->pstate;
+	last_pstate[1] = last_pstate[0];
+	old_pcie_speed = pcie_enum_to_speed[clk->pstate->pcie_speed];
+	last_pstate_scores[0] = score_of_state(data->pcie, PERF_TARGET_LOAD_PCIE, old_pcie_speed, old_pcie_speed);
+	old_mem_speed = clk->pstate->base.domain[nv_clk_src_mem];
+	last_pstate_scores[1] = score_of_state(data->mem, PERF_TARGET_LOAD_MEM, old_mem_speed, old_mem_speed);
+
+	list_for_each_entry(pstate, &clk->states, head) {
+		int pcie_score = score_of_state(data->pcie, PERF_TARGET_LOAD_PCIE, old_pcie_speed, pcie_enum_to_speed[pstate->pcie_speed]);
+		int mem_score = score_of_state(data->mem, PERF_TARGET_LOAD_MEM, old_mem_speed, pstate->base.domain[nv_clk_src_mem]);
+
+		nvkm_trace(subdev, "dyn reclock pcie score: %i for pstate %i and speed: %i\n", pcie_score, pstate->pstate, pcie_enum_to_speed[pstate->pcie_speed]);
+		nvkm_trace(subdev, "dyn reclock mem  score: %i for pstate %i and speed: %i\n", mem_score, pstate->pstate, pstate->base.domain[nv_clk_src_mem]);
+
+		__tmp(0, pcie_score, pstate->pstate);
+		__tmp(1, mem_score, pstate->pstate);
+	}
+
+	return max(last_pstate[0], last_pstate[1]);
+}
+
+static int
+calc_needed_cstate(struct nvkm_clk *clk, struct nvkm_pmu_load_data *data,
+		   int *ps)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_pstate *cur_pstate, *pstate;
+	struct nvkm_cstate *cur_cstate, *cstate;
+	int last_score = 0, last_cstate, last_pstate;
+	int old_clock;
+
+	if (!clk->pstate)
+		cur_pstate = list_entry(clk->states.next, typeof(*cur_pstate), head);
+	else
+		cur_pstate = clk->pstate;
+
+	if (!cur_pstate)
+		return -1;
+
+	if (!clk->cstate)
+		cur_cstate = nvkm_cstate_get(clk, cur_pstate, 0);
+	else
+		cur_cstate = clk->cstate;
+
+	if (!cur_cstate)
+		return -1;
+
+	old_clock = cur_cstate->domain[nv_clk_src_gpc];
+	last_score = score_of_state(data->core, PERF_TARGET_LOAD_ENGINES, old_clock, old_clock);
+	last_pstate = cur_pstate->pstate;
+	last_cstate = cur_cstate->id;
+
+	list_for_each_entry(pstate, &clk->states, head) {
+		list_for_each_entry(cstate, &pstate->list, head) {
+			int new_clock = cstate->domain[nv_clk_src_gpc];
+			int score = score_of_state(data->core, PERF_TARGET_LOAD_ENGINES, old_clock, new_clock);
+			nvkm_trace(subdev, "dyn reclock core score: %i for cstate %i old_speed: %i speed: %i\n", score, cstate->id, old_clock, new_clock);
+			if ((last_score < 0 && last_score < score) || (last_score >= 0 && last_score > score)) {
+				last_score = score;
+				last_cstate = cstate->id;
+				last_pstate = pstate->pstate;
+			}
+		}
+	}
+
+	if (last_pstate > *ps)
+		*ps = last_pstate;
+
+	return last_cstate;
+}
+
+int
+nvkm_clk_dyn_reclk(struct nvkm_clk *clk, struct nvkm_pmu_load_data *data)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_pmu *pmu = subdev->device->pmu;
+	int ps, cs;
+
+	if (!data)
+		return -EINVAL;
+
+	nvkm_trace(subdev, "reclock request from PMU (core: %02x mem: %02x "
+		   "vid: %02x pcie: %02x)\n", data->core, data->mem,
+		   data->video, data->pcie);
+
+//	ps = calc_needed_pstate(clk, data);
+	cs = calc_needed_cstate(clk, data, &ps);
+
+	if (/*clk->astate != ps || */clk->exp_cstateid != cs) {
+		nvkm_trace(subdev, "sending ACK\n");
+		nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_ACK_RECLOCK, 0, 0);
+		nvkm_trace(subdev, "dyn reclocking to pstate: %x cstate: %i\n", ps, cs);
+	} else {
+		nvkm_trace(subdev, "staying at pstate: %x cstate: %i\n", ps, cs);
+	}
+
+	clk->exp_cstateid = cs;
+//	clk->astate = ps;
+	return nvkm_clk_update(clk, false);
 }
 
 /******************************************************************************

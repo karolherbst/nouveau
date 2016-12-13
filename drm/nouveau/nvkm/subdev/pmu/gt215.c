@@ -24,9 +24,19 @@
 #include "priv.h"
 #include "fuc/gt215.fuc3.h"
 
+#include <subdev/clk.h>
 #include <subdev/timer.h>
 
 #define get_counter_index(v, i) (((v) >> ((i)*8)) & 0xff)
+
+static void
+gt215_pmu_parse_perf_data(u32 result, struct nvkm_pmu_load_data *data)
+{
+	data->core = get_counter_index(result, PERF_MSG_LOAD_CORE_IDX);
+	data->video = get_counter_index(result, PERF_MSG_LOAD_VID_IDX);
+	data->mem = get_counter_index(result, PERF_MSG_LOAD_MEM_IDX);
+	data->pcie = get_counter_index(result, PERF_MSG_LOAD_PCIE_IDX);
+}
 
 int
 gt215_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_load_data *data)
@@ -37,11 +47,21 @@ gt215_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_load_data *data)
 	if (ret < 0)
 		return ret;
 
-	data->core = get_counter_index(result[0], PERF_MSG_LOAD_CORE_IDX);
-	data->video = get_counter_index(result[0], PERF_MSG_LOAD_VID_IDX);
-	data->mem = get_counter_index(result[0], PERF_MSG_LOAD_MEM_IDX);
-	data->pcie = get_counter_index(result[0], PERF_MSG_LOAD_PCIE_IDX);
+	gt215_pmu_parse_perf_data(result[0], data);
 	return 0;
+}
+
+static void
+gt215_pmu_handle_reclk_request(struct work_struct *work)
+{
+	struct nvkm_pmu *pmu = container_of(work, struct nvkm_pmu, intr.work);
+	struct nvkm_clk *clk = pmu->subdev.device->clk;
+
+	if (clk) {
+		struct nvkm_pmu_load_data data;
+		gt215_pmu_parse_perf_data(pmu->intr.data[0], &data);
+		nvkm_clk_dyn_reclk(clk, &data);
+	}
 }
 
 static int
@@ -139,6 +159,7 @@ gt215_pmu_recv(struct nvkm_pmu *pmu)
 {
 	struct nvkm_subdev *subdev = &pmu->subdev;
 	struct nvkm_device *device = subdev->device;
+	struct nvkm_clk *clk = device->clk;
 	u32 process, message, data0, data1;
 
 	/* nothing to do if GET == PUT */
@@ -173,6 +194,12 @@ gt215_pmu_recv(struct nvkm_pmu *pmu)
 			wake_up(&pmu->recv.wait);
 			return;
 		}
+	}
+
+	if (clk && process == PROC_PERF && message == HOST_MSG_RECLOCK) {
+		pmu->intr.data[0] = data0;
+		schedule_work(&pmu->intr.work);
+		return;
 	}
 
 	/* right now there's no other expected responses from the engine,
@@ -228,6 +255,7 @@ gt215_pmu_intr(struct nvkm_pmu *pmu)
 void
 gt215_pmu_fini(struct nvkm_pmu *pmu)
 {
+	flush_work(&pmu->intr.work);
 	nvkm_wr32(pmu->subdev.device, 0x10a014, 0x00000060);
 }
 
@@ -283,6 +311,9 @@ gt215_pmu_init(struct nvkm_pmu *pmu)
 	pmu->recv.size = nvkm_rd32(device, 0x10a4dc) >> 16;
 
 	nvkm_wr32(device, 0x10a010, 0x000000e0);
+
+	INIT_WORK(&pmu->intr.work, gt215_pmu_handle_reclk_request);
+
 	return 0;
 }
 
@@ -304,5 +335,6 @@ gt215_pmu = {
 int
 gt215_pmu_new(struct nvkm_device *device, int index, struct nvkm_pmu **ppmu)
 {
-	return nvkm_pmu_new_(&gt215_pmu, device, index, ppmu);
+	int ret = nvkm_pmu_new_(&gt215_pmu, device, index, ppmu);
+	return ret;
 }

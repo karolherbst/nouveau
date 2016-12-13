@@ -24,6 +24,8 @@
 #include "priv.h"
 
 #include <core/msgqueue.h>
+
+#include <subdev/clk.h>
 #include <subdev/timer.h>
 
 void

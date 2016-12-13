@@ -24,6 +24,11 @@ struct nvkm_pmu {
 		u32 message;
 		u32 data[2];
 	} recv;
+
+	struct {
+		struct work_struct work;
+		u32 data[2];
+	} intr;
 };
 
 struct nvkm_pmu_load_data {

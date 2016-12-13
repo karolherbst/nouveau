@@ -5,6 +5,7 @@
 #include <subdev/pci.h>
 struct nvbios_pll;
 struct nvkm_pll_vals;
+struct nvkm_pmu_load_data;
 
 #define NVKM_CLK_CSTATE_DEFAULT -1 /* POSTed default */
 #define NVKM_CLK_CSTATE_BASE    -2 /* pstate base */
@@ -127,6 +128,8 @@ int nvkm_clk_ustate(struct nvkm_clk *, int req, int pwr);
 int nvkm_clk_astate(struct nvkm_clk *, int req, int rel, bool wait);
 int nvkm_clk_tstate(struct nvkm_clk *, u8 temperature);
 int nvkm_clk_update(struct nvkm_clk *, bool wait);
+
+int nvkm_clk_dyn_reclk(struct nvkm_clk *, struct nvkm_pmu_load_data *data);
 
 int nv04_clk_new(struct nvkm_device *, int, struct nvkm_clk **);
 int nv40_clk_new(struct nvkm_device *, int, struct nvkm_clk **);
