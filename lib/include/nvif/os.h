@@ -563,15 +563,24 @@ nvos_backtrace(void)
 
 #define BUG_ON(c) do { if ((c)) BUG(); } while(0)
 
-#define WARN() do {                                                            \
+#define __WARN() do {                                                          \
 	printk("WARNING at %s:%d/%s()!\n\n", __FILE__, __LINE__, __func__);    \
 	nvos_backtrace();                                                      \
 } while(0)
 
+#define WARN(c,f...) ({                                                        \
+	int _ret = !!(c);                                                      \
+	if (_ret) {                                                            \
+		printk(f);                                                     \
+		__WARN();                                                      \
+	};                                                                     \
+	_ret;                                                                  \
+})
+
 #define WARN_ON(c) ({                                                          \
 	int _ret = !!(c);                                                      \
 	if (_ret)                                                              \
-		WARN();                                                        \
+		__WARN();                                                      \
 	_ret;                                                                  \
 })
 
@@ -579,7 +588,7 @@ nvos_backtrace(void)
 	static int _once = 1;                                                  \
 	int _ret = !!(c);                                                      \
 	if (_ret && _once) {                                                   \
-		WARN();                                                        \
+		__WARN();                                                      \
 		_once = 0;                                                     \
 	}                                                                      \
 	_ret;                                                                  \
