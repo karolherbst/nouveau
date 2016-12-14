@@ -296,6 +296,9 @@ list_empty(struct list_head *head)
 #define __container_of(ptr, sample, member)				\
     (void *)container_of((ptr), typeof(*(sample)), member)
 
+#define list_for_each(pos, head) \
+	for (pos = (head)->next; pos != (head); pos = pos->next)
+
 /**
  * Loop through the list given by head and set pos to struct in the list.
  *
