@@ -280,6 +280,12 @@ test_and_set_bit(int bit, volatile unsigned long *ptr)
 }
 
 static inline void
+clear_bit(int bit, volatile unsigned long *ptr)
+{
+	test_and_clear_bit(bit, ptr);
+}
+
+static inline void
 set_bit(int bit, volatile unsigned long *ptr)
 {
 	test_and_set_bit(bit, ptr);
@@ -1300,6 +1306,33 @@ typedef struct __wait_queue_head {
 
 #define wait_event_interruptible_timeout(wq,cond,jiffies)                      \
 	wait_event_timeout((wq), (cond), (jiffies))
+
+/******************************************************************************
+ * completion
+ *****************************************************************************/
+struct completion {
+};
+
+static inline void
+init_completion(struct completion *c)
+{
+}
+
+static inline void
+reinit_completion(struct completion *c)
+{
+}
+
+static inline unsigned long
+wait_for_completion_timeout(struct completion *c, unsigned long timeout)
+{
+	return 0;
+}
+
+static inline void
+complete(struct completion *c)
+{
+}
 
 /******************************************************************************
  * i2c
