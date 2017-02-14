@@ -320,6 +320,7 @@ nvkm_clk_update_work(struct work_struct *work)
 {
 	struct nvkm_clk *clk = container_of(work, typeof(*clk), work);
 	struct nvkm_subdev *subdev = &clk->subdev;
+	struct device *dev = subdev->device->dev;
 	int pstate;
 
 	if (!atomic_xchg(&clk->waiting, 0))
@@ -345,7 +346,15 @@ nvkm_clk_update_work(struct work_struct *work)
 		pstate = NVKM_CLK_PSTATE_DEFAULT;
 	}
 
-	clk->func->update(clk, pstate);
+	/* only call into the code if the GPU is powered on */
+	if (!pm_runtime_suspended(dev)) {
+		/* it would be a shame if the GPU goes into suspend while doing
+		 * the reclock
+		 */
+		pm_runtime_get_sync(dev);
+		clk->func->update(clk, pstate);
+		pm_runtime_put(dev);
+	}
 
 	wake_up_all(&clk->wait);
 	nvkm_notify_get(&clk->pwrsrc_ntfy);
