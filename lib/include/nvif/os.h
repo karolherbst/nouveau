@@ -1313,6 +1313,9 @@ typedef struct __wait_queue_head {
 struct completion {
 };
 
+#define DECLARE_COMPLETION_ONSTACK(c)                                          \
+	struct completion c = {}
+
 static inline void
 init_completion(struct completion *c)
 {
@@ -1331,6 +1334,11 @@ wait_for_completion_timeout(struct completion *c, unsigned long timeout)
 
 static inline void
 complete(struct completion *c)
+{
+}
+
+static inline void
+complete_all(struct completion *c)
 {
 }
 
