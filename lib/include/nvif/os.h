@@ -812,6 +812,8 @@ struct device {
 #define dev_notice(d,f,a...) dev_crit((d), f, ##a)
 #define dev_info(d,f,a...)   dev_crit((d), f, ##a)
 
+#define dev_WARN(d,f,a...) WARN("nouveau %s: "f, dev_name(d), ##a);
+
 /******************************************************************************
  * PM runtime
  *****************************************************************************/
