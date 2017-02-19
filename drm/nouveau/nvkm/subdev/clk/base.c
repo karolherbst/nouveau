@@ -281,7 +281,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstatei)
 
 	nvkm_pcie_set_link(pci, pstate->pcie_speed, pstate->pcie_width);
 
-	if (fb && fb->ram && fb->ram->func->calc) {
+	if (clk->allow_reclock_mem && fb && fb->ram && fb->ram->func->calc) {
 		struct nvkm_ram *ram = fb->ram;
 		int khz = pstate->base.domain[nv_clk_src_mem];
 		do {
@@ -475,7 +475,7 @@ nvkm_clk_ustate_update(struct nvkm_clk *clk, int req)
 	struct nvkm_pstate *pstate;
 	int i = 0;
 
-	if (!clk->allow_reclock)
+	if (!clk->allow_reclock_eng && !clk->allow_reclock_mem)
 		return -ENOSYS;
 
 	if (req != -1 && req != -2) {
@@ -498,7 +498,8 @@ nvkm_clk_nstate(struct nvkm_clk *clk, const char *mode, int arglen)
 {
 	int ret = 1;
 
-	if (clk->allow_reclock && !strncasecmpz(mode, "auto", arglen))
+	if (!clk->allow_reclock_eng && !clk->allow_reclock_mem &&
+	    !strncasecmpz(mode, "auto", arglen))
 		return -2;
 
 	if (strncasecmpz(mode, "disabled", arglen)) {
@@ -650,7 +651,8 @@ nvkm_clk = {
 
 int
 nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
-	      int index, bool allow_reclock, struct nvkm_clk *clk)
+	      int index, bool allow_reclock_eng, bool allow_reclock_mem,
+	      struct nvkm_clk *clk)
 {
 	struct nvkm_subdev *subdev = &clk->subdev;
 	struct nvkm_bios *bios = device->bios;
@@ -673,7 +675,8 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	clk->domains = func->domains;
 	clk->ustate_ac = -1;
 	clk->ustate_dc = -1;
-	clk->allow_reclock = allow_reclock;
+	clk->allow_reclock_eng = allow_reclock_eng;
+	clk->allow_reclock_mem = allow_reclock_mem;
 
 	INIT_WORK(&clk->work, nvkm_pstate_work);
 	init_waitqueue_head(&clk->wait);
@@ -717,9 +720,11 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 
 int
 nvkm_clk_new_(const struct nvkm_clk_func *func, struct nvkm_device *device,
-	      int index, bool allow_reclock, struct nvkm_clk **pclk)
+	      int index, bool allow_reclock_eng, bool allow_reclock_mem,
+	      struct nvkm_clk **pclk)
 {
 	if (!(*pclk = kzalloc(sizeof(**pclk), GFP_KERNEL)))
 		return -ENOMEM;
-	return nvkm_clk_ctor(func, device, index, allow_reclock, *pclk);
+	return nvkm_clk_ctor(func, device, index, allow_reclock_eng,
+			     allow_reclock_mem, *pclk);
 }

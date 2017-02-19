@@ -228,5 +228,5 @@ nv40_clk_new(struct nvkm_device *device, int index, struct nvkm_clk **pclk)
 	clk->base.pll_prog = nv04_clk_pll_prog;
 	*pclk = &clk->base;
 
-	return nvkm_clk_ctor(&nv40_clk, device, index, true, &clk->base);
+	return nvkm_clk_ctor(&nv40_clk, device, index, true, true, &clk->base);
 }

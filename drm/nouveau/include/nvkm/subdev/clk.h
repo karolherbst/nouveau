@@ -102,7 +102,8 @@ struct nvkm_clk {
 	int dstate; /* display adjustment (min+) */
 	u8  temp;
 
-	bool allow_reclock;
+	bool allow_reclock_eng;
+	bool allow_reclock_mem;
 #define NVKM_CLK_BOOST_NONE 0x0
 #define NVKM_CLK_BOOST_BIOS 0x1
 #define NVKM_CLK_BOOST_FULL 0x2

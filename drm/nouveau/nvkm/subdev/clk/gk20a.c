@@ -628,7 +628,7 @@ gk20a_clk_ctor(struct nvkm_device *device, int index,
 	clk->params = params;
 	clk->parent_rate = clk_get_rate(tdev->clk);
 
-	ret = nvkm_clk_ctor(func, device, index, true, &clk->base);
+	ret = nvkm_clk_ctor(func, device, index, true, true, &clk->base);
 	if (ret)
 		return ret;
 

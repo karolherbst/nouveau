@@ -476,5 +476,6 @@ gf100_clk_new(struct nvkm_device *device, int index, struct nvkm_clk **pclk)
 		return -ENOMEM;
 	*pclk = &clk->base;
 
-	return nvkm_clk_ctor(&gf100_clk, device, index, false, &clk->base);
+	return nvkm_clk_ctor(&gf100_clk, device, index, false, false,
+			     &clk->base);
 }
