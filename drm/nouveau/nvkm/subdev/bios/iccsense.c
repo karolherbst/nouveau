@@ -118,7 +118,7 @@ nvbios_iccsense_parse(struct nvkm_bios *bios, struct nvbios_iccsense *iccsense)
 		};
 
 		for (r = 0; r < rail->resistor_count; ++r) {
-			rail->resistors[r].mohm = nvbios_rd08(bios, entry + res_start + r * 2);
+			rail->resistors[r].mohm = nvbios_rd16(bios, entry + res_start + r * 2) & 0x7ff;
 			rail->resistors[r].enabled = !(nvbios_rd08(bios, entry + res_start + r * 2 + 1) & 0x40);
 		}
 		rail->config = nvbios_rd16(bios, entry + res_start + rail->resistor_count * 2);

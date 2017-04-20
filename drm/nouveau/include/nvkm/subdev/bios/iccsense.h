@@ -1,7 +1,7 @@
 #ifndef __NVBIOS_ICCSENSE_H__
 #define __NVBIOS_ICCSENSE_H__
 struct pwr_rail_resistor_t {
-	u8 mohm;
+	u16 mohm;
 	bool enabled;
 };
 
