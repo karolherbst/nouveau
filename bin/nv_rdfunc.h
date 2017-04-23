@@ -78,7 +78,8 @@ main(int argc, char **argv)
 			if (ndata + cnt >= mdata) {
 				while (ndata + cnt > mdata)
 					mdata <<= 1;
-				assert(data = realloc(data, sizeof(*data) * mdata));
+				data = realloc(data, sizeof(*data) * mdata);
+				assert(data);
 			}
 
 			for (; cnt; cnt--, reg += sizeof(CAST)) {
