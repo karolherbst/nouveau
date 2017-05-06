@@ -64,6 +64,9 @@ perf_recv:
 		imm32($r10, PERF_MSG_GET_SLOTS)
 		cmp b32 $r13 $r10
 		bra e #perf_recv_get_slots
+		imm32($r10, PERF_MSG_SET_SLOT)
+		cmp b32 $r13 $r10
+		bra e #perf_recv_set_slot
 		bra   #perf_recv_host
 
 perf_recv_get_slots:
@@ -84,6 +87,12 @@ perf_recv_get_slots:
 	ld(b8, $r11, #perf_slot4)
 #endif
 	bra #perf_recv_host
+
+perf_recv_set_slot:
+	mulu $r12 16
+	add b32 $r12 0x504
+	iowr I[$r12] $r11
+	bra #perf_recv_exit
 
 perf_recv_not_host:
 	call(perf_counter_readout)
