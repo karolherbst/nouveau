@@ -98,6 +98,13 @@ nvkm_pmu_reset(struct nvkm_pmu *pmu)
 	return 0;
 }
 
+static void
+nvkm_pmu_counters_setup(struct nvkm_pmu *pmu)
+{
+	if (pmu->func->counters.setup)
+		pmu->func->counters.setup(pmu);
+}
+
 static int
 nvkm_pmu_preinit(struct nvkm_subdev *subdev)
 {
@@ -112,6 +119,10 @@ nvkm_pmu_init(struct nvkm_subdev *subdev)
 	int ret = nvkm_pmu_reset(pmu);
 	if (ret == 0 && pmu->func->init)
 		ret = pmu->func->init(pmu);
+
+	if (ret == 0)
+		nvkm_pmu_counters_setup(pmu);
+
 	return ret;
 }
 
