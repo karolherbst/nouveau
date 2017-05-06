@@ -30,6 +30,18 @@ process(PROC_PERF, #perf_init, #perf_recv)
  * PERF data segment
  *****************************************************************************/
 #ifdef INCLUDE_DATA
+// parameters
+perf_polling_period_us: .b32 100000
+perf_slot1: .b8 0
+perf_slot2: .b8 0
+perf_slot3: .b8 0
+#if NVKM_PPWR_CHIPSET >= GF100
+perf_slot4: .b8 0
+perf_slot5: .b8 0
+perf_slot6: .b8 0
+perf_slot7: .b8 0
+#endif
+.align 4
 #endif
 
 /******************************************************************************
@@ -46,6 +58,93 @@ process(PROC_PERF, #perf_init, #perf_recv)
 // $r11 - data1
 // $r0  - zero
 perf_recv:
+	imm32($r10, PROC_HOST)
+	cmp b32 $r14 $r10
+	bra ne #perf_recv_not_host
+		bra #perf_recv_exit
+perf_recv_not_host:
+	call(perf_counter_readout)
+	ld(b32, $r14, #perf_polling_period_us)
+	call(ticks_from_us)
+	call(timer)
+perf_recv_exit:
+	ret
+
+// description
+//
+// $r15 - current (perf)
+// $r0  - zero
+perf_counter_readout:
+	push $r1
+	push $r2
+	push $r3
+	push $r4
+#if NVKM_PPWR_CHIPSET >= GF100
+	push $r5
+	push $r6
+	push $r7
+	push $r8
+#endif
+
+	// read out all at once to reduce latency problems
+	nv_iord($r1, NV_PPWR_COUNTER_COUNT(0))
+	nv_iord($r2, NV_PPWR_COUNTER_COUNT(1))
+	nv_iord($r3, NV_PPWR_COUNTER_COUNT(2))
+	nv_iord($r4, NV_PPWR_COUNTER_COUNT(3))
+#if NVKM_PPWR_CHIPSET >= GF100
+	nv_iord($r5, NV_PPWR_COUNTER_COUNT(4))
+	nv_iord($r6, NV_PPWR_COUNTER_COUNT(5))
+	nv_iord($r7, NV_PPWR_COUNTER_COUNT(6))
+	nv_iord($r8, NV_PPWR_COUNTER_COUNT(7))
+#endif
+
+	imm32($r14, NV_PPWR_COUNTER_COUNT_RESET)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(0), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(1), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(2), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(3), $r14)
+#if NVKM_PPWR_CHIPSET >= GF100
+	nv_iowr(NV_PPWR_COUNTER_COUNT(4), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(5), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(6), $r14)
+	nv_iowr(NV_PPWR_COUNTER_COUNT(7), $r14)
+#endif
+
+	// with that we always get 8 bit values as the result
+	div $r1 $r1 0xff
+
+	div $r2 $r2 $r1
+	div $r3 $r3 $r1
+	div $r4 $r4 $r1
+#if NVKM_PPWR_CHIPSET >= GF100
+	div $r5 $r5 $r1
+	div $r6 $r6 $r1
+	div $r7 $r7 $r1
+	div $r8 $r8 $r1
+#endif
+
+	// now we can actually store our values
+	st(b8, #perf_slot1, $r2)
+	st(b8, #perf_slot2, $r3)
+	st(b8, #perf_slot3, $r4)
+#if NVKM_PPWR_CHIPSET >= GF100
+	st(b8, #perf_slot4, $r5)
+	st(b8, #perf_slot5, $r6)
+	st(b8, #perf_slot6, $r7)
+	st(b8, #perf_slot7, $r8)
+#endif
+
+#if NVKM_PPWR_CHIPSET >= GF100
+	pop $r8
+	pop $r7
+	pop $r6
+	pop $r5
+#endif
+	pop $r4
+	pop $r3
+	pop $r2
+	pop $r1
+
 	ret
 
 // description
@@ -53,5 +152,27 @@ perf_recv:
 // $r15 - current (perf)
 // $r0  - zero
 perf_init:
+	imm32($r14, NV_PPWR_COUNTER_MODE_ALWAYS)
+	nv_iowr(NV_PPWR_COUNTER_MODE(0), $r14)
+
+	imm32($r14, NV_PPWR_COUNTER_MODE_IF_NOT_ALL)
+	nv_iowr(NV_PPWR_COUNTER_MODE(1), $r14)
+	nv_iowr(NV_PPWR_COUNTER_MODE(2), $r14)
+	nv_iowr(NV_PPWR_COUNTER_MODE(3), $r14)
+#if NVKM_PPWR_CHIPSET >= GF100
+	nv_iowr(NV_PPWR_COUNTER_MODE(4), $r14)
+	nv_iowr(NV_PPWR_COUNTER_MODE(5), $r14)
+	nv_iowr(NV_PPWR_COUNTER_MODE(6), $r14)
+	nv_iowr(NV_PPWR_COUNTER_MODE(7), $r14)
+#endif
+
+	// initial readout
+	call(perf_counter_readout)
+
+	// schedule the next read out
+	ld(b32, $r14, #perf_polling_period_us)
+	call #ticks_from_us
+	call(timer)
+
 	ret
 #endif
