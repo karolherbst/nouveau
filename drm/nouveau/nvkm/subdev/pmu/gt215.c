@@ -211,6 +211,10 @@ gt215_pmu_recv(struct nvkm_pmu *pmu)
 		}
 	}
 
+	if (process == PROC_PERF && message == HOST_MSG_NOTIFY_THRESHOLD) {
+		return;
+	}
+
 	/* right now there's no other expected responses from the engine,
 	 * so assume that any unexpected message is an error.
 	 */

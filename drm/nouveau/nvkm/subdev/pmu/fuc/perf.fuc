@@ -33,13 +33,27 @@ process(PROC_PERF, #perf_init, #perf_recv)
 // parameters
 perf_polling_period_us: .b32 100000
 perf_slot1: .b8 0
+perf_slot1_min: .b8 0
+perf_slot1_max: .b8 0
 perf_slot2: .b8 0
+perf_slot2_min: .b8 0
+perf_slot2_max: .b8 0
 perf_slot3: .b8 0
+perf_slot3_min: .b8 0
+perf_slot3_max: .b8 0
 #if NVKM_PPWR_CHIPSET >= GF100
 perf_slot4: .b8 0
+perf_slot4_min: .b8 0
+perf_slot4_max: .b8 0
 perf_slot5: .b8 0
+perf_slot5_min: .b8 0
+perf_slot5_max: .b8 0
 perf_slot6: .b8 0
+perf_slot6_min: .b8 0
+perf_slot6_max: .b8 0
 perf_slot7: .b8 0
+perf_slot7_min: .b8 0
+perf_slot7_max: .b8 0
 #endif
 .align 4
 #endif
@@ -67,6 +81,9 @@ perf_recv:
 		imm32($r10, PERF_MSG_SET_SLOT)
 		cmp b32 $r13 $r10
 		bra e #perf_recv_set_slot
+		imm32($r10, PERF_MSG_SET_THRESHOLDS)
+		cmp b32 $r13 $r10
+		bra e #perf_recv_set_thresholds
 		bra   #perf_recv_host
 
 perf_recv_get_slots:
@@ -92,6 +109,20 @@ perf_recv_set_slot:
 	mulu $r12 16
 	add b32 $r12 0x504
 	iowr I[$r12] $r11
+	bra #perf_recv_exit
+
+perf_recv_set_thresholds:
+	push $r1
+	// TODO: check for out of bounds
+	sub b32 $r12 0x1
+	mulu $r12 #perf_slot2 - #perf_slot1
+	add b32 $r12 #perf_slot1_min
+	and $r1 $r11 0xff
+	st b8 D[$r12] $r1
+	add b32 $r12 #perf_slot1_max - #perf_slot1_min
+	shr b32 $r1 $r11 16
+	st b8 D[$r12] $r1
+	pop $r1
 	bra #perf_recv_exit
 
 perf_recv_not_host:
@@ -170,6 +201,40 @@ perf_counter_readout:
 	st(b8, #perf_slot7, $r8)
 #endif
 
+// no idea why, but the cmp needs to be b32
+#define PERF_COUNTER_THRESHOLD_CHECK(reg, slot, c) /*
+*/	ld(b8, $r14, fn(hash)perf_slot ## slot)    /*
+*/	cmp b8 reg $r14                           /*
+*/	bra c fn(hash)perf_counter_readout_notify  /*
+*/
+
+	clear b32 $r14
+	PERF_COUNTER_THRESHOLD_CHECK($r2, 1_min, b)
+	PERF_COUNTER_THRESHOLD_CHECK($r2, 1_max, a)
+	PERF_COUNTER_THRESHOLD_CHECK($r3, 2_min, b)
+	PERF_COUNTER_THRESHOLD_CHECK($r3, 2_max, a)
+	PERF_COUNTER_THRESHOLD_CHECK($r4, 3_min, b)
+	PERF_COUNTER_THRESHOLD_CHECK($r4, 3_max, a)
+#if NVKM_PPWR_CHIPSET >= GF100
+	PERF_COUNTER_THRESHOLD_CHECK($r5, 4_min, b)
+	PERF_COUNTER_THRESHOLD_CHECK($r5, 4_max, a)
+	PERF_COUNTER_THRESHOLD_CHECK($r6, 5_min, b)
+	PERF_COUNTER_THRESHOLD_CHECK($r6, 5_max, a)
+	PERF_COUNTER_THRESHOLD_CHECK($r7, 6_min, b)
+	PERF_COUNTER_THRESHOLD_CHECK($r7, 6_max, a)
+	PERF_COUNTER_THRESHOLD_CHECK($r8, 7_min, b)
+	PERF_COUNTER_THRESHOLD_CHECK($r8, 7_max, a)
+#endif
+
+	bra #perf_counter_readout_end
+
+perf_counter_readout_notify:
+	call(perf_thresholds_reset)
+	imm32($r14, PROC_HOST)
+	imm32($r13, HOST_MSG_NOTIFY_THRESHOLD)
+	call(perf_recv_get_slots)
+
+perf_counter_readout_end:
 #if NVKM_PPWR_CHIPSET >= GF100
 	pop $r8
 	pop $r7
@@ -181,6 +246,32 @@ perf_counter_readout:
 	pop $r2
 	pop $r1
 
+	ret
+
+perf_thresholds_reset:
+	push $r1
+	clear b32 $r1
+	st(b8, #perf_slot1_min, $r1)
+	st(b8, #perf_slot2_min, $r1)
+	st(b8, #perf_slot3_min, $r1)
+#if NVKM_PPWR_CHIPSET >= GF100
+	st(b8, #perf_slot4_min, $r1)
+	st(b8, #perf_slot5_min, $r1)
+	st(b8, #perf_slot6_min, $r1)
+	st(b8, #perf_slot7_min, $r1)
+#endif
+
+	imm32($r1, 0xff)
+	st(b8, #perf_slot1_max, $r1)
+	st(b8, #perf_slot2_max, $r1)
+	st(b8, #perf_slot3_max, $r1)
+#if NVKM_PPWR_CHIPSET >= GF100
+	st(b8, #perf_slot4_max, $r1)
+	st(b8, #perf_slot5_max, $r1)
+	st(b8, #perf_slot6_max, $r1)
+	st(b8, #perf_slot7_max, $r1)
+#endif
+	pop $r1
 	ret
 
 // description
@@ -203,6 +294,7 @@ perf_init:
 #endif
 
 	// initial readout
+	call(perf_thresholds_reset)
 	call(perf_counter_readout)
 
 	// schedule the next read out

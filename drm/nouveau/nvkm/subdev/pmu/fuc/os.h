@@ -50,7 +50,12 @@
 #define I2C__MSG_DATA1_WR08_VAL 0:7
 
 /* PERF: message identifiers */
-#define PERF_MSG_GET_SLOTS 1
-#define PERF_MSG_SET_SLOT  2
+#define PERF_MSG_GET_SLOTS      1
+#define PERF_MSG_SET_SLOT       2
+#define PERF_MSG_SET_THRESHOLDS 3
+
+/* HOST: message identigiers */
+/* NOTE: these have to be unique so we just add 0x10000 */
+#define HOST_MSG_NOTIFY_THRESHOLD 0x10001
 
 #endif
