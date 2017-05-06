@@ -61,12 +61,39 @@ perf_recv:
 	imm32($r10, PROC_HOST)
 	cmp b32 $r14 $r10
 	bra ne #perf_recv_not_host
-		bra #perf_recv_exit
+		imm32($r10, PERF_MSG_GET_SLOTS)
+		cmp b32 $r13 $r10
+		bra e #perf_recv_get_slots
+		bra   #perf_recv_host
+
+perf_recv_get_slots:
+	ld(b8, $r12, #perf_slot3)
+	shl b32 $r12 8
+	ld(b8, $r12, #perf_slot2)
+	shl b32 $r12 8
+	ld(b8, $r12, #perf_slot1)
+	shl b32 $r12 8
+	or $r12 0xff
+#if NVKM_PPWR_CHIPSET >= GF100
+	ld(b8, $r11, #perf_slot7)
+	shl b32 $r11 8
+	ld(b8, $r11, #perf_slot6)
+	shl b32 $r11 8
+	ld(b8, $r11, #perf_slot5)
+	shl b32 $r11 8
+	ld(b8, $r11, #perf_slot4)
+#endif
+	bra #perf_recv_host
+
 perf_recv_not_host:
 	call(perf_counter_readout)
 	ld(b32, $r14, #perf_polling_period_us)
 	call(ticks_from_us)
 	call(timer)
+	bra #perf_recv_exit
+
+perf_recv_host:
+	call(send)
 perf_recv_exit:
 	ret
 

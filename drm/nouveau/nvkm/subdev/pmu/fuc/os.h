@@ -49,4 +49,7 @@
 #define I2C__MSG_DATA0_WR08_REG 0:7
 #define I2C__MSG_DATA1_WR08_VAL 0:7
 
+/* PERF: message identifiers */
+#define PERF_MSG_GET_SLOTS 1
+
 #endif
