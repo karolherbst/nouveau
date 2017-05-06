@@ -51,5 +51,6 @@
 
 /* PERF: message identifiers */
 #define PERF_MSG_GET_SLOTS 1
+#define PERF_MSG_SET_SLOT  2
 
 #endif
