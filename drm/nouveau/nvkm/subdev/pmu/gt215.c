@@ -26,6 +26,48 @@
 
 #include <subdev/timer.h>
 
+static void
+gt215_setup_pmu_counters(struct nvkm_pmu *pmu)
+{
+	struct nvkm_device *device = pmu->subdev.device;
+	u32 core_mask = 0;
+	u32 video_mask = 0;
+	u32 memory_mask = 0;
+
+	if (nvkm_device_engine(device, NVKM_ENGINE_GR))
+		core_mask |= 0x00000001;
+	if (nvkm_device_engine(device, NVKM_ENGINE_CE0))
+		core_mask |= 0x00080000;
+	if (nvkm_device_engine(device, NVKM_ENGINE_CE1))
+		core_mask |= 0x00100000;
+	if (nvkm_device_engine(device, NVKM_ENGINE_CE2))
+		core_mask |= 0x00200000;
+
+	if (nvkm_device_engine(device, NVKM_ENGINE_MSVLD))
+		video_mask |= 0x00000010;
+	if (nvkm_device_engine(device, NVKM_ENGINE_MSPDEC))
+		video_mask |= 0x00000020;
+	if (nvkm_device_engine(device, NVKM_ENGINE_MSPPP))
+		video_mask |= 0x00000040;
+	if (nvkm_device_engine(device, NVKM_ENGINE_NVENC0))
+		video_mask |= 0x00020000;
+
+	if (device->chipset < 0xc0)
+		memory_mask = 0x100;
+	else
+		memory_mask = 0x80;
+
+	nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_SET_SLOT,
+		      NVKM_PMU_COUNTER_SLOT_CORE, core_mask);
+	nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_SET_SLOT,
+		      NVKM_PMU_COUNTER_SLOT_VIDEO, video_mask);
+	nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_SET_SLOT,
+		      NVKM_PMU_COUNTER_SLOT_MEMORY, memory_mask);
+	if (pmu->func->counter_slots >= NVKM_PMU_COUNTER_SLOT_PCIE)
+		nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_SET_SLOT,
+			      NVKM_PMU_COUNTER_SLOT_PCIE, 0x20000000);
+}
+
 int
 gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	       u32 process, u32 message, u32 data0, u32 data1)
@@ -238,6 +280,7 @@ gt215_pmu_init(struct nvkm_pmu *pmu)
 	pmu->recv.size = nvkm_rd32(device, 0x10a4dc) >> 16;
 
 	nvkm_wr32(device, 0x10a010, 0x000000e0);
+	gt215_setup_pmu_counters(pmu);
 	return 0;
 }
 
