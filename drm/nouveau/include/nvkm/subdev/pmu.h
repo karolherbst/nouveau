@@ -26,6 +26,15 @@ struct nvkm_pmu {
 	} recv;
 };
 
+enum nvkm_pmu_counters_slot {
+	NVKM_PMU_COUNTERS_SLOT_TOTAL = 0,
+	NVKM_PMU_COUNTERS_SLOT_CORE = 1,
+	NVKM_PMU_COUNTERS_SLOT_MEMORY = 2,
+	NVKM_PMU_COUNTERS_SLOT_VIDEO = 3,
+	NVKM_PMU_COUNTERS_SLOT_PCIE = 4,
+	NVKM_PMU_COUNTERS_SLOT_LAST = 8, // we support up to 8 slots for now
+};
+
 int nvkm_pmu_send(struct nvkm_pmu *, u32 reply[2], u32 process,
 		  u32 message, u32 data0, u32 data1);
 void nvkm_pmu_pgob(struct nvkm_pmu *, bool enable);

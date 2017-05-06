@@ -22,6 +22,7 @@ struct nvkm_pmu_func {
 
 	struct {
 		const u8 slots;
+		void (*setup)(struct nvkm_pmu *);
 	} counters;
 
 	bool (*enabled)(struct nvkm_pmu *);
@@ -40,6 +41,7 @@ void gt215_pmu_fini(struct nvkm_pmu *);
 void gt215_pmu_intr(struct nvkm_pmu *);
 void gt215_pmu_recv(struct nvkm_pmu *);
 int gt215_pmu_send(struct nvkm_pmu *, u32[2], u32, u32, u32, u32);
+void gt215_pmu_counters_setup(struct nvkm_pmu *);
 
 bool gf100_pmu_enabled(struct nvkm_pmu *);
 void gf100_pmu_reset(struct nvkm_pmu *);

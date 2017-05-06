@@ -31,6 +31,7 @@ gk208_pmu = {
 	.data.data = gk208_pmu_data,
 	.data.size = sizeof(gk208_pmu_data),
 	.counters.slots = 8,
+	.counters.setup = gt215_pmu_counters_setup,
 	.enabled = gf100_pmu_enabled,
 	.reset = gf100_pmu_reset,
 	.init = gt215_pmu_init,
