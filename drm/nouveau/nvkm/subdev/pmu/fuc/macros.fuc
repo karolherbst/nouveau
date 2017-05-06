@@ -65,6 +65,14 @@
 #define NV_PPWR_RFIFO_GET                                                0x04cc
 #define NV_PPWR_H2D                                                      0x04d0
 #define NV_PPWR_D2H                                                      0x04dc
+#define NV_PPWR_COUNTER_MASK(i)                            (0x10 * (i) + 0x0504)
+#define NV_PPWR_COUNTER_COUNT(i)                           (0x10 * (i) + 0x0508)
+#define NV_PPWR_COUNTER_COUNT_RESET                                  0x80000000
+#define NV_PPWR_COUNTER_MODE(i)                            (0x10 * (i) + 0x050c)
+#define NV_PPWR_COUNTER_MODE_NEVER                                            0
+#define NV_PPWR_COUNTER_MODE_IF_ALL                                           1
+#define NV_PPWR_COUNTER_MODE_IF_NOT_ALL                                       2
+#define NV_PPWR_COUNTER_MODE_ALWAYS                                           3
 #if NVKM_PPWR_CHIPSET < GK208
 #define NV_PPWR_DSCRATCH(i)                                   (4 * (i) + 0x05d0)
 #endif
