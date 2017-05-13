@@ -20,6 +20,10 @@ struct nvkm_pmu_func {
 		u32  size;
 	} data;
 
+	struct {
+		const u8 slots;
+	} counters;
+
 	bool (*enabled)(struct nvkm_pmu *);
 	void (*reset)(struct nvkm_pmu *);
 	int (*init)(struct nvkm_pmu *);

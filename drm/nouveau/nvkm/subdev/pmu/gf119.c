@@ -30,6 +30,7 @@ gf119_pmu = {
 	.code.size = sizeof(gf119_pmu_code),
 	.data.data = gf119_pmu_data,
 	.data.size = sizeof(gf119_pmu_data),
+	.counters.slots = 8,
 	.enabled = gf100_pmu_enabled,
 	.reset = gf100_pmu_reset,
 	.init = gt215_pmu_init,
