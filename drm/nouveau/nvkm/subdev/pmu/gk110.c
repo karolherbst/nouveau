@@ -97,6 +97,7 @@ gk110_pmu = {
 	.send = gt215_pmu_send,
 	.recv = gt215_pmu_recv,
 	.pgob = gk110_pmu_pgob,
+	.get_perf_data = gt215_pmu_get_perf_data,
 };
 
 int

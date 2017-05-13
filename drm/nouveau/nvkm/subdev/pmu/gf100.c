@@ -54,6 +54,7 @@ gf100_pmu = {
 	.intr = gt215_pmu_intr,
 	.send = gt215_pmu_send,
 	.recv = gt215_pmu_recv,
+	.get_perf_data = gt215_pmu_get_perf_data,
 };
 
 int

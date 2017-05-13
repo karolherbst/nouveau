@@ -31,6 +31,7 @@ struct nvkm_pmu_func {
 		    u32 message, u32 data0, u32 data1);
 	void (*recv)(struct nvkm_pmu *);
 	void (*pgob)(struct nvkm_pmu *, bool);
+	int (*get_perf_data)(struct nvkm_pmu *, struct nvkm_pmu_counter_data *);
 };
 
 int gt215_pmu_init(struct nvkm_pmu *);
@@ -38,6 +39,8 @@ void gt215_pmu_fini(struct nvkm_pmu *);
 void gt215_pmu_intr(struct nvkm_pmu *);
 void gt215_pmu_recv(struct nvkm_pmu *);
 int gt215_pmu_send(struct nvkm_pmu *, u32[2], u32, u32, u32, u32);
+int gt215_pmu_get_perf_data(struct nvkm_pmu *pmu,
+			    struct nvkm_pmu_counter_data *data);
 
 bool gf100_pmu_enabled(struct nvkm_pmu *);
 void gf100_pmu_reset(struct nvkm_pmu *);
