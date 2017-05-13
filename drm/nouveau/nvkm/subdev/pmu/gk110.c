@@ -88,6 +88,7 @@ gk110_pmu = {
 	.code.size = sizeof(gk110_pmu_code),
 	.data.data = gk110_pmu_data,
 	.data.size = sizeof(gk110_pmu_data),
+	.counters.slots = 8,
 	.enabled = gf100_pmu_enabled,
 	.reset = gf100_pmu_reset,
 	.init = gt215_pmu_init,
