@@ -21,6 +21,8 @@ struct nvkm_pmu_func {
 	} data;
 
 	bool (*enabled)(struct nvkm_pmu *);
+	uint8_t counter_slots;
+
 	void (*reset)(struct nvkm_pmu *);
 	int (*init)(struct nvkm_pmu *);
 	void (*fini)(struct nvkm_pmu *);

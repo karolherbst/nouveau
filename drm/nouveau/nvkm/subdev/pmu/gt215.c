@@ -248,6 +248,7 @@ gt215_pmu = {
 	.data.data = gt215_pmu_data,
 	.data.size = sizeof(gt215_pmu_data),
 	.enabled = gt215_pmu_enabled,
+	.counter_slots = 4,
 	.reset = gt215_pmu_reset,
 	.init = gt215_pmu_init,
 	.fini = gt215_pmu_fini,

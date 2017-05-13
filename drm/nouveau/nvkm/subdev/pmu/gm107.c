@@ -33,6 +33,7 @@ gm107_pmu = {
 	.data.data = gm107_pmu_data,
 	.data.size = sizeof(gm107_pmu_data),
 	.enabled = gf100_pmu_enabled,
+	.counter_slots = 8,
 	.reset = gf100_pmu_reset,
 	.init = gt215_pmu_init,
 	.fini = gt215_pmu_fini,
