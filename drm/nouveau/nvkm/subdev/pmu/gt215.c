@@ -179,6 +179,23 @@ gt215_pmu_counters_setup(struct nvkm_pmu *pmu)
 			      NVKM_PMU_COUNTERS_SLOT_PCIE, 0x20000000);
 }
 
+int
+gt215_pmu_counters_get(struct nvkm_pmu *pmu,
+		       struct nvkm_pmu_counters_data *data)
+{
+	int ret;
+	union {
+		u32 *raw;
+		u8 *slots;
+	} d;
+
+	d.slots = data->data;
+	ret = nvkm_pmu_send(pmu, d.raw, PROC_PERF, PERF_MSG_GET_SLOTS, 0, 0);
+	if (ret < 0)
+		return ret;
+	return 0;
+}
+
 void
 gt215_pmu_intr(struct nvkm_pmu *pmu)
 {
@@ -293,6 +310,7 @@ gt215_pmu = {
 	.data.size = sizeof(gt215_pmu_data),
 	.counters.slots = 4,
 	.counters.setup = gt215_pmu_counters_setup,
+	.counters.get = gt215_pmu_counters_get,
 	.enabled = gt215_pmu_enabled,
 	.reset = gt215_pmu_reset,
 	.init = gt215_pmu_init,

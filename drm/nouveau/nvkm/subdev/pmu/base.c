@@ -105,6 +105,14 @@ nvkm_pmu_counters_setup(struct nvkm_pmu *pmu)
 		pmu->func->counters.setup(pmu);
 }
 
+int
+nvkm_pmu_counters_get(struct nvkm_pmu *pmu, struct nvkm_pmu_counters_data *data)
+{
+	if (!pmu || !pmu->func->counters.get)
+		return -ENODEV;
+	return pmu->func->counters.get(pmu, data);
+}
+
 static int
 nvkm_pmu_preinit(struct nvkm_subdev *subdev)
 {
