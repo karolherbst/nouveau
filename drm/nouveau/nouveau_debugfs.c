@@ -31,6 +31,8 @@
 #include <linux/debugfs.h>
 #include <nvif/class.h>
 #include <nvif/if0001.h>
+#include <nvkm/subdev/pmu.h>
+
 #include "nouveau_debugfs.h"
 #include "nouveau_drv.h"
 
