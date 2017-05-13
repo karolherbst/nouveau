@@ -35,6 +35,10 @@ enum nvkm_pmu_counter_slot {
 	NVKM_PMU_COUNTER_SLOT_LAST = 8, // we support up to 8 slots for now
 };
 
+struct nvkm_pmu_counter_data {
+	u8 data[NVKM_PMU_COUNTER_SLOT_LAST];
+};
+
 int nvkm_pmu_send(struct nvkm_pmu *, u32 reply[2], u32 process,
 		  u32 message, u32 data0, u32 data1);
 void nvkm_pmu_pgob(struct nvkm_pmu *, bool enable);
@@ -63,4 +67,7 @@ void nvkm_memx_train(struct nvkm_memx *);
 int  nvkm_memx_train_result(struct nvkm_pmu *, u32 *, int);
 void nvkm_memx_block(struct nvkm_memx *);
 void nvkm_memx_unblock(struct nvkm_memx *);
+
+/* interface to PERF process running on PMU */
+int nvkm_pmu_get_perf_data(struct nvkm_pmu *, struct nvkm_pmu_counter_data*);
 #endif

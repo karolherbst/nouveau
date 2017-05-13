@@ -65,6 +65,22 @@ gt215_setup_pmu_counters(struct nvkm_pmu *pmu)
 }
 
 int
+gt215_pmu_get_perf_data(struct nvkm_pmu *pmu, struct nvkm_pmu_counter_data *data)
+{
+	int ret;
+	union {
+		u32 *raw;
+		u8 *slots;
+	} d;
+
+	d.slots = data->data;
+	ret = nvkm_pmu_send(pmu, d.raw, PROC_PERF, PERF_MSG_GET_SLOTS, 0, 0);
+	if (ret < 0)
+		return ret;
+	return 0;
+}
+
+int
 gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	       u32 process, u32 message, u32 data0, u32 data1)
 {
@@ -287,6 +303,7 @@ gt215_pmu = {
 	.intr = gt215_pmu_intr,
 	.send = gt215_pmu_send,
 	.recv = gt215_pmu_recv,
+	.get_perf_data = gt215_pmu_get_perf_data,
 };
 
 int
