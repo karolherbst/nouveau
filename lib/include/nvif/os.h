@@ -1261,6 +1261,21 @@ void release_firmware(const struct firmware *);
 /******************************************************************************
  * workqueues
  *****************************************************************************/
+struct workqueue_struct {
+};
+
+static inline struct workqueue_struct *
+create_singlethread_workqueue(const char *name)
+{
+	return (void *)1;
+}
+
+static inline void
+destroy_workqueue(struct workqueue_struct *wq)
+{
+	assert(wq);
+}
+
 struct work_struct {
 	union {
 		void (*func)(struct work_struct *);
@@ -1275,6 +1290,12 @@ struct work_struct {
 
 bool nvos_work_init(void (*)(void *), void *, struct nvos_work **);
 void nvos_work_fini(struct nvos_work **);
+
+static inline void
+queue_work(struct workqueue_struct *wq, struct work_struct *work)
+{
+	schedule_work(work);
+}
 
 /******************************************************************************
  * waitqueues
