@@ -170,6 +170,8 @@ gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	return ret;
 }
 
+static u32 threshold = 0x00;
+
 void
 gt215_pmu_recv(struct nvkm_pmu *pmu)
 {
@@ -212,6 +214,23 @@ gt215_pmu_recv(struct nvkm_pmu *pmu)
 	}
 
 	if (process == PROC_PERF && message == HOST_MSG_NOTIFY_THRESHOLD) {
+		union {
+			u32 raw[2];
+			u8 slots[8];
+		} d;
+		d.raw[0] = data0;
+		d.raw[1] = data1;
+		printk(KERN_INFO "notification! %x %x %x %x %x %x %x\n",
+		       d.slots[1],
+		       d.slots[2],
+		       d.slots[3],
+		       d.slots[4],
+		       d.slots[5],
+		       d.slots[6],
+		       d.slots[7]);
+		threshold += 1;
+		printk(KERN_INFO "threshold set to %x\n", threshold);
+		nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_SET_THRESHOLDS, NVKM_PMU_COUNTER_SLOT_CORE, threshold << 16);
 		return;
 	}
 
@@ -324,6 +343,7 @@ gt215_pmu_init(struct nvkm_pmu *pmu)
 
 	nvkm_wr32(device, 0x10a010, 0x000000e0);
 	gt215_setup_pmu_counters(pmu);
+	nvkm_pmu_send(pmu, NULL, PROC_PERF, PERF_MSG_SET_THRESHOLDS, NVKM_PMU_COUNTER_SLOT_CORE, 0x00010000);
 	return 0;
 }
 
