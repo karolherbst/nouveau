@@ -924,6 +924,19 @@ acr_r352_bootstrap(struct acr_r352 *acr, struct nvkm_secboot *sb)
 		}
 	}
 
+	/* reset the PMU if needed */
+	if (acr->base.boot_falcon == NVKM_SECBOOT_FALCON_PMU &&
+	    !nvkm_secboot_is_managed(sb, NVKM_SECBOOT_FALCON_PMU)) {
+		struct nvkm_pmu *pmu = subdev->device->pmu;
+		if (pmu) {
+			ret = nvkm_subdev_init(&pmu->subdev);
+			if (ret < 0) {
+				nvkm_error(subdev, "Failed to reset PMU\n");
+				return ret;
+			}
+		}
+	}
+
 	return 0;
 }
 
