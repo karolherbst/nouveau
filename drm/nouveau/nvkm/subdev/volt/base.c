@@ -162,6 +162,9 @@ nvkm_volt_set_id(struct nvkm_volt *volt, u8 id, u8 min_id, u8 temp,
 {
 	int ret;
 
+	if (!volt)
+		return -ENODEV;
+
 	if (volt->func->set_id)
 		return volt->func->set_id(volt, id, condition);
 

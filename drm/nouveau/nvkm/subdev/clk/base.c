@@ -174,7 +174,7 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 	struct nvkm_therm *therm = device->therm;
 	struct nvkm_volt *volt = device->volt;
 	struct nvkm_cstate *cstate;
-	int ret;
+	int ret = 0;
 
 	if (cstate_id == NVKM_CLK_CSTATE_BOOT)
 		return 0;
@@ -190,6 +190,11 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 	} else {
 		cstate = &pstate->base;
 	}
+
+	/* if the cstate matches, just update the voltage */
+	if (clk->cstate_id == cstate->id)
+		return nvkm_volt_set_id(volt, cstate->voltage,
+					pstate->base.voltage, clk->temp, 0);
 
 	if (therm) {
 		ret = nvkm_therm_cstate(therm, pstate->fanspeed, +1);
@@ -297,6 +302,9 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstate_id)
 			break;
 	}
 
+	if (clk->pstate_id == pstate_id)
+		goto cstate;
+
 	if (!pstate)
 		return -EINVAL;
 
@@ -316,6 +324,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstate_id)
 		ram->func->tidy(ram);
 	}
 
+cstate:
 	return nvkm_cstate_prog(clk, pstate, NVKM_CLK_CSTATE_AUTO);
 }
 
@@ -324,7 +333,7 @@ nvkm_clk_update_work(struct work_struct *work)
 {
 	struct nvkm_clk *clk = container_of(work, typeof(*clk), work);
 	struct nvkm_subdev *subdev = &clk->subdev;
-	int pstate_id;
+	int pstate_id, ret;
 
 	if (!atomic_xchg(&clk->waiting, 0))
 		return;
@@ -346,12 +355,10 @@ nvkm_clk_update_work(struct work_struct *work)
 		   clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
 		   clk->astate, clk->temp, pstate_id);
 
-	if (pstate_id != clk->pstate_id) {
-		int ret = nvkm_pstate_prog(clk, pstate_id);
-		if (ret) {
-			nvkm_error(subdev, "error setting pstate %d: %d\n",
-				   pstate_id, ret);
-		}
+	ret = nvkm_pstate_prog(clk, pstate_id);
+	if (ret) {
+		nvkm_error(subdev, "error setting pstate %d: %d\n",
+			   pstate_id, ret);
 	}
 
 	wake_up_all(&clk->wait);
