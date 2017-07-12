@@ -171,7 +171,7 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 	struct nvkm_therm *therm = device->therm;
 	struct nvkm_volt *volt = device->volt;
 	struct nvkm_cstate *cstate;
-	int ret;
+	int ret = 0;
 
 	if (cstatei == NVKM_CLK_CSTATE_DEFAULT)
 		return 0;
@@ -182,6 +182,12 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstatei)
 	} else {
 		cstate = &pstate->base;
 	}
+
+	// if the cstate matches, just update the voltage
+	if (clk->cstate && clk->cstate == cstate)
+		return nvkm_volt_set_id(volt, clk->cstate->voltage,
+					clk->pstate->base.voltage, clk->temp,
+					0);
 
 	if (therm) {
 		ret = nvkm_therm_cstate(therm, pstate->fanspeed, +1);
@@ -284,6 +290,11 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 	if (pstateid == NVKM_CLK_PSTATE_DEFAULT)
 		return 0;
 
+	if (clk->pstate && clk->pstate->pstate == pstateid) {
+		pstate = clk->pstate;
+		goto cstate;
+	}
+
 	list_for_each_entry(pstate, &clk->states, head) {
 		if (pstate->pstate == pstateid)
 			break;
@@ -308,6 +319,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 		ram->func->tidy(ram);
 	}
 
+cstate:
 	if (clk->throttled)
 		cstate = list_first_entry(&pstate->list, struct nvkm_cstate, head)->id;
 	else
@@ -343,8 +355,7 @@ nvkm_clk_update_work(struct work_struct *work)
 		   clk->astate, clk->exp_cstateid, clk->temp);
 
 	/* only call into the code if the GPU is powered on */
-	if ((!clk->pstate || pstate != clk->pstate->pstate)
-	     && !pm_runtime_suspended(dev)) {
+	if (!pm_runtime_suspended(dev)) {
 		int ret;
 		/* it would be a shame if the GPU goes into suspend while doing
 		 * the reclock
