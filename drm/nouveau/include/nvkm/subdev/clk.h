@@ -109,6 +109,8 @@ struct nvkm_clk {
 	int astate; /* perfmon adjustment (base) */
 	int cstate_id;
 	int temp;
+	int max_temp;
+	int relax_temp;
 
 	bool allow_reclock;
 #define NVKM_CLK_BOOST_NONE 0x0

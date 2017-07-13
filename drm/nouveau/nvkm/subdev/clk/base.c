@@ -27,6 +27,7 @@
 #include <subdev/bios/boost.h>
 #include <subdev/bios/cstep.h>
 #include <subdev/bios/perf.h>
+#include <subdev/bios/thermal_policies.h>
 #include <subdev/bios/vpstate.h>
 #include <subdev/fb.h>
 #include <subdev/therm.h>
@@ -655,6 +656,44 @@ nvkm_clk_fill_limit(struct nvkm_clk_limit *l,
 	l->max_khz = e->clock_mhz * 1000;
 }
 
+static void
+nvkm_clk_parse_max_temp(struct nvkm_clk *clk)
+{
+	struct nvkm_subdev *subdev = &clk->subdev;
+	struct nvkm_bios *bios = subdev->device->bios;
+	struct nvbios_thermal_policies_header header;
+	struct nvbios_thermal_policies_entry entry;
+	u8 i;
+	s16 mt = 0xff;
+	s16 rt = 0xff;
+
+	if (nvbios_thermal_policies_parse(bios, &header))
+		return;
+
+	if (!header.ecount)
+		return;
+
+	for (i = 0; i < header.ecount; i++) {
+		if (nvbios_thermal_policies_entry(bios, &header, i, &entry))
+			return;
+
+		if (entry.mode != 1)
+			continue;
+
+		mt = min_t(s16, mt, (entry.t0 + entry.down_offset) / 32);
+		rt = min_t(s16, rt, (entry.t0 + entry.up_offset) / 32);
+	}
+
+	if (mt == 0xff || rt == 0xff)
+		return;
+
+	clk->max_temp = mt;
+	clk->relax_temp = rt;
+
+	nvkm_debug(subdev, "setting up sw throttling thresholds (%u/%u°C)\n",
+		   clk->max_temp, clk->relax_temp);
+}
+
 int
 nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	      int index, bool allow_reclock, struct nvkm_clk *clk)
@@ -720,6 +759,9 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 
 	clk->boost_mode = nvkm_longopt(device->cfgopt, "NvBoost",
 				       NVKM_CLK_BOOST_NONE);
+
+	nvkm_clk_parse_max_temp(clk);
+
 	return 0;
 }
 
