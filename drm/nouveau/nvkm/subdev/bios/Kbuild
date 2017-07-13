@@ -30,6 +30,7 @@ nvkm-y += nvkm/subdev/bios/shadowramin.o
 nvkm-y += nvkm/subdev/bios/shadowrom.o
 nvkm-y += nvkm/subdev/bios/timing.o
 nvkm-y += nvkm/subdev/bios/therm.o
+nvkm-y += nvkm/subdev/bios/thermal_policies.o
 nvkm-y += nvkm/subdev/bios/vmap.o
 nvkm-y += nvkm/subdev/bios/volt.o
 nvkm-y += nvkm/subdev/bios/vpstate.o
