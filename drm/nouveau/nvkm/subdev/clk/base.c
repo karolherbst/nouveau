@@ -279,7 +279,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 	struct nvkm_fb *fb = subdev->device->fb;
 	struct nvkm_pci *pci = subdev->device->pci;
 	struct nvkm_pstate *pstate;
-	int ret;
+	int ret, cstate;
 
 	if (pstateid == NVKM_CLK_PSTATE_DEFAULT)
 		return 0;
@@ -308,7 +308,12 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstateid)
 		ram->func->tidy(ram);
 	}
 
-	return nvkm_cstate_prog(clk, pstate, clk->exp_cstateid);
+	if (clk->throttled)
+		cstate = list_first_entry(&pstate->list, struct nvkm_cstate, head)->id;
+	else
+		cstate = clk->exp_cstateid;
+
+	return nvkm_cstate_prog(clk, pstate, cstate);
 }
 
 static void
@@ -323,22 +328,19 @@ nvkm_clk_update_work(struct work_struct *work)
 		return;
 	clk->pwrsrc = power_supply_is_system_supplied();
 
-	if (clk->pstate)
-		pstate = clk->pstate->pstate;
-	else
-		pstate = NVKM_CLK_PSTATE_DEFAULT;
-	nvkm_trace(subdev, "P %d PWR %d U(AC) %d U(DC) %d A %d C %d T %d°C\n",
-		   pstate, clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
-		   clk->astate, clk->exp_cstateid, clk->temp);
-
 	pstate = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
 	if (clk->state_nr && pstate != -1) {
-		pstate = (pstate < 0) ? clk->astate : pstate;
+		if (clk->throttled)
+			pstate = list_first_entry(&clk->states, struct nvkm_pstate, head)->pstate;
+		else
+			pstate = (pstate < 0) ? clk->astate : pstate;
 	} else {
 		pstate = NVKM_CLK_PSTATE_DEFAULT;
 	}
 
-	nvkm_trace(subdev, "-> %d\n", pstate);
+	nvkm_trace(subdev, "PWR %d U(AC) %d U(DC) %d A %d C %d T %d°C\n",
+		   clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
+		   clk->astate, clk->exp_cstateid, clk->temp);
 
 	/* only call into the code if the GPU is powered on */
 	if ((!clk->pstate || pstate != clk->pstate->pstate)
@@ -579,9 +581,25 @@ nvkm_clk_astate(struct nvkm_clk *clk, int req, int rel, bool wait)
 int
 nvkm_clk_tstate(struct nvkm_clk *clk, u8 temp)
 {
+	struct nvkm_subdev *subdev = &clk->subdev;
 	if (clk->temp == temp)
 		return 0;
 	clk->temp = temp;
+	if (clk->max_temp && clk->relax_temp) {
+		if (!clk->throttled && temp > clk->max_temp) {
+			nvkm_warn(subdev,
+				  "temperature (%d C) hit the 'downclock' "
+				  "threshold\n",
+				  temp);
+			clk->throttled = true;
+		} else if (clk->throttled && temp < clk->relax_temp) {
+			nvkm_info(subdev,
+				  "temperature (%d C) went below the "
+				  "'relax' threshold\n",
+				  temp);
+			clk->throttled = false;
+		}
+	}
 	return nvkm_clk_update(clk, false);
 }
 
@@ -745,6 +763,7 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	clk->ustate_dc = -1;
 	clk->exp_cstateid = NVKM_CLK_CSTATE_DEFAULT;
 	clk->temp = 90; /* reasonable default value */
+	clk->throttled = false;
 
 	clk->allow_reclock = allow_reclock;
 
