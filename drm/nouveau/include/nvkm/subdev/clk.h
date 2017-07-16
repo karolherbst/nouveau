@@ -111,6 +111,7 @@ struct nvkm_clk {
 	int temp;
 	int max_temp;
 	int relax_temp;
+	bool throttled;
 
 	bool allow_reclock;
 #define NVKM_CLK_BOOST_NONE 0x0

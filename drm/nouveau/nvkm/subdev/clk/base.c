@@ -180,8 +180,13 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 		return 0;
 
 	if (!list_empty(&pstate->cstates)) {
-		cstate = nvkm_cstate_get(clk, pstate, cstate_id);
-		cstate = nvkm_cstate_find_best(clk, pstate, cstate);
+		if (clk->throttled) {
+			cstate = list_first_entry(&pstate->cstates,
+						  struct nvkm_cstate, head);
+		} else {
+			cstate = nvkm_cstate_get(clk, pstate, cstate_id);
+			cstate = nvkm_cstate_find_best(clk, pstate, cstate);
+		}
 	} else {
 		cstate = &pstate->base;
 	}
@@ -325,17 +330,22 @@ nvkm_clk_update_work(struct work_struct *work)
 		return;
 	clk->pwrsrc = power_supply_is_system_supplied();
 
-	nvkm_trace(subdev, "P %x PWR %d U(AC) %d U(DC) %d A %d T %d°C\n",
-		   clk->pstate_id, clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
-		   clk->astate, clk->temp);
-
 	pstate_id = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
-	if (clk->pstates_cnt && pstate_id != NVKM_CLK_PSTATE_BOOT)
-		pstate_id = (pstate_id < 0) ? clk->astate : pstate_id;
-	else
+	if (clk->pstates_cnt && pstate_id != NVKM_CLK_PSTATE_BOOT) {
+		if (clk->throttled)
+			pstate_id = list_first_entry(&clk->pstates,
+						     struct nvkm_pstate,
+						     head)->id;
+		else
+			pstate_id = (pstate_id < 0) ? clk->astate : pstate_id;
+	} else {
 		pstate_id = NVKM_CLK_PSTATE_BOOT;
+	}
 
-	nvkm_trace(subdev, "-> %x\n", pstate_id);
+	nvkm_trace(subdev, "PWR %d U(AC) %d U(DC) %d A %d T %d°C -> %d\n",
+		   clk->pwrsrc, clk->ustate_ac, clk->ustate_dc,
+		   clk->astate, clk->temp, pstate_id);
+
 	if (pstate_id != clk->pstate_id) {
 		int ret = nvkm_pstate_prog(clk, pstate_id);
 		if (ret) {
@@ -552,9 +562,25 @@ nvkm_clk_astate(struct nvkm_clk *clk, int req, int rel, bool wait)
 int
 nvkm_clk_tstate(struct nvkm_clk *clk, int temp)
 {
+	struct nvkm_subdev *subdev = &clk->subdev;
 	if (clk->temp == temp)
 		return 0;
 	clk->temp = temp;
+	if (clk->max_temp && clk->relax_temp) {
+		if (!clk->throttled && temp > clk->max_temp) {
+			nvkm_warn(subdev,
+				  "temperature (%d C) hit the 'downclock' "
+				  "threshold\n",
+				  temp);
+			clk->throttled = true;
+		} else if (clk->throttled && temp < clk->relax_temp) {
+			nvkm_info(subdev,
+				  "temperature (%d C) went below the "
+				  "'relax' threshold\n",
+				  temp);
+			clk->throttled = false;
+		}
+	}
 	return nvkm_clk_update(clk, false);
 }
 
@@ -720,6 +746,7 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	clk->domains = func->domains;
 	clk->ustate_ac = NVKM_CLK_PSTATE_BOOT;
 	clk->ustate_dc = NVKM_CLK_PSTATE_BOOT;
+	clk->throttled = false;
 	clk->allow_reclock = allow_reclock;
 
 	INIT_WORK(&clk->work, nvkm_clk_update_work);
