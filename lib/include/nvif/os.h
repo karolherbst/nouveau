@@ -811,6 +811,7 @@ struct device_driver {
 struct device {
 	struct device_driver *driver;
 	char name[64];
+	void *pm_domain;
 };
 
 #define dev_name(d) (d)->name
