@@ -142,9 +142,10 @@ os_fini_device(struct os_device *odev)
 }
 
 static int
-os_init_device(struct pci_device *pdev, const char *cfg, const char *dbg)
+os_init_device(struct pci_device *pdev, const char *cfgopt, const char *dbg)
 {
 	struct os_device *odev;
+	char cfg[512];
 	int ret;
 
 	ret = pci_device_probe(pdev);
@@ -170,6 +171,8 @@ os_init_device(struct pci_device *pdev, const char *cfg, const char *dbg)
 	odev->pdev.bus = &odev->pdev._bus;
 	odev->pdev.devfn = PCI_DEVFN(pdev->dev, pdev->func);
 	list_add_tail(&odev->head, &os_device_list);
+
+	snprintf(cfg, sizeof(cfg), "%s,NvBar2Halve=1", cfgopt ? cfgopt : "");
 
 	ret = nvkm_device_pci_new(&odev->pdev, cfg, dbg, os_device_detect,
 				  os_device_mmio, os_device_subdev,
