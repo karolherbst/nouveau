@@ -341,6 +341,7 @@ nvkm_clk_update_work(struct work_struct *work)
 
 	/* only call into the code if the GPU is powered on */
 	if ((!clk->pstate || pstate != clk->pstate->pstate)
+	     && !clk->disable_reclock
 	     && !pm_runtime_suspended(dev)
 	     && dev->power.runtime_status != RPM_SUSPENDING) {
 		int ret;
@@ -368,6 +369,9 @@ nvkm_clk_update(struct nvkm_clk *clk, bool wait)
 
 	if (!clk->allow_reclock)
 		return -ENODEV;
+
+	if (clk->disable_reclock)
+		return 0;
 
 	atomic_set(&clk->waiting, 1);
 	schedule_work(&clk->work);
@@ -604,6 +608,7 @@ nvkm_clk_fini(struct nvkm_subdev *subdev, bool suspend)
 {
 	struct nvkm_clk *clk = nvkm_clk(subdev);
 	nvkm_notify_put(&clk->pwrsrc_ntfy);
+	clk->disable_reclock = true;
 	flush_work(&clk->work);
 	if (clk->func->fini)
 		clk->func->fini(clk);
@@ -640,6 +645,7 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 	 */
 	clk->pstate = NULL;
 	clk->cstate = NULL;
+	clk->disable_reclock = false;
 	nvkm_clk_update(clk, true);
 	return 0;
 }
@@ -682,6 +688,7 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 
 	nvkm_subdev_ctor(&nvkm_clk, device, index, subdev);
 
+	clk->disable_reclock = true;
 	if (bios && !nvbios_vpstate_parse(bios, &h)) {
 		struct nvbios_vpstate_entry base, boost;
 		if (!nvbios_vpstate_entry(bios, &h, h.boost_id, &boost))
