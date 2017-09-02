@@ -326,8 +326,9 @@ nouveau_temp_is_visible(const void *data, u32 attr, int channel)
 {
 	struct nouveau_drm *drm = nouveau_drm((struct drm_device *)data);
 	struct nvkm_therm *therm = nvxx_therm(&drm->client.device);
+	int val;
 
-	if (therm && therm->attr_get && nvkm_therm_temp_get(therm) < 0)
+	if (therm && therm->attr_get && nvkm_therm_temp_get(therm, &val))
 		return 0;
 
 	switch (attr) {
@@ -421,15 +422,16 @@ nouveau_temp_read(struct device *dev, u32 attr, int channel, long *val)
 	struct drm_device *drm_dev = dev_get_drvdata(dev);
 	struct nouveau_drm *drm = nouveau_drm(drm_dev);
 	struct nvkm_therm *therm = nvxx_therm(&drm->client.device);
-	int ret;
+	int ret = 0;
+	int temp;
 
 	if (!therm || !therm->attr_get)
 		return -EOPNOTSUPP;
 
 	switch (attr) {
 	case hwmon_temp_input:
-		ret = nvkm_therm_temp_get(therm);
-		*val = ret < 0 ? ret : (ret * 1000);
+		ret = nvkm_therm_temp_get(therm, &temp);
+		*val = temp * 1000;
 		break;
 	case hwmon_temp_max:
 		*val = therm->attr_get(therm, NVKM_THERM_ATTR_THRS_DOWN_CLK)
@@ -459,7 +461,7 @@ nouveau_temp_read(struct device *dev, u32 attr, int channel, long *val)
 		return -EOPNOTSUPP;
 	}
 
-	return 0;
+	return ret;
 }
 
 static int
@@ -713,6 +715,7 @@ nouveau_hwmon_init(struct drm_device *dev)
 	struct device *hwmon_dev;
 	int ret = 0;
 	int i = 0;
+	int val;
 
 	hwmon = drm->hwmon = kzalloc(sizeof(*hwmon), GFP_KERNEL);
 	if (!hwmon)
@@ -720,7 +723,7 @@ nouveau_hwmon_init(struct drm_device *dev)
 	hwmon->dev = dev;
 
 	if (therm && therm->attr_get && therm->attr_set) {
-		if (nvkm_therm_temp_get(therm) >= 0)
+		if (!nvkm_therm_temp_get(therm, &val))
 			special_groups[i++] = &temp1_auto_point_sensor_group;
 		if (therm->fan_get && therm->fan_get(therm) >= 0)
 			special_groups[i++] = &pwm_fan_sensor_group;

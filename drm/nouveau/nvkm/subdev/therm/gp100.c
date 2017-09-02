@@ -24,7 +24,7 @@
 #include "priv.h"
 
 static int
-gp100_temp_get(struct nvkm_therm *therm)
+gp100_temp_get(struct nvkm_therm *therm, int *val)
 {
 	struct nvkm_device *device = therm->subdev.device;
 	struct nvkm_subdev *subdev = &therm->subdev;
@@ -36,9 +36,10 @@ gp100_temp_get(struct nvkm_therm *therm)
 		nvkm_trace(subdev, "reading temperature from SHADOWed sensor\n");
 
 	/* device valid */
-	if (tsensor & 0x20000000)
-		return (inttemp >> 8);
-	else
+	if (tsensor & 0x20000000) {
+		*val = inttemp >> 8;
+		return 0;
+	} else
 		return -ENODEV;
 }
 

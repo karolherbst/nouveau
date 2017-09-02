@@ -27,14 +27,15 @@
 #include <subdev/fuse.h>
 
 int
-g84_temp_get(struct nvkm_therm *therm)
+g84_temp_get(struct nvkm_therm *therm, int *val)
 {
 	struct nvkm_device *device = therm->subdev.device;
 
-	if (nvkm_fuse_read(device->fuse, 0x1a8) == 1)
-		return nvkm_rd32(device, 0x20400);
-	else
+	if (nvkm_fuse_read(device->fuse, 0x1a8) != 1)
 		return -ENODEV;
+
+	*val = nvkm_rd32(device, 0x20400);
+	return 0;
 }
 
 void
@@ -114,8 +115,10 @@ g84_therm_threshold_hyst_emulation(struct nvkm_therm *therm,
 		new_state = NVKM_THERM_THRS_LOWER;
 	}
 
+	if (therm->func->temp_get(therm, &cur))
+		return;
+
 	/* fix the state (in case someone reprogrammed the alarms) */
-	cur = therm->func->temp_get(therm);
 	if (new_state == NVKM_THERM_THRS_LOWER && cur > thrs->temp)
 		new_state = NVKM_THERM_THRS_HIGHER;
 	else if (new_state == NVKM_THERM_THRS_HIGHER &&

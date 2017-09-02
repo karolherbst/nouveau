@@ -540,7 +540,7 @@ nvkm_clk_astate(struct nvkm_clk *clk, int req, int rel, bool wait)
 }
 
 int
-nvkm_clk_tstate(struct nvkm_clk *clk, u8 temp)
+nvkm_clk_tstate(struct nvkm_clk *clk, int temp)
 {
 	if (clk->temp == temp)
 		return 0;

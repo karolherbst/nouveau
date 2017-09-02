@@ -25,21 +25,25 @@
 #include "priv.h"
 
 int
-nvkm_therm_temp_get(struct nvkm_therm *therm)
+nvkm_therm_temp_get(struct nvkm_therm *therm, int *val)
 {
 	if (therm->func->temp_get)
-		return therm->func->temp_get(therm);
+		return therm->func->temp_get(therm, val);
 	return -ENODEV;
 }
 
 static int
 nvkm_therm_update_trip(struct nvkm_therm *therm)
 {
+	int temp, ret;
 	struct nvbios_therm_trip_point *trip = therm->fan->bios.trip,
 				       *cur_trip = NULL,
 				       *last_trip = therm->last_trip;
-	u8  temp = therm->func->temp_get(therm);
 	u16 duty, i;
+
+	ret = therm->func->temp_get(therm, &temp);
+	if (ret < 0)
+		return ret;
 
 	/* look for the trip point corresponding to the current temperature */
 	cur_trip = NULL;
@@ -68,8 +72,12 @@ static int
 nvkm_therm_compute_linear_duty(struct nvkm_therm *therm, u8 linear_min_temp,
                                u8 linear_max_temp)
 {
-	u8  temp = therm->func->temp_get(therm);
+	int temp, ret;
 	u16 duty;
+
+	ret = therm->func->temp_get(therm, &temp);
+	if (ret < 0)
+		return ret;
 
 	/* handle the non-linear part first */
 	if (temp < linear_min_temp)
@@ -183,6 +191,7 @@ nvkm_therm_fan_mode(struct nvkm_therm *therm, int mode)
 {
 	struct nvkm_subdev *subdev = &therm->subdev;
 	struct nvkm_device *device = subdev->device;
+	int val;
 	static const char *name[] = {
 		"disabled",
 		"manual",
@@ -198,7 +207,7 @@ nvkm_therm_fan_mode(struct nvkm_therm *therm, int mode)
 	/* do not allow automatic fan management if the thermal sensor is
 	 * not available */
 	if (mode == NVKM_THERM_CTRL_AUTO &&
-	    therm->func->temp_get(therm) < 0)
+	    therm->func->temp_get(therm, &val))
 		return -EINVAL;
 
 	if (therm->mode == mode)
