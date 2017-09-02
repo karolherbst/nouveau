@@ -126,7 +126,7 @@ nv50_sensor_setup(struct nvkm_therm *therm)
 }
 
 static int
-nv50_temp_get(struct nvkm_therm *therm)
+nv50_temp_get(struct nvkm_therm *therm, int *val)
 {
 	struct nvkm_device *device = therm->subdev.device;
 	struct nvbios_therm_sensor *sensor = &therm->bios_sensor;
@@ -143,11 +143,8 @@ nv50_temp_get(struct nvkm_therm *therm)
 	core_temp = core_temp + sensor->offset_num / sensor->offset_den;
 	core_temp = core_temp + sensor->offset_constant - 8;
 
-	/* reserve negative temperatures for errors */
-	if (core_temp < 0)
-		core_temp = 0;
-
-	return core_temp;
+	*val = core_temp;
+	return 0;
 }
 
 static void

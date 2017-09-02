@@ -91,7 +91,7 @@ struct nvkm_therm_func {
 	int (*pwm_set)(struct nvkm_therm *, int line, u32, u32);
 	int (*pwm_clock)(struct nvkm_therm *, int line);
 
-	int (*temp_get)(struct nvkm_therm *);
+	int (*temp_get)(struct nvkm_therm *, int *);
 
 	int (*fan_sense)(struct nvkm_therm *);
 
@@ -105,7 +105,7 @@ int  nv50_fan_pwm_get(struct nvkm_therm *, int, u32 *, u32 *);
 int  nv50_fan_pwm_set(struct nvkm_therm *, int, u32, u32);
 int  nv50_fan_pwm_clock(struct nvkm_therm *, int);
 
-int  g84_temp_get(struct nvkm_therm *);
+int  g84_temp_get(struct nvkm_therm *, int *);
 void g84_sensor_setup(struct nvkm_therm *);
 void g84_therm_fini(struct nvkm_therm *);
 

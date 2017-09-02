@@ -86,7 +86,7 @@ struct nvkm_therm {
 	int (*attr_set)(struct nvkm_therm *, enum nvkm_therm_attr_type, int);
 };
 
-int nvkm_therm_temp_get(struct nvkm_therm *);
+int nvkm_therm_temp_get(struct nvkm_therm *, int *);
 int nvkm_therm_fan_sense(struct nvkm_therm *);
 int nvkm_therm_cstate(struct nvkm_therm *, int, int);
 
