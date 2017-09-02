@@ -470,18 +470,23 @@ nouveau_fan_read(struct device *dev, u32 attr, int channel, long *val)
 	struct drm_device *drm_dev = dev_get_drvdata(dev);
 	struct nouveau_drm *drm = nouveau_drm(drm_dev);
 	struct nvkm_therm *therm = nvxx_therm(&drm->client.device);
+	int ret;
 
 	if (!therm)
 		return -EOPNOTSUPP;
 
 	switch (attr) {
 	case hwmon_fan_input:
-		*val = nvkm_therm_fan_sense(therm);
+		ret = nvkm_therm_fan_sense(therm);
 		break;
 	default:
 		return -EOPNOTSUPP;
 	}
 
+	if (ret < 0)
+		return ret;
+
+	*val = ret;
 	return 0;
 }
 
@@ -491,7 +496,7 @@ nouveau_in_read(struct device *dev, u32 attr, int channel, long *val)
 	struct drm_device *drm_dev = dev_get_drvdata(dev);
 	struct nouveau_drm *drm = nouveau_drm(drm_dev);
 	struct nvkm_volt *volt = nvxx_volt(&drm->client.device);
-	int ret;
+	int ret = 0;
 
 	if (!volt)
 		return -EOPNOTSUPP;
@@ -499,7 +504,8 @@ nouveau_in_read(struct device *dev, u32 attr, int channel, long *val)
 	switch (attr) {
 	case hwmon_in_input:
 		ret = nvkm_volt_get(volt);
-		*val = ret < 0 ? ret : (ret / 1000);
+		if (ret >= 0)
+			*val = ret / 1000;
 		break;
 	case hwmon_in_min:
 		*val = volt->min_uv > 0 ? (volt->min_uv / 1000) : -ENODEV;
@@ -511,7 +517,7 @@ nouveau_in_read(struct device *dev, u32 attr, int channel, long *val)
 		return -EOPNOTSUPP;
 	}
 
-	return 0;
+	return ret;
 }
 
 static int
@@ -520,21 +526,26 @@ nouveau_pwm_read(struct device *dev, u32 attr, int channel, long *val)
 	struct drm_device *drm_dev = dev_get_drvdata(dev);
 	struct nouveau_drm *drm = nouveau_drm(drm_dev);
 	struct nvkm_therm *therm = nvxx_therm(&drm->client.device);
+	int ret;
 
 	if (!therm || !therm->attr_get || !therm->fan_get)
 		return -EOPNOTSUPP;
 
 	switch (attr) {
 	case hwmon_pwm_enable:
-		*val = therm->attr_get(therm, NVKM_THERM_ATTR_FAN_MODE);
+		ret = therm->attr_get(therm, NVKM_THERM_ATTR_FAN_MODE);
 		break;
 	case hwmon_pwm_input:
-		*val = therm->fan_get(therm);
+		ret = therm->fan_get(therm);
 		break;
 	default:
 		return -EOPNOTSUPP;
 	}
 
+	if (ret < 0)
+		return ret;
+
+	*val = ret;
 	return 0;
 }
 
@@ -544,18 +555,26 @@ nouveau_power_read(struct device *dev, u32 attr, int channel, long *val)
 	struct drm_device *drm_dev = dev_get_drvdata(dev);
 	struct nouveau_drm *drm = nouveau_drm(drm_dev);
 	struct nvkm_iccsense *iccsense = nvxx_iccsense(&drm->client.device);
+	int ret;
 
 	if (!iccsense)
 		return -EOPNOTSUPP;
 
 	switch (attr) {
 	case hwmon_power_input:
-		*val = nvkm_iccsense_read_all(iccsense);
+		ret = nvkm_iccsense_read_all(iccsense);
+		if (ret < 0)
+			return ret;
+		*val = ret;
 		break;
 	case hwmon_power_max:
+		if (iccsense->power_w_max <= 0)
+			return -ENODEV;
 		*val = iccsense->power_w_max;
 		break;
 	case hwmon_power_crit:
+		if (iccsense->power_w_crit <= 0)
+			return -ENODEV;
 		*val = iccsense->power_w_crit;
 		break;
 	default:
