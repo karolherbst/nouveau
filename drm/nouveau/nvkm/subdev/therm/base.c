@@ -26,10 +26,10 @@
 #include <subdev/clk.h>
 
 int
-nvkm_therm_temp_get(struct nvkm_therm *therm)
+nvkm_therm_temp_get(struct nvkm_therm *therm, int *val)
 {
 	if (therm->func->temp_get)
-		return therm->func->temp_get(therm);
+		return therm->func->temp_get(therm, val);
 	return -ENODEV;
 }
 
@@ -170,8 +170,12 @@ nvkm_therm_alarm(struct nvkm_alarm *alarm)
 	struct nvkm_therm *therm =
 	       container_of(alarm, struct nvkm_therm, alarm);
 	struct nvkm_clk *clk = therm->subdev.device->clk;
+	int val;
 
-	therm->last_temp = nvkm_therm_temp_get(therm);
+	if (nvkm_therm_temp_get(therm, &val) < 0)
+		return;
+
+	therm->last_temp = val;
 	nvkm_therm_update(therm, therm->last_temp, -1);
 
 	if (clk)
@@ -183,6 +187,7 @@ nvkm_therm_fan_mode(struct nvkm_therm *therm, int mode)
 {
 	struct nvkm_subdev *subdev = &therm->subdev;
 	struct nvkm_device *device = subdev->device;
+	int val;
 	static const char *name[] = {
 		"disabled",
 		"manual",
@@ -198,7 +203,7 @@ nvkm_therm_fan_mode(struct nvkm_therm *therm, int mode)
 	/* do not allow automatic fan management if the thermal sensor is
 	 * not available */
 	if (mode == NVKM_THERM_CTRL_AUTO &&
-	    therm->func->temp_get(therm) < 0)
+	    therm->func->temp_get(therm, &val) < 0)
 		return -EINVAL;
 
 	if (therm->mode == mode)
@@ -341,8 +346,10 @@ static int
 nvkm_therm_init(struct nvkm_subdev *subdev)
 {
 	struct nvkm_therm *therm = nvkm_therm(subdev);
-	therm->last_temp = nvkm_therm_temp_get(therm);
+	int val;
 
+	nvkm_therm_temp_get(therm, &val);
+	therm->last_temp = val;
 	therm->func->init(therm);
 
 	if (therm->suspend >= 0) {
