@@ -82,6 +82,11 @@ struct nvkm_domain {
 	int mdiv;
 };
 
+struct nvkm_clk_limit {
+	u8  pstate;
+	u32 max_khz;
+};
+
 struct nvkm_clk {
 	const struct nvkm_clk_func *func;
 	struct nvkm_subdev subdev;
@@ -110,8 +115,8 @@ struct nvkm_clk {
 #define NVKM_CLK_BOOST_BIOS 0x1
 #define NVKM_CLK_BOOST_FULL 0x2
 	u8  boost_mode;
-	u32 base_khz;
-	u32 boost_khz;
+	struct nvkm_clk_limit base_limit;
+	struct nvkm_clk_limit boost_limit;
 
 	/*XXX: die, these are here *only* to support the completely
 	 *     bat-shit insane what-was-nouveau_hw.c code
