@@ -57,7 +57,8 @@ nvbios_vpstate_parse(struct nvkm_bios *b, struct nvbios_vpstate_header *h)
 		h->scount   = nvbios_rd08(b, h->offset + 0x4);
 		h->ecount   = nvbios_rd08(b, h->offset + 0x5);
 
-		h->base_id  = nvbios_rd08(b, h->offset + 0x0f);
+		h->battery_id = nvbios_rd08(b, h->offset + 0x0c);
+		h->base_id    = nvbios_rd08(b, h->offset + 0x0f);
 		if (h->hlen > 0x10)
 			h->boost_id = nvbios_rd08(b, h->offset + 0x10);
 		else

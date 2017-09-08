@@ -11,6 +11,7 @@ struct nvbios_vpstate_header {
 	u8 scount;
 	u8 slen;
 
+	u8 battery_id;
 	u8 base_id;
 	u8 boost_id;
 	u8 tdp_id;
