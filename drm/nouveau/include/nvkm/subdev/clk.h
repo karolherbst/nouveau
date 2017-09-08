@@ -120,6 +120,7 @@ struct nvkm_clk {
 	u8  boost_mode;
 	struct nvkm_clk_limit base_limit;
 	struct nvkm_clk_limit boost_limit;
+	struct nvkm_clk_limit batt_limit;
 	u32 max_khz;
 
 	/*XXX: die, these are here *only* to support the completely
