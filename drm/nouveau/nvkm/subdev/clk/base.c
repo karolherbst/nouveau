@@ -99,6 +99,15 @@ nvkm_cstate_valid(struct nvkm_clk *clk, struct nvkm_cstate *cstate,
 		break;
 	}
 
+	if (!clk->pwrsrc) {
+		u32 blimit = clk->batt_limit.max_khz;
+
+		if (!limit)
+			limit = blimit;
+		else if (blimit)
+			limit = min(blimit, limit);
+	}
+
 	if (limit) {
 		for (; domain && domain->name != nv_clk_src_max; domain++) {
 			if (!(domain->flags & NVKM_CLK_DOM_FLAG_VPSTATE))
@@ -303,6 +312,15 @@ nvkm_pstate_find_best(struct nvkm_clk *clk, struct nvkm_pstate *pstate)
 	default:
 		limit = 0;
 		break;
+	}
+
+	if (!clk->pwrsrc) {
+		u8 blimit = clk->batt_limit.pstate;
+
+		if (!limit)
+			limit = blimit;
+		else if (blimit)
+			limit = min(blimit, limit);
 	}
 
 	if (!limit)
@@ -791,6 +809,8 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 			nvkm_clk_fill_limit(&clk->boost_limit, &vpe);
 		if (!nvbios_vpstate_entry(bios, &h, h.base_id, &vpe))
 			nvkm_clk_fill_limit(&clk->base_limit, &vpe);
+		if (!nvbios_vpstate_entry(bios, &h, h.battery_id, &vpe))
+			nvkm_clk_fill_limit(&clk->batt_limit, &vpe);
 	}
 
 	clk->func = func;
