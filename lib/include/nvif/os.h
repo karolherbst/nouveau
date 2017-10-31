@@ -480,6 +480,7 @@ kstrtoul(const char *s, unsigned int base, unsigned long *res)
 #define KERN_WARNING ""
 #define KERN_INFO ""
 #define KERN_DEBUG ""
+#define KERN_CONT ""
 
 #define printk printf
 #define vprintk vprintf

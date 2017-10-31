@@ -16,6 +16,7 @@ CFLAGS  += -I$(lib)/include -I$(drm)/include -I$(drm)/include/nvkm \
 	   -fno-strict-aliasing -Wall -Wundef -Wstrict-prototypes \
 	   -DCONFIG_NOUVEAU_DEBUG=7 \
 	   -DCONFIG_NOUVEAU_DEBUG_DEFAULT=3 \
+	   -DCONFIG_NOUVEAU_DEBUG_MMU=y \
 	   -DCONFIG_NOUVEAU_I2C_INTERNAL \
 	   -DCONFIG_NOUVEAU_I2C_INTERNAL_DEFAULT \
 	   -DCONFIG_NOUVEAU_PLATFORM_DRIVER=y \
