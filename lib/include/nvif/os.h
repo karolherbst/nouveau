@@ -725,6 +725,7 @@ void __iomem *nvos_ioremap(u64 addr, u64 size);
 void  nvos_iounmap(void __iomem *ptr);
 
 #define ioremap(a,b) nvos_ioremap((a), (b))
+#define ioremap_wc ioremap
 #define iounmap(a) nvos_iounmap((a))
 
 #define ioread8(a) *((volatile u8 *)(a))
