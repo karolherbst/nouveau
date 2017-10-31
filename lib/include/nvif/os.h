@@ -501,6 +501,9 @@ typedef unsigned gfp_t;
 #define kzalloc(a,b) calloc(1, (a))
 #define kcalloc(a,b,c) calloc((a), (b))
 #define kfree free
+#define kvmalloc(a,b) kmalloc((a), (b))
+#define kvzalloc(a,b) kzalloc((a), (b))
+#define kvfree(a) kfree(a)
 
 #define vzalloc(a) calloc(1, (a))
 #define vfree free
