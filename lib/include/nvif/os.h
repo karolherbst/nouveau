@@ -771,15 +771,11 @@ void  nvos_iounmap(void __iomem *ptr);
 
 #define ioread8(a) *((volatile u8 *)(a))
 #define ioread16(a) *((volatile u16 *)(a))
-#define ioread16_native ioread16
 #define ioread32(a) *((volatile u32 *)(a))
-#define ioread32_native ioread32
 
 #define iowrite8(b,a) *((volatile u8 *)(a)) = (b)
 #define iowrite16(b,a) *((volatile u16 *)(a)) = (b)
-#define iowrite16_native iowrite16
 #define iowrite32(b,a) *((volatile u32 *)(a)) = (b)
-#define iowrite32_native iowrite32
 
 #define memset_io memset
 #define memcpy_fromio memcpy
