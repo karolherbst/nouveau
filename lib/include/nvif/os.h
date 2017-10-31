@@ -364,6 +364,52 @@ typedef struct atomic {
 #define atomic_xchg(a,b) \
 	__atomic_exchange_n(&(a)->value, (b), __ATOMIC_SEQ_CST)
 
+static inline bool
+atomic_inc_not_zero(atomic_t *a)
+{
+	int v = atomic_read(a);
+	while (v) {
+		int p = __sync_val_compare_and_swap(&a->value, v, v + 1);
+		if (p == v)
+			break;
+		v = p;
+	}
+	return v != 0;
+}
+
+/******************************************************************************
+ * refcount
+ *****************************************************************************/
+typedef struct refcount {
+	atomic_t atomic;
+} refcount_t;
+
+#define refcount_set(a,b) atomic_set(&(a)->atomic, (b))
+#define refcount_inc(a) atomic_inc(&(a)->atomic)
+#define refcount_inc_not_zero(a) atomic_inc_not_zero(&(a)->atomic)
+#define refcount_dec_and_test(a) atomic_dec_and_test(&(a)->atomic)
+#define refcount_dec_and_mutex_lock(a,b) ({                                    \
+	struct mutex *_m = (b);                                                \
+	bool _locked = true;                                                   \
+	mutex_lock(_m);                                                        \
+	if (!refcount_dec_and_test(a)) {                                       \
+		mutex_unlock(_m);                                              \
+		_locked = false;                                               \
+	}                                                                      \
+	_locked;                                                               \
+})
+
+/******************************************************************************
+ * krefs
+ *****************************************************************************/
+struct kref {
+	refcount_t refcount;
+};
+
+#define kref_init(a) refcount_set(&(a)->refcount, 1)
+#define kref_get(a) refcount_inc(&(a)->refcount)
+#define kref_put(a,b) if (refcount_dec_and_test(&(a)->refcount)) b(a)
+
 /******************************************************************************
  * ktime
  *****************************************************************************/
@@ -390,17 +436,6 @@ ktime_to_us(ktime_t kt)
 {
 	return ktime_to_ns(kt) / 1000;
 }
-
-/******************************************************************************
- * krefs
- *****************************************************************************/
-struct kref {
-	atomic_t refcount;
-};
-
-#define kref_init(a) atomic_set(&(a)->refcount, 1)
-#define kref_get(a) atomic_inc(&(a)->refcount)
-#define kref_put(a,b) if (atomic_dec_and_test(&(a)->refcount)) b(a)
 
 /******************************************************************************
  * string
