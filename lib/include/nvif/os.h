@@ -490,9 +490,11 @@ kstrtoul(const char *s, unsigned int base, unsigned long *res)
 /******************************************************************************
  * memory
  *****************************************************************************/
-#define GFP_KERNEL 1
-#define __GFP_ZERO 2
-#define GFP_DMA32  4
+#define GFP_KERNEL    1
+#define __GFP_ZERO    2
+#define GFP_DMA32     4
+#define GFP_USER      8
+#define GFP_HIGHUSER 16
 
 typedef unsigned gfp_t;
 
