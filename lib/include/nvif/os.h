@@ -95,6 +95,7 @@ typedef dma_addr_t resource_size_t;
 #define BIT(a) (1UL << (a))
 #define BIT_ULL(a) (1ULL << (a))
 #define ALIGN(a,b) (((a) + ((b) - 1)) & ~((b) - 1))
+#define ALIGN_DOWN(a,b) ((a) & ~((b) - 1))
 #define IS_ALIGNED(a,b) (!((a) & ((b) - 1)))
 
 #define ERR_PTR(err) ((void *)(long)(err))
