@@ -97,7 +97,7 @@ nvbios_perfEp(struct nvkm_bios *bios, int idx,
 {
 	u32 perf = nvbios_perf_entry(bios, idx, ver, hdr, cnt, len);
 	memset(info, 0x00, sizeof(*info));
-	info->pstate = nvbios_rd08(bios, perf + 0x00);
+	info->pstate_id = nvbios_rd08(bios, perf + 0x00);
 	switch (!!perf * *ver) {
 	case 0x12:
 	case 0x13:

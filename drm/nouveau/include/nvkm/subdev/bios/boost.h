@@ -4,7 +4,7 @@
 u32 nvbios_boostTe(struct nvkm_bios *, u8 *, u8 *, u8 *, u8 *, u8 *, u8 *);
 
 struct nvbios_boostE {
-	u8  pstate;
+	u8  pstate_id;
 	u32 min;
 	u32 max;
 };

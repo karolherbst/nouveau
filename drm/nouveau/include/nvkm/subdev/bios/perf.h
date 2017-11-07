@@ -5,7 +5,7 @@ u32 nvbios_perf_table(struct nvkm_bios *, u8 *ver, u8 *hdr,
 		      u8 *cnt, u8 *len, u8 *snr, u8 *ssz);
 
 struct nvbios_perfE {
-	u8  pstate;
+	u8  pstate_id;
 	u8  fanspeed;
 	u8  voltage;
 	u32 core;

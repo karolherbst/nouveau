@@ -622,7 +622,7 @@ gk20a_clk_ctor(struct nvkm_device *device, int index,
 	/* Finish initializing the pstates */
 	for (i = 0; i < func->nr_pstates; i++) {
 		INIT_LIST_HEAD(&func->pstates[i].list);
-		func->pstates[i].pstate = i + 1;
+		func->pstates[i].id = i + 1;
 	}
 
 	clk->params = params;
