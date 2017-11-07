@@ -78,20 +78,21 @@ nvbios_boostEp(struct nvkm_bios *bios, int idx,
 	u32 data = nvbios_boostEe(bios, idx, ver, hdr, cnt, len);
 	memset(info, 0x00, sizeof(*info));
 	if (data) {
-		info->pstate = (nvbios_rd16(bios, data + 0x00) & 0x01e0) >> 5;
-		info->min    =  nvbios_rd16(bios, data + 0x02) * 1000;
-		info->max    =  nvbios_rd16(bios, data + 0x04) * 1000;
+		info->pstate_id =
+			(nvbios_rd16(bios, data + 0x00) & 0x01e0) >> 5;
+		info->min       =  nvbios_rd16(bios, data + 0x02) * 1000;
+		info->max       =  nvbios_rd16(bios, data + 0x04) * 1000;
 	}
 	return data;
 }
 
 u32
-nvbios_boostEm(struct nvkm_bios *bios, u8 pstate,
+nvbios_boostEm(struct nvkm_bios *bios, u8 pstate_id,
 	       u8 *ver, u8 *hdr, u8 *cnt, u8 *len, struct nvbios_boostE *info)
 {
 	u32 data, idx = 0;
 	while ((data = nvbios_boostEp(bios, idx++, ver, hdr, cnt, len, info))) {
-		if (info->pstate == pstate)
+		if (info->pstate_id == pstate_id)
 			break;
 	}
 	return data;

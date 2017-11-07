@@ -52,7 +52,7 @@ nvkm_control_mthd_pstate_info(struct nvkm_control *ctrl, void *data, u32 size)
 		args->v0.ustate_ac = clk->ustate_ac;
 		args->v0.ustate_dc = clk->ustate_dc;
 		args->v0.pwrsrc = clk->pwrsrc;
-		args->v0.pstate = clk->pstate;
+		args->v0.pstate = clk->pstate_idx;
 	} else {
 		args->v0.count = 0;
 		args->v0.ustate_ac = NVIF_CONTROL_PSTATE_INFO_V0_USTATE_DISABLE;
@@ -115,7 +115,7 @@ nvkm_control_mthd_pstate_attr(struct nvkm_control *ctrl, void *data, u32 size)
 			hi = max(hi, cstate->domain[domain->name]);
 		}
 
-		args->v0.state = pstate->pstate;
+		args->v0.state = pstate->id;
 	} else {
 		lo = max(nvkm_clk_read(clk, domain->name), 0);
 		hi = lo;

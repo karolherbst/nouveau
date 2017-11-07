@@ -63,10 +63,10 @@ nouveau_debugfs_pstate_get(struct seq_file *m, void *data)
 		return ret;
 
 	for (i = 0; i < info.count + 1; i++) {
-		const s32 state = i < info.count ? i :
+		const s32 state_idx = i < info.count ? i :
 			NVIF_CONTROL_PSTATE_ATTR_V0_STATE_CURRENT;
 		struct nvif_control_pstate_attr_v0 attr = {
-			.state = state,
+			.state = state_idx,
 			.index = 0,
 		};
 
@@ -83,7 +83,7 @@ nouveau_debugfs_pstate_get(struct seq_file *m, void *data)
 
 		attr.index = 0;
 		do {
-			attr.state = state;
+			attr.state = state_idx;
 			ret = nvif_mthd(ctrl, NVIF_CONTROL_PSTATE_ATTR,
 					&attr, sizeof(attr));
 			if (ret)
@@ -95,12 +95,12 @@ nouveau_debugfs_pstate_get(struct seq_file *m, void *data)
 			seq_printf(m, " %s", attr.unit);
 		} while (attr.index);
 
-		if (state >= 0) {
-			if (info.ustate_ac == state)
+		if (state_idx >= 0) {
+			if (info.ustate_ac == state_idx)
 				seq_printf(m, " AC");
-			if (info.ustate_dc == state)
+			if (info.ustate_dc == state_idx)
 				seq_printf(m, " DC");
-			if (info.pstate == state)
+			if (info.pstate == state_idx)
 				seq_printf(m, " *");
 		} else {
 			if (info.ustate_ac < -1)

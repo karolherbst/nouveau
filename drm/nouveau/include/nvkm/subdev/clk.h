@@ -64,7 +64,7 @@ struct nvkm_pstate {
 	struct list_head head;
 	struct list_head list; /* c-states */
 	struct nvkm_cstate base;
-	u8 pstate;
+	u8 id;
 	u8 fanspeed;
 	enum nvkm_pcie_speed pcie_speed;
 	u8 pcie_width;
@@ -96,7 +96,7 @@ struct nvkm_clk {
 
 	struct nvkm_notify pwrsrc_ntfy;
 	int pwrsrc;
-	int pstate; /* current */
+	int pstate_idx; /* current */
 	int ustate_ac; /* user-requested (-1 disabled, -2 perfmon) */
 	int ustate_dc; /* user-requested (-1 disabled, -2 perfmon) */
 	int astate; /* perfmon adjustment (base) */
