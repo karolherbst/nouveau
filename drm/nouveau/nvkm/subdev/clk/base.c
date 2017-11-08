@@ -311,12 +311,12 @@ nvkm_pstate_work(struct work_struct *work)
 		   clk->astate, clk->temp, clk->dstate);
 
 	pstate_idx = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
-	if (clk->state_nr && pstate_idx != -1) {
+	if (clk->state_nr && pstate_idx != NVKM_CLK_PSTATE_BOOT) {
 		pstate_idx = (pstate_idx < 0) ? clk->astate : pstate_idx;
 		pstate_idx = min(pstate_idx, clk->state_nr - 1);
 		pstate_idx = max(pstate_idx, clk->dstate);
 	} else {
-		pstate_idx = clk->pstate_idx = -1;
+		pstate_idx = clk->pstate_idx = NVKM_CLK_PSTATE_BOOT;
 	}
 
 	nvkm_trace(subdev, "-> %d\n", pstate_idx);
@@ -616,7 +616,7 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 
 	clk->astate = clk->state_nr - 1;
 	clk->dstate = 0;
-	clk->pstate_idx = -1;
+	clk->pstate_idx = NVKM_CLK_PSTATE_BOOT;
 	clk->temp = 90; /* reasonable default value */
 	nvkm_pstate_calc(clk, true);
 	return 0;
@@ -671,8 +671,8 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	clk->func = func;
 	INIT_LIST_HEAD(&clk->states);
 	clk->domains = func->domains;
-	clk->ustate_ac = -1;
-	clk->ustate_dc = -1;
+	clk->ustate_ac = NVKM_CLK_PSTATE_BOOT;
+	clk->ustate_dc = NVKM_CLK_PSTATE_BOOT;
 	clk->allow_reclock = allow_reclock;
 
 	INIT_WORK(&clk->work, nvkm_pstate_work);
