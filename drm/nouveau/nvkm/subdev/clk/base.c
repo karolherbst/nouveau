@@ -145,7 +145,7 @@ static struct nvkm_cstate *
 nvkm_cstate_get(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstate_id)
 {
 	struct nvkm_cstate *cstate;
-	if (cstate_id == NVKM_CLK_CSTATE_HIGHEST)
+	if (cstate_id == NVKM_CLK_CSTATE_AUTO)
 		return list_last_entry(&pstate->list, typeof(*cstate), head);
 	else {
 		list_for_each_entry(cstate, &pstate->list, head) {
@@ -292,7 +292,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstate_idx)
 		ram->func->tidy(ram);
 	}
 
-	return nvkm_cstate_prog(clk, pstate, NVKM_CLK_CSTATE_HIGHEST);
+	return nvkm_cstate_prog(clk, pstate, NVKM_CLK_CSTATE_AUTO);
 }
 
 static void
