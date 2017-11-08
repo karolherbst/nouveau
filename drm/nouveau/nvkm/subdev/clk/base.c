@@ -133,7 +133,7 @@ nvkm_cstate_find_best(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 		max_volt = min(max_volt,
 			       nvkm_volt_map(volt, volt->max2_id, clk->temp));
 
-	list_for_each_entry_from_reverse(cstate, &pstate->list, head) {
+	list_for_each_entry_from_reverse(cstate, &pstate->cstates, head) {
 		if (nvkm_cstate_valid(clk, cstate, max_volt, clk->temp))
 			break;
 	}
@@ -146,9 +146,9 @@ nvkm_cstate_get(struct nvkm_clk *clk, struct nvkm_pstate *pstate, int cstate_id)
 {
 	struct nvkm_cstate *cstate;
 	if (cstate_id == NVKM_CLK_CSTATE_AUTO)
-		return list_last_entry(&pstate->list, typeof(*cstate), head);
+		return list_last_entry(&pstate->cstates, typeof(*cstate), head);
 	else {
-		list_for_each_entry(cstate, &pstate->list, head) {
+		list_for_each_entry(cstate, &pstate->cstates, head) {
 			if (cstate->id == cstate_id)
 				return cstate;
 		}
@@ -167,7 +167,7 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 	struct nvkm_cstate *cstate;
 	int ret;
 
-	if (!list_empty(&pstate->list)) {
+	if (!list_empty(&pstate->cstates)) {
 		cstate = nvkm_cstate_get(clk, pstate, cstate_id);
 		cstate = nvkm_cstate_find_best(clk, pstate, cstate);
 	} else {
@@ -255,7 +255,7 @@ nvkm_cstate_new(struct nvkm_clk *clk, int idx, struct nvkm_pstate *pstate)
 		domain++;
 	}
 
-	list_add(&cstate->head, &pstate->list);
+	list_add(&cstate->head, &pstate->cstates);
 	return 0;
 }
 
@@ -362,7 +362,7 @@ nvkm_pstate_info(struct nvkm_clk *clk, struct nvkm_pstate *pstate)
 			continue;
 
 		nvkm_debug(subdev, "%02x: %10d KHz\n", clock->name, lo);
-		list_for_each_entry(cstate, &pstate->list, head) {
+		list_for_each_entry(cstate, &pstate->cstates, head) {
 			u32 freq = cstate->domain[clock->name];
 			lo = min(lo, freq);
 			hi = max(hi, freq);
@@ -390,7 +390,7 @@ nvkm_pstate_del(struct nvkm_pstate *pstate)
 {
 	struct nvkm_cstate *cstate, *temp;
 
-	list_for_each_entry_safe(cstate, temp, &pstate->list, head) {
+	list_for_each_entry_safe(cstate, temp, &pstate->cstates, head) {
 		nvkm_cstate_del(cstate);
 	}
 
@@ -421,7 +421,7 @@ nvkm_pstate_new(struct nvkm_clk *clk, int idx)
 	if (!pstate)
 		return -ENOMEM;
 
-	INIT_LIST_HEAD(&pstate->list);
+	INIT_LIST_HEAD(&pstate->cstates);
 
 	pstate->id = perfE.pstate_id;
 	pstate->fanspeed = perfE.fanspeed;
@@ -596,7 +596,7 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 	int ret;
 
 	memset(&clk->bstate, 0x00, sizeof(clk->bstate));
-	INIT_LIST_HEAD(&clk->bstate.list);
+	INIT_LIST_HEAD(&clk->bstate.cstates);
 	clk->bstate.id = 0xff;
 
 	while (clock->name != nv_clk_src_max) {

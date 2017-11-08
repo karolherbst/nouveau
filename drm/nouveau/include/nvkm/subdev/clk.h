@@ -64,7 +64,7 @@ struct nvkm_cstate {
 
 struct nvkm_pstate {
 	struct list_head head;
-	struct list_head list; /* c-states */
+	struct list_head cstates; /* c-states */
 	struct nvkm_cstate base;
 	u8 id;
 	u8 fanspeed;
