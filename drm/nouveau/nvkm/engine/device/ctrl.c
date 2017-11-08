@@ -48,7 +48,7 @@ nvkm_control_mthd_pstate_info(struct nvkm_control *ctrl, void *data, u32 size)
 		return ret;
 
 	if (clk) {
-		args->v0.count = clk->state_nr;
+		args->v0.count = clk->pstates_cnt;
 		args->v0.ustate_ac = clk->ustate_ac;
 		args->v0.ustate_dc = clk->ustate_dc;
 		args->v0.pwrsrc = clk->pwrsrc;
@@ -87,7 +87,7 @@ nvkm_control_mthd_pstate_attr(struct nvkm_control *ctrl, void *data, u32 size)
 			return -ENODEV;
 		if (args->v0.state < NVIF_CONTROL_PSTATE_ATTR_V0_STATE_CURRENT)
 			return -EINVAL;
-		if (args->v0.state >= clk->state_nr)
+		if (args->v0.state >= clk->pstates_cnt)
 			return -EINVAL;
 	} else
 		return ret;
@@ -103,7 +103,7 @@ nvkm_control_mthd_pstate_attr(struct nvkm_control *ctrl, void *data, u32 size)
 		return -EINVAL;
 
 	if (args->v0.state != NVIF_CONTROL_PSTATE_ATTR_V0_STATE_CURRENT) {
-		list_for_each_entry(pstate, &clk->states, head) {
+		list_for_each_entry(pstate, &clk->pstates, head) {
 			if (i++ == args->v0.state)
 				break;
 		}

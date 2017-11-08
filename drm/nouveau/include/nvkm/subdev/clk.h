@@ -89,8 +89,8 @@ struct nvkm_clk {
 	const struct nvkm_domain *domains;
 	struct nvkm_pstate bstate;
 
-	struct list_head states;
-	int state_nr;
+	struct list_head pstates;
+	int pstates_cnt;
 
 	struct work_struct work;
 	wait_queue_head_t wait;
