@@ -75,12 +75,13 @@ gk20a_pmu_dvfs_get_target_state(struct gk20a_pmu *pmu,
 	level = cur_level = clk->pstate_idx;
 
 	if (load > data->p_load_max) {
-		level = min(clk->state_nr - 1, level + (clk->state_nr / 3));
+		level = min(clk->pstates_cnt - 1,
+			    level + (clk->pstates_cnt / 3));
 	} else {
 		level += ((load - data->p_load_target) * 10 /
 				data->p_load_target) / 2;
 		level = max(0, level);
-		level = min(clk->state_nr - 1, level);
+		level = min(clk->pstates_cnt - 1, level);
 	}
 
 	nvkm_trace(&pmu->base.subdev, "cur level = %d, new level = %d\n",

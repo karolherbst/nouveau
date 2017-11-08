@@ -271,7 +271,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstate_idx)
 	struct nvkm_pstate *pstate;
 	int ret, idx = 0;
 
-	list_for_each_entry(pstate, &clk->states, head) {
+	list_for_each_entry(pstate, &clk->pstates, head) {
 		if (idx++ == pstate_idx)
 			break;
 	}
@@ -311,9 +311,9 @@ nvkm_pstate_work(struct work_struct *work)
 		   clk->astate, clk->temp, clk->dstate);
 
 	pstate_idx = clk->pwrsrc ? clk->ustate_ac : clk->ustate_dc;
-	if (clk->state_nr && pstate_idx != NVKM_CLK_PSTATE_BOOT) {
+	if (clk->pstates_cnt && pstate_idx != NVKM_CLK_PSTATE_BOOT) {
 		pstate_idx = (pstate_idx < 0) ? clk->astate : pstate_idx;
-		pstate_idx = min(pstate_idx, clk->state_nr - 1);
+		pstate_idx = min(pstate_idx, clk->pstates_cnt - 1);
 		pstate_idx = max(pstate_idx, clk->dstate);
 	} else {
 		pstate_idx = clk->pstate_idx = NVKM_CLK_PSTATE_BOOT;
@@ -461,8 +461,8 @@ nvkm_pstate_new(struct nvkm_clk *clk, int idx)
 	}
 
 	nvkm_pstate_info(clk, pstate);
-	list_add_tail(&pstate->head, &clk->states);
-	clk->state_nr++;
+	list_add_tail(&pstate->head, &clk->pstates);
+	clk->pstates_cnt++;
 	return 0;
 }
 
@@ -479,7 +479,7 @@ nvkm_clk_ustate_update(struct nvkm_clk *clk, int req)
 		return -ENOSYS;
 
 	if (req != -1 && req != -2) {
-		list_for_each_entry(pstate, &clk->states, head) {
+		list_for_each_entry(pstate, &clk->pstates, head) {
 			if (pstate->id == req)
 				break;
 			i++;
@@ -534,7 +534,7 @@ nvkm_clk_astate(struct nvkm_clk *clk, int req, int rel, bool wait)
 {
 	if (!rel) clk->astate  = req;
 	if ( rel) clk->astate += rel;
-	clk->astate = min(clk->astate, clk->state_nr - 1);
+	clk->astate = min(clk->astate, clk->pstates_cnt - 1);
 	clk->astate = max(clk->astate, 0);
 	return nvkm_pstate_calc(clk, wait);
 }
@@ -553,7 +553,7 @@ nvkm_clk_dstate(struct nvkm_clk *clk, int req, int rel)
 {
 	if (!rel) clk->dstate  = req;
 	if ( rel) clk->dstate += rel;
-	clk->dstate = min(clk->dstate, clk->state_nr - 1);
+	clk->dstate = min(clk->dstate, clk->pstates_cnt - 1);
 	clk->dstate = max(clk->dstate, 0);
 	return nvkm_pstate_calc(clk, true);
 }
@@ -614,7 +614,7 @@ nvkm_clk_init(struct nvkm_subdev *subdev)
 	if (clk->func->init)
 		return clk->func->init(clk);
 
-	clk->astate = clk->state_nr - 1;
+	clk->astate = clk->pstates_cnt - 1;
 	clk->dstate = 0;
 	clk->pstate_idx = NVKM_CLK_PSTATE_BOOT;
 	clk->temp = 90; /* reasonable default value */
@@ -634,7 +634,7 @@ nvkm_clk_dtor(struct nvkm_subdev *subdev)
 	if (clk->func->pstates)
 		return clk;
 
-	list_for_each_entry_safe(pstate, temp, &clk->states, head) {
+	list_for_each_entry_safe(pstate, temp, &clk->pstates, head) {
 		nvkm_pstate_del(pstate);
 	}
 
@@ -669,7 +669,7 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 	}
 
 	clk->func = func;
-	INIT_LIST_HEAD(&clk->states);
+	INIT_LIST_HEAD(&clk->pstates);
 	clk->domains = func->domains;
 	clk->ustate_ac = NVKM_CLK_PSTATE_BOOT;
 	clk->ustate_dc = NVKM_CLK_PSTATE_BOOT;
@@ -687,8 +687,8 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 		} while (ret == 0);
 	} else {
 		for (idx = 0; idx < func->nr_pstates; idx++)
-			list_add_tail(&func->pstates[idx].head, &clk->states);
-		clk->state_nr = func->nr_pstates;
+			list_add_tail(&func->pstates[idx].head, &clk->pstates);
+		clk->pstates_cnt = func->nr_pstates;
 	}
 
 	ret = nvkm_notify_init(NULL, &device->event, nvkm_clk_pwrsrc, true,
