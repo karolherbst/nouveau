@@ -205,6 +205,8 @@ nvkm_cstate_prog(struct nvkm_clk *clk, struct nvkm_pstate *pstate,
 		return nvkm_volt_set_id(volt, cstate->voltage,
 					pstate->base.voltage, clk->temp, 0);
 
+	nvkm_trace(subdev, "setting cstate to %d\n", cstate->id);
+
 	if (therm) {
 		ret = nvkm_therm_cstate(therm, pstate->fanspeed, +1);
 		if (ret && ret != -ENODEV) {
