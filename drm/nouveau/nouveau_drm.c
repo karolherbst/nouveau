@@ -771,6 +771,27 @@ nouveau_pmops_suspend(struct device *dev)
 	return 0;
 }
 
+static int
+nouveau_set_power_state_D0(struct pci_dev *pdev)
+{
+	struct nouveau_drm *drm = nouveau_drm(pci_get_drvdata(pdev));
+	int ret;
+
+	pci_set_power_state(pdev, PCI_D0);
+	/* abort if anything went wrong */
+	if (pdev->current_state != PCI_D0) {
+		NV_ERROR(drm, "couldn't wake up GPU!\n");
+		return -EBUSY;
+	}
+	pci_restore_state(pdev);
+	ret = pci_enable_device(pdev);
+	if (ret)
+		return ret;
+
+	pci_set_master(pdev);
+	return 0;
+}
+
 int
 nouveau_pmops_resume(struct device *dev)
 {
@@ -782,12 +803,9 @@ nouveau_pmops_resume(struct device *dev)
 	    drm_dev->switch_power_state == DRM_SWITCH_POWER_DYNAMIC_OFF)
 		return 0;
 
-	pci_set_power_state(pdev, PCI_D0);
-	pci_restore_state(pdev);
-	ret = pci_enable_device(pdev);
+	ret = nouveau_set_power_state_D0(pdev);
 	if (ret)
 		return ret;
-	pci_set_master(pdev);
 
 	ret = nouveau_do_resume(drm_dev, false);
 
@@ -856,12 +874,9 @@ nouveau_pmops_runtime_resume(struct device *dev)
 		return -EBUSY;
 	}
 
-	pci_set_power_state(pdev, PCI_D0);
-	pci_restore_state(pdev);
-	ret = pci_enable_device(pdev);
+	ret = nouveau_set_power_state_D0(pdev);
 	if (ret)
 		return ret;
-	pci_set_master(pdev);
 
 	ret = nouveau_do_resume(drm_dev, true);
 
