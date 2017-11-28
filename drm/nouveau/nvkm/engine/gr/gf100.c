@@ -1981,7 +1981,17 @@ gf100_gr_init_(struct nvkm_gr *base)
 {
 	struct gf100_gr *gr = gf100_gr(base);
 	struct nvkm_subdev *subdev = &base->engine.subdev;
+	struct nvkm_device *device = subdev->device;
 	u32 ret;
+
+	/* did you try turning it off and on again? Apparently we need this
+	 * on pascal, otherwise secboot will just fail.
+	 */
+	nvkm_mask(device, 0x200, 0x1000, 0x0000);
+	nvkm_rd32(device, 0x200);
+	msleep(50);
+	nvkm_mask(device, 0x200, 0x1000, 0x1000);
+	nvkm_rd32(device, 0x200);
 
 	nvkm_pmu_pgob(gr->base.engine.subdev.device->pmu, false);
 
