@@ -3337,9 +3337,9 @@ nv50_mstm_service(struct nv50_mstm *mstm)
 		}
 
 		drm_dp_mst_hpd_irq(&mstm->mgr, esi, &handled);
-		if (!handled)
-			break;
-
+		/* normally we want to break here for !handled, but not doing
+		 * that fixes DP MST issues with the Dock for Lenovo P50/P51s
+		 */
 		drm_dp_dpcd_write(aux, DP_SINK_COUNT_ESI + 1, &esi[1], 3);
 	}
 }
