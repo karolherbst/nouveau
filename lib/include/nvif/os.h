@@ -1199,7 +1199,10 @@ pci_disable_msi(struct pci_dev *pdev)
 #define PCI_FUNC(a) ((a) & 0x07)
 #define pci_domain_nr(a) (a)->domain
 #define pci_get_bus_and_slot(a, b) NULL
+#define pci_get_domain_bus_and_slot(a,b,c) ({ (void)(a); NULL; })
 #define pci_read_config_dword(a,b,c) *(c) = 0
+#define dev_is_pci(a) ({ (void)(a); true; })
+#define to_pci_dev(a) container_of((a), struct pci_dev, dev)
 
 #define PCI_ANY_ID (~0)
 
