@@ -218,6 +218,7 @@ put_unaligned_le32(u32 val, void *ptr)
 #define __ffs64(a) (__builtin_ffsll(a) - 1)
 #define __ffs(a) (__builtin_ffs(a) - 1)
 #define fls(a) ((a) ? sizeof(a) * 8 - __builtin_clz(a) : 0)
+#define fls64(a) ((a) ? sizeof(a) * 8 - __builtin_clzll(a) : 0)
 
 static inline int
 hweight8(u32 v) {
