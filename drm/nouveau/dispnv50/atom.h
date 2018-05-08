@@ -138,6 +138,8 @@ struct nv50_wndw_atom {
 
 	struct drm_rect clip;
 
+	bool visible;
+
 	struct {
 		u32  handle;
 		u16  offset:12;
