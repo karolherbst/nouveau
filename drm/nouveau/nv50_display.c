@@ -665,7 +665,7 @@ struct nv50_head {
 #define nv50_vers(c) nv50_chan(c)->user.oclass
 
 struct nv50_disp {
-	struct nvif_object *disp;
+	struct nvif_disp *disp;
 	struct nv50_mast mast;
 
 	struct nouveau_bo *sync;
@@ -1208,7 +1208,7 @@ nv50_curs_new(struct nouveau_drm *drm, struct nv50_head *head,
 	struct nv50_curs *curs;
 	int cid, ret;
 
-	cid = nvif_mclass(disp->disp, curses);
+	cid = nvif_mclass(&disp->disp->object, curses);
 	if (cid < 0) {
 		NV_ERROR(drm, "No supported cursor immediate class\n");
 		return cid;
@@ -1226,8 +1226,8 @@ nv50_curs_new(struct nouveau_drm *drm, struct nv50_head *head,
 		return ret;
 	}
 
-	ret = nvif_object_init(disp->disp, 0, curses[cid].oclass, &args,
-			       sizeof(args), &curs->chan);
+	ret = nvif_object_init(&disp->disp->object, 0, curses[cid].oclass,
+			       &args, sizeof(args), &curs->chan);
 	if (ret) {
 		NV_ERROR(drm, "curs%04x allocation failed: %d\n",
 			 curses[cid].oclass, ret);
@@ -1525,8 +1525,8 @@ nv50_base_new(struct nouveau_drm *drm, struct nv50_head *head,
 		return ret;
 	}
 
-	ret = nv50_base_create(&drm->client.device, disp->disp, base->id,
-			       disp->sync->bo.offset, &base->chan);
+	ret = nv50_base_create(&drm->client.device, &disp->disp->object,
+			       base->id, disp->sync->bo.offset, &base->chan);
 	if (ret)
 		return ret;
 
@@ -2113,7 +2113,7 @@ nv50_head_atomic_check_lut(struct nv50_head *head,
 		return;
 	}
 
-	if (disp->disp->oclass < GF110_DISP) {
+	if (disp->disp->object.oclass < GF110_DISP) {
 		asyh->lut.mode = (asyh->base.cpp == 1) ? 0 : 1;
 		asyh->set.ilut = true;
 	} else {
@@ -2412,12 +2412,12 @@ nv50_head_create(struct drm_device *dev, int index)
 	}
 
 	/* allocate overlay resources */
-	ret = nv50_oimm_create(device, disp->disp, index, &head->oimm);
+	ret = nv50_oimm_create(device, &disp->disp->object, index, &head->oimm);
 	if (ret)
 		goto out;
 
-	ret = nv50_ovly_create(device, disp->disp, index, disp->sync->bo.offset,
-			       &head->ovly);
+	ret = nv50_ovly_create(device, &disp->disp->object, index,
+			       disp->sync->bo.offset, &head->ovly);
 	if (ret)
 		goto out;
 
@@ -2443,7 +2443,7 @@ nv50_outp_release(struct nouveau_encoder *nv_encoder)
 		.base.hashm  = nv_encoder->dcb->hashm,
 	};
 
-	nvif_mthd(disp->disp, 0, &args, sizeof(args));
+	nvif_mthd(&disp->disp->object, 0, &args, sizeof(args));
 	nv_encoder->or = -1;
 	nv_encoder->link = 0;
 }
@@ -2464,7 +2464,7 @@ nv50_outp_acquire(struct nouveau_encoder *nv_encoder)
 	};
 	int ret;
 
-	ret = nvif_mthd(disp->disp, 0, &args, sizeof(args));
+	ret = nvif_mthd(&disp->disp->object, 0, &args, sizeof(args));
 	if (ret) {
 		NV_ERROR(drm, "error acquiring output path: %d\n", ret);
 		return ret;
@@ -2626,7 +2626,7 @@ nv50_dac_detect(struct drm_encoder *encoder, struct drm_connector *connector)
 	if (args.load.data == 0)
 		args.load.data = 340;
 
-	ret = nvif_mthd(disp->disp, 0, &args, sizeof(args));
+	ret = nvif_mthd(&disp->disp->object, 0, &args, sizeof(args));
 	if (ret || !args.load.load)
 		return connector_status_disconnected;
 
@@ -2702,7 +2702,7 @@ nv50_audio_disable(struct drm_encoder *encoder, struct nouveau_crtc *nv_crtc)
 				(0x0100 << nv_crtc->index),
 	};
 
-	nvif_mthd(disp->disp, 0, &args, sizeof(args));
+	nvif_mthd(&disp->disp->object, 0, &args, sizeof(args));
 }
 
 static void
@@ -2732,7 +2732,7 @@ nv50_audio_enable(struct drm_encoder *encoder, struct drm_display_mode *mode)
 
 	memcpy(args.data, nv_connector->base.eld, sizeof(args.data));
 
-	nvif_mthd(disp->disp, 0, &args,
+	nvif_mthd(&disp->disp->object, 0, &args,
 		  sizeof(args.base) + drm_eld_size(args.data));
 }
 
@@ -2755,7 +2755,7 @@ nv50_hdmi_disable(struct drm_encoder *encoder, struct nouveau_crtc *nv_crtc)
 			       (0x0100 << nv_crtc->index),
 	};
 
-	nvif_mthd(disp->disp, 0, &args, sizeof(args));
+	nvif_mthd(&disp->disp->object, 0, &args, sizeof(args));
 }
 
 static void
@@ -2816,7 +2816,7 @@ nv50_hdmi_enable(struct drm_encoder *encoder, struct drm_display_mode *mode)
 		+ sizeof(args.pwr)
 		+ args.pwr.avi_infoframe_length
 		+ args.pwr.vendor_infoframe_length;
-	nvif_mthd(disp->disp, 0, &args, size);
+	nvif_mthd(&disp->disp->object, 0, &args, size);
 	nv50_audio_enable(encoder, mode);
 }
 
@@ -2931,7 +2931,7 @@ nv50_msto_prepare(struct nv50_msto *msto)
 		  msto->encoder.name, msto->head->base.base.name,
 		  args.vcpi.start_slot, args.vcpi.num_slots,
 		  args.vcpi.pbn, args.vcpi.aligned_pbn);
-	nvif_mthd(&drm->display->disp, 0, &args, sizeof(args));
+	nvif_mthd(&drm->display->disp.object, 0, &args, sizeof(args));
 }
 
 static int
@@ -3349,7 +3349,7 @@ nv50_mstm_enable(struct nv50_mstm *mstm, u8 dpcd, int state)
 		.mst.state = state,
 	};
 	struct nouveau_drm *drm = nouveau_drm(outp->base.base.dev);
-	struct nvif_object *disp = &drm->display->disp;
+	struct nvif_object *disp = &drm->display->disp.object;
 	int ret;
 
 	if (dpcd >= 0x12) {
@@ -3618,7 +3618,7 @@ nv50_sor_enable(struct drm_encoder *encoder)
 				lvds.lvds.script |= 0x0200;
 		}
 
-		nvif_mthd(disp->disp, 0, &lvds, sizeof(lvds));
+		nvif_mthd(&disp->disp->object, 0, &lvds, sizeof(lvds));
 		break;
 	case DCB_OUTPUT_DP:
 		if (nv_connector->base.display_info.bpc == 6)
@@ -3704,7 +3704,7 @@ nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe)
 		struct nvkm_i2c_aux *aux =
 			nvkm_i2c_aux_find(i2c, dcbe->i2c_index);
 		if (aux) {
-			if (disp->disp->oclass < GF110_DISP) {
+			if (disp->disp->object.oclass < GF110_DISP) {
 				/* HW has no support for address-only
 				 * transactions, so we're required to
 				 * use custom I2C-over-AUX code.
@@ -3717,7 +3717,7 @@ nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe)
 		}
 
 		/*TODO: Use DP Info Table to check for support. */
-		if (disp->disp->oclass >= GF110_DISP) {
+		if (disp->disp->object.oclass >= GF110_DISP) {
 			ret = nv50_mstm_new(nv_encoder, &nv_connector->aux, 16,
 					    nv_connector->base.base.id,
 					    &nv_encoder->dp.mstm);
@@ -4482,13 +4482,13 @@ nv50_display_create(struct drm_device *dev)
 		goto out;
 
 	/* allocate master evo channel */
-	ret = nv50_core_create(device, disp->disp, disp->sync->bo.offset,
-			      &disp->mast);
+	ret = nv50_core_create(device, &disp->disp->object,
+			       disp->sync->bo.offset, &disp->mast);
 	if (ret)
 		goto out;
 
 	/* create crtc objects to represent the hw heads */
-	if (disp->disp->oclass >= GF110_DISP)
+	if (disp->disp->object.oclass >= GF110_DISP)
 		crtcs = nvif_rd32(&device->object, 0x612004) & 0xf;
 	else
 		crtcs = 0x3;
