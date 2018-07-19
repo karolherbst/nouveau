@@ -43,6 +43,31 @@ core507d_update(struct nv50_core *core, u32 *interlock, bool ntfy)
 	}
 }
 
+bool
+core507d_caps_fetch(struct nv50_disp *disp)
+{
+	struct nv50_core *core = disp->core;
+	u32 *push;
+	int i;
+
+	push = evo_wait(&core->chan, 6);
+	if (!push)
+		return false;
+
+	for (i = 0; i < 512; ++i)
+		nouveau_bo_wr32(disp->sync, i, 0);
+
+	evo_mthd(push, 0x0088, 1);
+	evo_data(push, core->chan.sync.handle);
+	evo_mthd(push, 0x0084, 1);
+	evo_data(push, 0xc0000000);
+	evo_mthd(push, 0x008c, 1);
+	evo_data(push, 0x00000000);
+	evo_kick(push, &core->chan);
+
+	return true;
+}
+
 int
 core507d_ntfy_wait_done(struct nouveau_bo *bo, u32 offset,
 			struct nvif_device *device)

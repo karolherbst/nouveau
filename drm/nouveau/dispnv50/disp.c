@@ -1409,7 +1409,8 @@ nv50_sor_func = {
 };
 
 static int
-nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe)
+nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe,
+                struct nv50_core_caps *caps)
 {
 	struct nouveau_connector *nv_connector = nouveau_connector(connector);
 	struct nouveau_drm *drm = nouveau_drm(connector->dev);
@@ -1418,23 +1419,26 @@ nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe)
 	struct nouveau_encoder *nv_encoder;
 	struct drm_encoder *encoder;
 	u8 ver, hdr, cnt, len;
+	u8 or = ffs(dcbe->or) - 1;
 	u32 data;
 	int type, ret;
-
-	switch (dcbe->type) {
-	case DCB_OUTPUT_LVDS: type = DRM_MODE_ENCODER_LVDS; break;
-	case DCB_OUTPUT_TMDS:
-	case DCB_OUTPUT_DP:
-	default:
-		type = DRM_MODE_ENCODER_TMDS;
-		break;
-	}
 
 	nv_encoder = kzalloc(sizeof(*nv_encoder), GFP_KERNEL);
 	if (!nv_encoder)
 		return -ENOMEM;
 	nv_encoder->dcb = dcbe;
 	nv_encoder->update = nv50_sor_update;
+
+	switch (dcbe->type) {
+	case DCB_OUTPUT_LVDS: type = DRM_MODE_ENCODER_LVDS; break;
+	case DCB_OUTPUT_DP:
+		nv_encoder->dp.no_interlace = caps->sor[or].dp.no_interlace;
+	case DCB_OUTPUT_TMDS:
+	default:
+		type = DRM_MODE_ENCODER_TMDS;
+		break;
+	}
+
 
 	encoder = to_drm_encoder(nv_encoder);
 	encoder->possible_crtcs = dcbe->heads;
@@ -2160,6 +2164,7 @@ nv50_display_create(struct drm_device *dev)
 	struct drm_connector *connector, *tmp;
 	struct nv50_disp *disp;
 	struct dcb_output *dcbe;
+	struct nv50_core_caps caps = { 0 };
 	int crtcs, ret, i;
 
 	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
@@ -2215,6 +2220,16 @@ nv50_display_create(struct drm_device *dev)
 			goto out;
 	}
 
+	/* fetch caps */
+	if (disp->core->func->caps_fetch && disp->core->func->caps_parse) {
+		if (!disp->core->func->caps_fetch(disp) ||
+		    !disp->core->func->caps_parse(disp, &caps)) {
+			ret = -EIO;
+			NV_ERROR(drm, "Failed to fetch display capabilities.\n");
+			goto out;
+		}
+	}
+
 	/* create encoder/connector objects based on VBIOS DCB table */
 	for (i = 0, dcbe = &dcb->entry[0]; i < dcb->entries; i++, dcbe++) {
 		connector = nouveau_connector_create(dev, dcbe->connector);
@@ -2226,7 +2241,7 @@ nv50_display_create(struct drm_device *dev)
 			case DCB_OUTPUT_TMDS:
 			case DCB_OUTPUT_LVDS:
 			case DCB_OUTPUT_DP:
-				ret = nv50_sor_create(connector, dcbe);
+				ret = nv50_sor_create(connector, dcbe, &caps);
 				break;
 			case DCB_OUTPUT_ANALOG:
 				ret = nv50_dac_create(connector, dcbe);

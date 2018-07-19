@@ -63,6 +63,7 @@ struct nouveau_encoder {
 		struct {
 			int link_nr;
 			int link_bw;
+			bool no_interlace;
 		} dp;
 	};
 

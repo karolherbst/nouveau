@@ -1041,6 +1041,8 @@ nouveau_connector_mode_valid(struct drm_connector *connector,
 	case DCB_OUTPUT_TV:
 		return get_slave_funcs(encoder)->mode_valid(encoder, mode);
 	case DCB_OUTPUT_DP:
+                if (mode->flags & DRM_MODE_FLAG_INTERLACE && nv_encoder->dp.no_interlace)
+                   return MODE_NO_INTERLACE;
 		max_clock  = nv_encoder->dp.link_nr;
 		max_clock *= nv_encoder->dp.link_bw;
 		clock = clock * (connector->display_info.bpc * 3) / 10;
