@@ -22,6 +22,24 @@
 #include "core.h"
 #include "head.h"
 
+#include "nouveau_bo.h"
+
+static bool
+core957d_caps_parse(struct nv50_disp *disp, struct nv50_core_caps *caps)
+{
+	int i;
+
+	if (!core907d_caps_parse(disp, caps))
+		return false;
+
+	for (i = 0; i < 8; ++i) {
+		uint32_t data = nouveau_bo_rd32(disp->sync, 0x15 + i * 2);
+		caps->sor[i].lvds.max_mhz = (data >> 24) * 10;
+	}
+
+	return true;
+}
+
 static const struct nv50_core_func
 core957d = {
 	.init = core507d_init,
@@ -29,7 +47,7 @@ core957d = {
 	.ntfy_wait_done = core507d_ntfy_wait_done,
 	.update = core507d_update,
 	.caps_fetch = core507d_caps_fetch,
-	.caps_parse = core907d_caps_parse,
+	.caps_parse = core957d_caps_parse,
 	.head = &head917d,
 	.dac = &dac907d,
 	.sor = &sor907d,

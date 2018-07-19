@@ -11,8 +11,17 @@ struct nv50_core {
 struct nv50_core_caps {
 	struct {
 		struct {
+			uint16_t max_mhz;
 			bool no_interlace;
 		} dp;
+
+		struct {
+			uint16_t max_mhz;
+		} lvds;
+
+		struct {
+			uint16_t max_mhz;
+		} tmds;
 	} sor[8];
 };
 

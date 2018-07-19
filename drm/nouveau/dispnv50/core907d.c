@@ -37,6 +37,11 @@ core907d_caps_parse(struct nv50_disp *disp, struct nv50_core_caps *caps)
 	for (i = 0; i < 8; ++i) {
 		uint32_t data = nouveau_bo_rd32(disp->sync, 0x14 + i * 2);
 		caps->sor[i].dp.no_interlace |= !(data & (1 << 26));
+
+		data = nouveau_bo_rd32(disp->sync, 0x15 + i * 2);
+		caps->sor[i].dp.max_mhz = (data & 0xff) * 10;
+		caps->sor[i].tmds.max_mhz = ((data >> 16) & 0xff) * 10;
+		caps->sor[i].lvds.max_mhz = caps->sor[i].tmds.max_mhz;
 	}
 
 	return true;
