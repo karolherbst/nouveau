@@ -980,15 +980,20 @@ static unsigned
 get_tmds_link_bandwidth(struct drm_connector *connector, bool hdmi)
 {
 	struct nouveau_connector *nv_connector = nouveau_connector(connector);
+	struct nouveau_encoder *nv_encoder = nv_connector->detected_encoder;
 	struct nouveau_drm *drm = nouveau_drm(connector->dev);
 	struct dcb_output *dcb = nv_connector->detected_encoder->dcb;
 
+	if (hdmi && nouveau_hdmimhz > 0)
+		return nouveau_hdmimhz * 1000;
+
+	if (nv_encoder->tmds.max_mhz)
+		/* no HDMI 2.0 for now and not quite clear if we can use
+                 * higher HDMI clocks than 297MHz
+                 */
+		return min(297, nv_encoder->tmds.max_mhz) * 1000;
+
 	if (hdmi) {
-		if (nouveau_hdmimhz > 0)
-			return nouveau_hdmimhz * 1000;
-		/* Note: these limits are conservative, some Fermi's
-		 * can do 297 MHz. Unclear how this can be determined.
-		 */
 		if (drm->client.device.info.family >= NV_DEVICE_INFO_V0_KEPLER)
 			return 297000;
 		if (drm->client.device.info.family >= NV_DEVICE_INFO_V0_FERMI)

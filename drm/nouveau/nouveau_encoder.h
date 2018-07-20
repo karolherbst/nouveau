@@ -65,6 +65,10 @@ struct nouveau_encoder {
 			int link_bw;
 			bool no_interlace;
 		} dp;
+
+		struct {
+			uint16_t max_mhz;
+		} tmds;
 	};
 
 	void (*enc_save)(struct drm_encoder *encoder);

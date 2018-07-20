@@ -1433,7 +1433,12 @@ nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe,
 	case DCB_OUTPUT_LVDS: type = DRM_MODE_ENCODER_LVDS; break;
 	case DCB_OUTPUT_DP:
 		nv_encoder->dp.no_interlace = caps->sor[or].dp.no_interlace;
+		type = DRM_MODE_ENCODER_TMDS;
+		break;
 	case DCB_OUTPUT_TMDS:
+		nv_encoder->tmds.max_mhz = caps->sor[or].tmds.max_mhz;
+		type = DRM_MODE_ENCODER_TMDS;
+		break;
 	default:
 		type = DRM_MODE_ENCODER_TMDS;
 		break;
