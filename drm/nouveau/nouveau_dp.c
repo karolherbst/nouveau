@@ -92,7 +92,7 @@ nouveau_dp_detect(struct nouveau_encoder *nv_encoder)
 
 	nouveau_dp_probe_oui(dev, aux, dpcd);
 
-	ret = nv50_mstm_detect(nv_encoder->dp.mstm, dpcd, nouveau_mst);
+	ret = nv50_mstm_detect(nv_encoder->mstm, dpcd, nouveau_mst);
 	if (ret == 1)
 		return NOUVEAU_DP_MST;
 	if (ret == 0)

@@ -1124,14 +1124,14 @@ nouveau_connector_hotplug(struct nvif_notify *notify)
 	if (rep->mask & NVIF_NOTIFY_CONN_V0_IRQ) {
 		NV_DEBUG(drm, "service %s\n", name);
 		if ((nv_encoder = find_encoder(connector, DCB_OUTPUT_DP)))
-			nv50_mstm_service(nv_encoder->dp.mstm);
+			nv50_mstm_service(nv_encoder->mstm);
 	} else {
 		bool plugged = (rep->mask != NVIF_NOTIFY_CONN_V0_UNPLUG);
 
 		NV_DEBUG(drm, "%splugged %s\n", plugged ? "" : "un", name);
 		if ((nv_encoder = find_encoder(connector, DCB_OUTPUT_DP))) {
 			if (!plugged)
-				nv50_mstm_remove(nv_encoder->dp.mstm);
+				nv50_mstm_remove(nv_encoder->mstm);
 		}
 
 		drm_helper_hpd_irq_event(connector->dev);

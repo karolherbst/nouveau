@@ -58,9 +58,9 @@ struct nouveau_encoder {
 
 	struct nv04_output_reg restore;
 
+	struct nv50_mstm *mstm;
 	union {
 		struct {
-			struct nv50_mstm *mstm;
 			int link_nr;
 			int link_bw;
 		} dp;

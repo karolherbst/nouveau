@@ -1398,7 +1398,7 @@ static void
 nv50_sor_destroy(struct drm_encoder *encoder)
 {
 	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
-	nv50_mstm_del(&nv_encoder->dp.mstm);
+	nv50_mstm_del(&nv_encoder->mstm);
 	drm_encoder_cleanup(encoder);
 	kfree(encoder);
 }
@@ -1466,7 +1466,7 @@ nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe)
 		    ver >= 0x40 && (nvbios_rd08(bios, data + 0x08) & 0x04)) {
 			ret = nv50_mstm_new(nv_encoder, &nv_connector->aux, 16,
 					    nv_connector->base.base.id,
-					    &nv_encoder->dp.mstm);
+					    &nv_encoder->mstm);
 			if (ret)
 				return ret;
 		}
@@ -1622,7 +1622,7 @@ nv50_disp_atomic_commit_core(struct drm_atomic_state *state, u32 *interlock)
 
 	drm_for_each_encoder(encoder, drm->dev) {
 		if (encoder->encoder_type != DRM_MODE_ENCODER_DPMST) {
-			mstm = nouveau_encoder(encoder)->dp.mstm;
+			mstm = nouveau_encoder(encoder)->mstm;
 			if (mstm && mstm->modified)
 				nv50_mstm_prepare(mstm);
 		}
@@ -1636,7 +1636,7 @@ nv50_disp_atomic_commit_core(struct drm_atomic_state *state, u32 *interlock)
 
 	drm_for_each_encoder(encoder, drm->dev) {
 		if (encoder->encoder_type != DRM_MODE_ENCODER_DPMST) {
-			mstm = nouveau_encoder(encoder)->dp.mstm;
+			mstm = nouveau_encoder(encoder)->mstm;
 			if (mstm && mstm->modified)
 				nv50_mstm_cleanup(mstm);
 		}
@@ -2103,7 +2103,7 @@ nv50_display_fini(struct drm_device *dev)
 	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
 		if (encoder->encoder_type != DRM_MODE_ENCODER_DPMST) {
 			nv_encoder = nouveau_encoder(encoder);
-			nv50_mstm_fini(nv_encoder->dp.mstm);
+			nv50_mstm_fini(nv_encoder->mstm);
 		}
 	}
 }
@@ -2121,7 +2121,7 @@ nv50_display_init(struct drm_device *dev)
 		if (encoder->encoder_type != DRM_MODE_ENCODER_DPMST) {
 			struct nouveau_encoder *nv_encoder =
 				nouveau_encoder(encoder);
-			nv50_mstm_init(nv_encoder->dp.mstm);
+			nv50_mstm_init(nv_encoder->mstm);
 		}
 	}
 
