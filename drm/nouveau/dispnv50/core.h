@@ -57,6 +57,8 @@ bool core907d_caps_parse(struct nv50_disp *, struct nv50_core_caps *);
 
 int core917d_new(struct nouveau_drm *, s32, struct nv50_core **);
 
+int core957d_new(struct nouveau_drm *, s32, struct nv50_core **);
+
 int corec37d_new(struct nouveau_drm *, s32, struct nv50_core **);
 extern const struct nv50_outp_func sorc37d;
 #endif

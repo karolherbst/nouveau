@@ -43,9 +43,9 @@ nv50_core_new(struct nouveau_drm *drm, struct nv50_core **pcore)
 		int (*new)(struct nouveau_drm *, s32, struct nv50_core **);
 	} cores[] = {
 		{ GV100_DISP_CORE_CHANNEL_DMA, 0, corec37d_new },
-		{ GP102_DISP_CORE_CHANNEL_DMA, 0, core917d_new },
-		{ GP100_DISP_CORE_CHANNEL_DMA, 0, core917d_new },
-		{ GM200_DISP_CORE_CHANNEL_DMA, 0, core917d_new },
+		{ GP102_DISP_CORE_CHANNEL_DMA, 0, core957d_new },
+		{ GP100_DISP_CORE_CHANNEL_DMA, 0, core957d_new },
+		{ GM200_DISP_CORE_CHANNEL_DMA, 0, core957d_new },
 		{ GM107_DISP_CORE_CHANNEL_DMA, 0, core917d_new },
 		{ GK110_DISP_CORE_CHANNEL_DMA, 0, core917d_new },
 		{ GK104_DISP_CORE_CHANNEL_DMA, 0, core917d_new },

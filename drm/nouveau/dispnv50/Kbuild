@@ -6,6 +6,7 @@ nouveau-y += dispnv50/core507d.o
 nouveau-y += dispnv50/core827d.o
 nouveau-y += dispnv50/core907d.o
 nouveau-y += dispnv50/core917d.o
+nouveau-y += dispnv50/core957d.o
 nouveau-y += dispnv50/corec37d.o
 
 nouveau-y += dispnv50/dac507d.o
