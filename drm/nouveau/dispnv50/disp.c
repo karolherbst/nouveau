@@ -2230,11 +2230,20 @@ nv50_display_create(struct drm_device *dev)
 
 	/* fetch caps */
 	if (disp->core->func->caps_fetch && disp->core->func->caps_parse) {
+		int i;
+
 		if (!disp->core->func->caps_fetch(disp) ||
 		    !disp->core->func->caps_parse(disp, &caps)) {
 			ret = -EIO;
 			NV_ERROR(drm, "Failed to fetch display capabilities.\n");
 			goto out;
+		}
+
+		for (i = 0; i < 8; ++i) {
+			printk(KERN_WARNING "no interlace: %x\n", caps.sor[i].dp.no_interlace);
+			printk(KERN_WARNING "max DP MHz: %x\n", caps.sor[i].dp.max_mhz);
+			printk(KERN_WARNING "max TMDS MHz: %x\n", caps.sor[i].tmds.max_mhz);
+			printk(KERN_WARNING "max LVDS MHz: %x\n", caps.sor[i].lvds.max_mhz);
 		}
 	}
 
