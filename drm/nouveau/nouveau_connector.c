@@ -1029,7 +1029,10 @@ nouveau_connector_mode_valid(struct drm_connector *connector,
 			return MODE_PANEL;
 
 		min_clock = 0;
-		max_clock = 400000;
+		if (nv_encoder->lvds.max_mhz)
+			max_clock = nv_encoder->lvds.max_mhz * 1000;
+		else
+			max_clock = 400000;
 		break;
 	case DCB_OUTPUT_TMDS:
 		hdmi = drm_detect_hdmi_monitor(nv_connector->edid);

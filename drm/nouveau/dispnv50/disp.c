@@ -1430,7 +1430,10 @@ nv50_sor_create(struct drm_connector *connector, struct dcb_output *dcbe,
 	nv_encoder->update = nv50_sor_update;
 
 	switch (dcbe->type) {
-	case DCB_OUTPUT_LVDS: type = DRM_MODE_ENCODER_LVDS; break;
+	case DCB_OUTPUT_LVDS:
+		nv_encoder->lvds.max_mhz = caps->sor[or].lvds.max_mhz;
+		type = DRM_MODE_ENCODER_LVDS;
+		break;
 	case DCB_OUTPUT_DP:
 		nv_encoder->dp.no_interlace = caps->sor[or].dp.no_interlace;
 		type = DRM_MODE_ENCODER_TMDS;

@@ -68,6 +68,10 @@ struct nouveau_encoder {
 
 		struct {
 			uint16_t max_mhz;
+		} lvds;
+
+		struct {
+			uint16_t max_mhz;
 		} tmds;
 	};
 
