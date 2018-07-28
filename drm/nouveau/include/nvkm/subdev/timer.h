@@ -41,11 +41,24 @@ void nvkm_timer_alarm(struct nvkm_timer *, u32 nsec, struct nvkm_alarm *);
 	struct nvkm_device *_device = (d);                                     \
 	struct nvkm_timer *_tmr = _device->timer;                              \
 	u64 _nsecs = (n), _time0 = nvkm_timer_read(_tmr);                      \
+	u64 _old = _time0;                                                     \
 	s64 _taken = 0;                                                        \
 	bool _warn = true;                                                     \
+	u16 _repeated = 0;                                                     \
                                                                                \
 	do {                                                                   \
 		cond                                                           \
+		if (_old == _taken)                                            \
+			_repeated++;	                                       \
+		else {                                                         \
+			_old = _taken;                                         \
+			_repeated = 0;                                         \
+		}                                                              \
+		if (_repeated >= 100) {                                        \
+			dev_err(_device->dev, "device in unusable state\n");   \
+			_taken = -EIO;                                         \
+			break;                                                 \
+		}                                                              \
 	} while (_taken = nvkm_timer_read(_tmr) - _time0, _taken < _nsecs);    \
                                                                                \
 	if (_taken >= _nsecs) {                                                \
