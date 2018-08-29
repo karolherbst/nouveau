@@ -134,6 +134,12 @@ typedef dma_addr_t resource_size_t;
 #define IS_ENABLED_CONFIG_ARM 0
 #endif
 
+#if defined(CONFIG_ARM_DMA_USE_IOMMU)
+#define IS_ENABLED_CONFIG_ARM_DMA_USE_IOMMU 1
+#else
+#define IS_ENABLED_CONFIG_ARM_DMA_USE_IOMMU 0
+#endif
+
 #if defined(CONFIG_IOMMU_API)
 #define IS_ENABLED_CONFIG_IOMMU_API 1
 #else
@@ -144,6 +150,18 @@ typedef dma_addr_t resource_size_t;
 #define IS_ENABLED_CONFIG_ARCH_TEGRA 1
 #else
 #define IS_ENABLED_CONFIG_ARCH_TEGRA 0
+#endif
+
+#if defined(CONFIG_ARCH_TEGRA_186_SOC)
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_186_SOC 1
+#else
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_186_SOC 0
+#endif
+
+#if defined(CONFIG_ARCH_TEGRA_210_SOC)
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_210_SOC 1
+#else
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_210_SOC 0
 #endif
 
 #define IS_ENABLED(x) IS_ENABLED_##x
@@ -165,6 +183,9 @@ order_base_2(u64 base)
 
 	return (base & (base - 1)) ? log2 + 1: log2;
 }
+
+#define struct_size(a,b,c) (sizeof(*(a)) + sizeof(*(a)->b) * (c))
+#define array3_size(a,b,c) ((c) * (a) * (b))
 
 /******************************************************************************
  * errno
@@ -503,11 +524,14 @@ typedef unsigned gfp_t;
 #define vmalloc malloc
 #define vfree free
 #define kmalloc(a,b) malloc((a))
+#define kmalloc_array(a,b,c) kmalloc((b) * (a), (c))
 #define kzalloc(a,b) calloc(1, (a))
 #define kcalloc(a,b,c) calloc((a), (b))
 #define kfree free
 #define kvmalloc(a,b) kmalloc((a), (b))
+#define kvmalloc_array(a,b,c) kvmalloc((b) * (a), (c))
 #define kvzalloc(a,b) kzalloc((a), (b))
+#define kvcalloc(a,b,c) kcalloc((a), (b), (c))
 #define kvfree(a) kfree(a)
 
 #define vzalloc(a) calloc(1, (a))
@@ -735,6 +759,8 @@ struct lock_class_key {
 
 #define list_first_entry_or_null(a,b,c) \
 	(list_empty(a) ? NULL : list_first_entry((a),b,c))
+#define list_for_each_entry_from_reverse(a,b,c) \
+	for (; &a->c != (b); a = list_entry((a)->c.prev, typeof(*(a)), c))
 
 /******************************************************************************
  * rbtree
