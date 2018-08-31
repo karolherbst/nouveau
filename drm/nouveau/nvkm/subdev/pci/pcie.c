@@ -105,10 +105,18 @@ nvkm_pcie_init(struct nvkm_pci *pci)
 	if (pci->func->pcie.init)
 		pci->func->pcie.init(pci);
 
+	nvkm_pcie_set_link(pci, NVKM_PCIE_SPEED_8_0, 16);
+
 	if (pci->pcie.speed != -1)
 		nvkm_pcie_set_link(pci, pci->pcie.speed, pci->pcie.width);
 
 	return 0;
+}
+
+int
+nvkm_pcie_fini(struct nvkm_pci *pci)
+{
+	return nvkm_pcie_set_link(pci, NVKM_PCIE_SPEED_8_0, 16);
 }
 
 int
