@@ -383,6 +383,10 @@ nouveau_abi16_usif(struct drm_file *file_priv, void *data, u32 size)
 		case NVIF_IOCTL_V0_NEW:
 		case NVIF_IOCTL_V0_MTHD:
 		case NVIF_IOCTL_V0_SCLASS:
+		case NVIF_IOCTL_V0_NTFY_NEW:
+		case NVIF_IOCTL_V0_NTFY_DEL:
+		case NVIF_IOCTL_V0_NTFY_GET:
+		case NVIF_IOCTL_V0_NTFY_PUT:
 			break;
 		default:
 			return -EACCES;
