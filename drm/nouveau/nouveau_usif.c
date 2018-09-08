@@ -192,7 +192,7 @@ usif_notify_get(struct drm_file *f, void *data, u32 size, void *argv, u32 argc)
 	struct nouveau_cli *cli = nouveau_cli(f);
 	struct nvif_client *client = &cli->base;
 	union {
-		struct nvif_ioctl_ntfy_del_v0 v0;
+		struct nvif_ioctl_ntfy_get_v0 v0;
 	} *args = data;
 	struct usif_notify *ntfy;
 	int ret = -ENOSYS;
