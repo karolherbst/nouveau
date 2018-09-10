@@ -250,8 +250,8 @@ gf100_fermi = {
 static void
 gf100_gr_mthd_set_shader_exceptions(struct nvkm_device *device, u32 data)
 {
-	nvkm_wr32(device, 0x419e44, data ? 0xffffffff : 0x00000000);
-	nvkm_wr32(device, 0x419e4c, data ? 0xffffffff : 0x00000000);
+	nvkm_wr32(device, 0x419e44, data);
+	nvkm_wr32(device, 0x419e4c, data);
 }
 
 static bool
