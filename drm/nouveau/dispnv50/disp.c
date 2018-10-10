@@ -900,22 +900,9 @@ static enum drm_connector_status
 nv50_mstc_detect(struct drm_connector *connector, bool force)
 {
 	struct nv50_mstc *mstc = nv50_mstc(connector);
-	enum drm_connector_status conn_status;
-	int ret;
-
 	if (!mstc->port)
 		return connector_status_disconnected;
-
-	ret = pm_runtime_get_sync(connector->dev->dev);
-	if (ret < 0 && ret != -EACCES)
-		return connector_status_disconnected;
-
-	conn_status = drm_dp_mst_detect_port(connector, mstc->port->mgr,
-					     mstc->port);
-
-	pm_runtime_mark_last_busy(connector->dev->dev);
-	pm_runtime_put_autosuspend(connector->dev->dev);
-	return conn_status;
+	return drm_dp_mst_detect_port(connector, mstc->port->mgr, mstc->port);
 }
 
 static void
@@ -2218,7 +2205,7 @@ nv50_display_create(struct drm_device *dev)
 	nouveau_display(dev)->fini = nv50_display_fini;
 	disp->disp = &nouveau_display(dev)->disp;
 	dev->mode_config.funcs = &nv50_disp_func;
-	dev->driver->driver_features |= DRIVER_PREFER_XBGR_30BPP;
+	dev->mode_config.quirk_addfb_prefer_xbgr_30bpp = true;
 
 	/* small shared memory area we use for notifiers and semaphores */
 	ret = nouveau_bo_new(&drm->client, 4096, 0x1000, TTM_PL_FLAG_VRAM,
