@@ -27,13 +27,27 @@ gf119_disp_mthd(struct nvif_device *device, u16 mthd, u32 data)
 }
 
 static void
+gv100_disp_mthd(struct nvif_device *device, u16 mthd, u32 data)
+{
+	u32 ctrl = nvif_rd32(&device->object, 0x610800 + (chan * 8));
+	nvif_wr32(&device->object, 0x610800 + (chan * 8), ctrl | 0x00000001);
+	nvif_wr32(&device->object, 0x610804 + (chan * 8), data);
+	nvif_wr32(&device->object, 0x610800 + (chan * 8), mthd | 0x80000001);
+	while (nvif_rd32(&device->object, 0x610800 + (chan * 8)) & 0x80000000) {}
+	nvif_wr32(&device->object, 0x610800 + (chan * 8), ctrl);
+}
+
+static void
 nv_disp(struct nvif_device *device, u16 mthd, u32 data)
 {
+	if (device->info.family >= NV_DEVICE_INFO_V0_VOLTA) {
+		gv100_disp_mthd(device, mthd, data);
+	} else
 	if (device->info.chipset >= 0xd0) {
-		nv50_disp_mthd(device, mthd, data);
+		gf119_disp_mthd(device, mthd, data);
 	} else
 	if (device->info.family >= NV_DEVICE_INFO_V0_TESLA) {
-		gf119_disp_mthd(device, mthd, data);
+		nv50_disp_mthd(device, mthd, data);
 	} else {
 		printk("unsupported chipset\n");
 		exit(1);
