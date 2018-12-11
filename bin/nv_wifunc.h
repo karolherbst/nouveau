@@ -13,7 +13,7 @@ nv_wfb(struct nvif_device *device, u64 offset, CAST data)
 	u64 addr = (offset &  (PAGE_SIZE - 1));
 
 	if (device->info.family < NV_DEVICE_INFO_V0_CURIE ||
-	    device->info.family > NV_DEVICE_INFO_V0_VOLTA) {
+	    device->info.family > NV_DEVICE_INFO_V0_TURING) {
 		printk("unsupported chipset\n");
 		exit(1);
 	}

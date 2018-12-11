@@ -6,7 +6,7 @@ static CAST
 nv_rvram(struct nvif_device *device, u64 addr)
 {
 	if (device->info.family >= NV_DEVICE_INFO_V0_TESLA &&
-	    device->info.family <= NV_DEVICE_INFO_V0_VOLTA) {
+	    device->info.family <= NV_DEVICE_INFO_V0_TURING) {
 		CAST data;
 		u32 pmem = nvif_rd32(&device->object, 0x001700);
 		nvif_wr32(&device->object, 0x001700, 0x00000000 | (addr >> 16));
