@@ -2184,7 +2184,7 @@ nv50_disp_func = {
  * Init
  *****************************************************************************/
 
-void
+static void
 nv50_display_fini(struct drm_device *dev)
 {
 	struct nouveau_encoder *nv_encoder;
@@ -2206,7 +2206,7 @@ nv50_display_fini(struct drm_device *dev)
 	}
 }
 
-int
+static int
 nv50_display_init(struct drm_device *dev)
 {
 	struct nv50_core *core = nv50_disp(dev)->core;
@@ -2233,7 +2233,7 @@ nv50_display_init(struct drm_device *dev)
 	return 0;
 }
 
-void
+static void
 nv50_display_destroy(struct drm_device *dev)
 {
 	struct nv50_disp *disp = nv50_disp(dev);
