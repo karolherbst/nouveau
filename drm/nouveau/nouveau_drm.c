@@ -717,6 +717,10 @@ nouveau_drm_device_remove(struct drm_device *dev)
 	struct nvkm_client *client;
 	struct nvkm_device *device;
 
+	if (pci_channel_offline(pdev))
+		NV_ERROR(drm, "removing dead PCI device (state: %x)!\n",
+			 dev->error_state);
+
 	drm_dev_unregister(dev);
 
 	dev->irq_enabled = false;
