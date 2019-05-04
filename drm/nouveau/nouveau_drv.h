@@ -212,6 +212,8 @@ struct nouveau_drm {
 	struct nouveau_svm *svm;
 
 	struct nouveau_dmem *dmem;
+
+	bool runpm_dsm;
 };
 
 static inline struct nouveau_drm *

@@ -358,6 +358,12 @@ void nouveau_register_dsm_handler(void)
 	vga_switcheroo_register_handler(&nouveau_dsm_handler, 0);
 }
 
+bool nouveau_runpm_calls_dsm(void)
+{
+	return nouveau_dsm_priv.optimus_detected &&
+		!nouveau_dsm_priv.optimus_skip_dsm;
+}
+
 /* Must be called for Optimus models before the card can be turned off */
 void nouveau_switcheroo_optimus_dsm(void)
 {
@@ -371,7 +377,6 @@ void nouveau_switcheroo_optimus_dsm(void)
 
 	nouveau_optimus_dsm(nouveau_dsm_priv.dhandle, NOUVEAU_DSM_OPTIMUS_CAPS,
 		NOUVEAU_DSM_OPTIMUS_SET_POWERDOWN, &result);
-
 }
 
 void nouveau_unregister_dsm_handler(void)

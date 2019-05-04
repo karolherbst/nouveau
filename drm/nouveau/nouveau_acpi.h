@@ -13,6 +13,7 @@ void nouveau_switcheroo_optimus_dsm(void);
 int nouveau_acpi_get_bios_chunk(uint8_t *bios, int offset, int len);
 bool nouveau_acpi_rom_supported(struct device *);
 void *nouveau_acpi_edid(struct drm_device *, struct drm_connector *);
+bool nouveau_runpm_calls_dsm(void);
 #else
 static inline bool nouveau_is_optimus(void) { return false; };
 static inline bool nouveau_is_v1_dsm(void) { return false; };
@@ -22,6 +23,7 @@ static inline void nouveau_switcheroo_optimus_dsm(void) {}
 static inline bool nouveau_acpi_rom_supported(struct device *dev) { return false; }
 static inline int nouveau_acpi_get_bios_chunk(uint8_t *bios, int offset, int len) { return -EINVAL; }
 static inline void *nouveau_acpi_edid(struct drm_device *dev, struct drm_connector *connector) { return NULL; }
+static inline bool nouveau_runpm_calls_dsm(void) { return false; }
 #endif
 
 #endif
