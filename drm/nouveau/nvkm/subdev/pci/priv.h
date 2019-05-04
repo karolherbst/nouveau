@@ -71,4 +71,5 @@ int gk104_pcie_version_supported(struct nvkm_pci *);
 
 int nvkm_pcie_oneinit(struct nvkm_pci *);
 int nvkm_pcie_init(struct nvkm_pci *);
+int nvkm_pcie_fini(struct nvkm_pci *, enum nvkm_suspend_type);
 #endif

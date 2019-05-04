@@ -23,6 +23,8 @@
  */
 #include "priv.h"
 
+#include <core/option.h>
+
 static char *nvkm_pcie_speeds[] = {
 	"2.5GT/s",
 	"5.0GT/s",
@@ -106,9 +108,24 @@ nvkm_pcie_init(struct nvkm_pci *pci)
 		pci->func->pcie.init(pci);
 
 	if (pci->pcie.speed != -1)
-		nvkm_pcie_set_link(pci, pci->pcie.speed, pci->pcie.width);
+		nvkm_pcie_set_link(pci, pci->pcie.speed,
+				   pci->pcie.width, false);
 
 	return 0;
+}
+
+int
+nvkm_pcie_fini(struct nvkm_pci *pci, enum nvkm_suspend_type suspend)
+{
+	struct nvkm_device *device = pci->subdev.device;
+
+	if (!device->has_runpm || suspend != NVKM_SUSPEND_RUNTIME)
+		return 0;
+
+	if (!nvkm_boolopt(device->cfgopt, "NvRunpmWorkaround", true))
+		return 0;
+
+	return nvkm_pcie_set_link(pci, NVKM_PCIE_SPEED_8_0, 16, false);
 }
 
 enum nvkm_pci_aspm
@@ -120,7 +137,8 @@ nvkm_pcie_aspm_off(struct nvkm_pci *pci, enum nvkm_pci_aspm states)
 }
 
 int
-nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
+nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width,
+		   bool save)
 {
 	struct nvkm_subdev *subdev = &pci->subdev;
 	enum nvkm_pcie_speed cur_speed, max_speed;
@@ -155,8 +173,10 @@ nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 		speed = max_speed;
 	}
 
-	pci->pcie.speed = speed;
-	pci->pcie.width = width;
+	if (save) {
+		pci->pcie.speed = speed;
+		pci->pcie.width = width;
+	}
 
 	if (speed == cur_speed) {
 		nvkm_debug(subdev, "requested matches current speed\n");

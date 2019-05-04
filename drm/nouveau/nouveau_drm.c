@@ -676,6 +676,7 @@ static int nouveau_drm_probe(struct pci_dev *pdev,
 
 	if (nouveau_atomic)
 		driver_pci.driver_features |= DRIVER_ATOMIC;
+	device->has_runpm = nouveau_pmops_runtime();
 
 	drm_dev = drm_dev_alloc(&driver_pci, &pdev->dev);
 	if (IS_ERR(drm_dev)) {

@@ -90,6 +90,8 @@ nvkm_pci_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type suspend)
 
 	if (pci->agp.bridge)
 		nvkm_agp_fini(pci);
+	else if (pci_is_pcie(pci->pdev))
+		nvkm_pcie_fini(pci, suspend);
 
 	return 0;
 }

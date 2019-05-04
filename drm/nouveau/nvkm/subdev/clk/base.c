@@ -277,7 +277,7 @@ nvkm_pstate_prog(struct nvkm_clk *clk, int pstatei)
 	nvkm_debug(subdev, "setting performance state %d\n", pstatei);
 	clk->pstate = pstatei;
 
-	nvkm_pcie_set_link(pci, pstate->pcie_speed, pstate->pcie_width);
+	nvkm_pcie_set_link(pci, pstate->pcie_speed, pstate->pcie_width, true);
 
 	if (fb && fb->ram && fb->ram->func->calc) {
 		struct nvkm_ram *ram = fb->ram;

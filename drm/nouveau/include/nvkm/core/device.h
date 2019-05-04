@@ -126,6 +126,8 @@ struct nvkm_device {
 	u8  chiprev;
 	u32 crystal;
 
+	bool has_runpm;
+
 	struct {
 		struct notifier_block nb;
 	} acpi;
