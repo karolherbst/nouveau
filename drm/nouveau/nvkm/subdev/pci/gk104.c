@@ -23,7 +23,7 @@
  */
 #include "priv.h"
 
-static int
+int
 gk104_pcie_version_supported(struct nvkm_pci *pci)
 {
 	return (nvkm_rd32(pci->subdev.device, 0x8c1c0) & 0x4) == 0x4 ? 2 : 1;
@@ -108,7 +108,7 @@ gk104_pcie_lnkctl_speed(struct nvkm_pci *pci)
 	return -1;
 }
 
-static enum nvkm_pcie_speed
+enum nvkm_pcie_speed
 gk104_pcie_max_speed(struct nvkm_pci *pci)
 {
 	u32 max_speed = nvkm_rd32(pci->subdev.device, 0x8c1c0) & 0x300000;
@@ -146,7 +146,7 @@ gk104_pcie_set_link_speed(struct nvkm_pci *pci, enum nvkm_pcie_speed speed)
 	nvkm_mask(device, 0x8c040, 0x1, 0x1);
 }
 
-static int
+int
 gk104_pcie_init(struct nvkm_pci * pci)
 {
 	enum nvkm_pcie_speed lnkctl_speed, max_speed, cap_speed;
@@ -178,7 +178,7 @@ gk104_pcie_init(struct nvkm_pci * pci)
 	return 0;
 }
 
-static int
+int
 gk104_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 {
 	struct nvkm_subdev *subdev = &pci->subdev;
