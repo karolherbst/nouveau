@@ -163,3 +163,11 @@ nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 
 	return ret;
 }
+
+enum nvkm_pcie_speed
+nvkm_pcie_get_speed(struct nvkm_pci *pci)
+{
+	if (!pci || !pci_is_pcie(pci->pdev) || !pci->pcie.cur_speed)
+		return -ENODEV;
+	return pci->func->pcie.cur_speed(pci);
+}
