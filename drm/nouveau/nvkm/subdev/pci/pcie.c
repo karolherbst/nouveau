@@ -86,6 +86,13 @@ nvkm_pcie_oneinit(struct nvkm_pci *pci)
 }
 
 int
+nvkm_pcie_preinit(struct nvkm_pci *pci)
+{
+	pci->pcie.def_speed = nvkm_pcie_get_speed(pci);
+	return 0;
+}
+
+int
 nvkm_pcie_init(struct nvkm_pci *pci)
 {
 	struct nvkm_subdev *subdev = &pci->subdev;
@@ -105,9 +112,18 @@ nvkm_pcie_init(struct nvkm_pci *pci)
 	if (pci->func->pcie.init)
 		pci->func->pcie.init(pci);
 
-	if (pci->pcie.speed != -1)
-		nvkm_pcie_set_link(pci, pci->pcie.speed, pci->pcie.width);
+	if (pci->pcie.cur_speed != -1)
+		nvkm_pcie_set_link(pci, pci->pcie.cur_speed,
+				   pci->pcie.cur_width);
 
+	return 0;
+}
+
+int
+nvkm_pcie_fini(struct nvkm_pci *pci)
+{
+	if (!IS_ERR_VALUE(pci->pcie.def_speed))
+		return nvkm_pcie_set_link(pci, pci->pcie.def_speed, 16);
 	return 0;
 }
 
@@ -146,8 +162,8 @@ nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 		speed = max_speed;
 	}
 
-	pci->pcie.speed = speed;
-	pci->pcie.width = width;
+	pci->pcie.cur_speed = speed;
+	pci->pcie.cur_width = width;
 
 	if (speed == cur_speed) {
 		nvkm_debug(subdev, "requested matches current speed\n");

@@ -26,8 +26,9 @@ struct nvkm_pci {
 	} agp;
 
 	struct {
-		enum nvkm_pcie_speed speed;
-		u8 width;
+		enum nvkm_pcie_speed cur_speed;
+		enum nvkm_pcie_speed def_speed;
+		u8 cur_width;
 	} pcie;
 
 	bool msi;
