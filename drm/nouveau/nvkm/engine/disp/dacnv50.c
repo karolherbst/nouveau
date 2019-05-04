@@ -56,7 +56,7 @@ nv50_dac_sense(struct nvkm_ior *dac, u32 loadval)
 static void
 nv50_dac_power_wait(struct nvkm_device *device, const u32 doff)
 {
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x61a004 + doff) & 0x80000000))
 			break;
 	);

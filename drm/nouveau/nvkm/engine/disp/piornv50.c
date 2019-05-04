@@ -48,7 +48,7 @@ nv50_pior_dp_links(struct nvkm_ior *pior, struct nvkm_i2c_aux *aux)
 static void
 nv50_pior_power_wait(struct nvkm_device *device, u32 poff)
 {
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x61e004 + poff) & 0x80000000))
 			break;
 	);

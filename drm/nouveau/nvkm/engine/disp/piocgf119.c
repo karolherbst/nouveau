@@ -36,7 +36,7 @@ gf119_disp_pioc_fini(struct nv50_disp_chan *chan)
 	int user = chan->chid.user;
 
 	nvkm_mask(device, 0x610490 + (ctrl * 0x10), 0x00000001, 0x00000000);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x610490 + (ctrl * 0x10)) & 0x00030000))
 			break;
 	) < 0) {
@@ -56,7 +56,7 @@ gf119_disp_pioc_init(struct nv50_disp_chan *chan)
 
 	/* activate channel */
 	nvkm_wr32(device, 0x610490 + (ctrl * 0x10), 0x00000001);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		u32 tmp = nvkm_rd32(device, 0x610490 + (ctrl * 0x10));
 		if ((tmp & 0x00030000) == 0x00010000)
 			break;

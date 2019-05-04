@@ -318,7 +318,7 @@ gv100_disp_init(struct nv50_disp *disp)
 	/* Claim ownership of display. */
 	if (nvkm_rd32(device, 0x6254e8) & 0x00000002) {
 		nvkm_mask(device, 0x6254e8, 0x00000001, 0x00000000);
-		if (nvkm_msec(device, 2000,
+		if (nvkm_msec(device, 200,
 			if (!(nvkm_rd32(device, 0x6254e8) & 0x00000002))
 				break;
 		) < 0)

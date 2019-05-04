@@ -353,7 +353,7 @@ mcp77_clk_prog(struct nvkm_clk *base)
 		goto resume;
 	}
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		u32 tmp = nvkm_rd32(device, 0x004080) & pllmask;
 		if (tmp == pllmask)
 			break;

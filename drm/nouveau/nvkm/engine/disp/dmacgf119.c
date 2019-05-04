@@ -46,7 +46,7 @@ gf119_disp_dmac_fini(struct nv50_disp_chan *chan)
 	/* deactivate channel */
 	nvkm_mask(device, 0x610490 + (ctrl * 0x0010), 0x00001010, 0x00001000);
 	nvkm_mask(device, 0x610490 + (ctrl * 0x0010), 0x00000003, 0x00000000);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x610490 + (ctrl * 0x10)) & 0x001e0000))
 			break;
 	) < 0) {
@@ -72,7 +72,7 @@ gf119_disp_dmac_init(struct nv50_disp_chan *chan)
 	nvkm_wr32(device, 0x610490 + (ctrl * 0x0010), 0x00000013);
 
 	/* wait for it to go inactive */
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x610490 + (ctrl * 0x10)) & 0x80000000))
 			break;
 	) < 0) {

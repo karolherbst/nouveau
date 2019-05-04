@@ -188,7 +188,7 @@ gk20a_gr_wait_mem_scrubbing(struct gf100_gr *gr)
 	struct nvkm_subdev *subdev = &gr->base.engine.subdev;
 	struct nvkm_device *device = subdev->device;
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x40910c) & 0x00000006))
 			break;
 	) < 0) {
@@ -196,7 +196,7 @@ gk20a_gr_wait_mem_scrubbing(struct gf100_gr *gr)
 		return -ETIMEDOUT;
 	}
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x41a10c) & 0x00000006))
 			break;
 	) < 0) {

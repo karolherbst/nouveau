@@ -93,7 +93,7 @@ g94_sor_dp_power(struct nvkm_ior *sor, int nr)
 
 	nvkm_mask(device, 0x61c130 + loff, 0x0000000f, mask);
 	nvkm_mask(device, 0x61c034 + soff, 0x80000000, 0x80000000);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x61c034 + soff) & 0x80000000))
 			break;
 	);
@@ -183,12 +183,12 @@ g94_sor_war_3(struct nvkm_ior *sor)
 
 		nvkm_wr32(device, 0x61c040 + soff + pd_pc * 4, 0x1f008000);
 
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			if (!(nvkm_rd32(device, 0x61c030 + soff) & 0x10000000))
 				break;
 		);
 		nvkm_mask(device, 0x61c004 + soff, 0x80000001, 0x80000000);
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			if (!(nvkm_rd32(device, 0x61c030 + soff) & 0x10000000))
 				break;
 		);

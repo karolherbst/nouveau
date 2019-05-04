@@ -170,12 +170,12 @@ nvkm_falcon_init(struct nvkm_engine *engine)
 	/* wait for 'uc halted' to be signalled before continuing */
 	if (falcon->secret && falcon->version < 4) {
 		if (!falcon->version) {
-			nvkm_msec(device, 2000,
+			nvkm_msec(device, 200,
 				if (nvkm_rd32(device, base + 0x008) & 0x00000010)
 					break;
 			);
 		} else {
-			nvkm_msec(device, 2000,
+			nvkm_msec(device, 200,
 				if (!(nvkm_rd32(device, base + 0x180) & 0x80000000))
 					break;
 			);

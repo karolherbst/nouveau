@@ -28,7 +28,7 @@ gv100_disp_curs_idle(struct nv50_disp_chan *chan)
 {
 	struct nvkm_device *device = chan->disp->base.engine.subdev.device;
 	const u32 soff = (chan->chid.ctrl - 1) * 0x04;
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		u32 stat = nvkm_rd32(device, 0x610664 + soff);
 		if ((stat & 0x00070000) == 0x00040000)
 			return 0;

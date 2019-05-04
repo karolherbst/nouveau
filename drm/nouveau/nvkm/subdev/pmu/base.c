@@ -80,7 +80,7 @@ nvkm_pmu_reset(struct nvkm_pmu *pmu)
 
 	/* Inhibit interrupts, and wait for idle. */
 	nvkm_wr32(device, 0x10a014, 0x0000ffff);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!nvkm_rd32(device, 0x10a04c))
 			break;
 	);
@@ -90,7 +90,7 @@ nvkm_pmu_reset(struct nvkm_pmu *pmu)
 		pmu->func->reset(pmu);
 
 	/* Wait for IMEM/DMEM scrubbing to be complete. */
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x10a10c) & 0x00000006))
 			break;
 	);

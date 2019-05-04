@@ -67,7 +67,7 @@ gk110_pmu_pgob(struct nvkm_pmu *pmu, bool enable)
 	nvkm_mask(device, 0x0206b4, 0x00000000, 0x00000000);
 	for (i = 0; i < ARRAY_SIZE(magic); i++) {
 		nvkm_wr32(device, magic[i].addr, magic[i].data);
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			if (!(nvkm_rd32(device, magic[i].addr) & 0x80000000))
 				break;
 		);

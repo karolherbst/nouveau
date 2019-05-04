@@ -105,7 +105,7 @@ nv50_mpeg_init(struct nvkm_engine *mpeg)
 	nvkm_wr32(device, 0x00b100, 0xffffffff);
 	nvkm_wr32(device, 0x00b140, 0xffffffff);
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x00b200) & 0x00000001))
 			break;
 	) < 0) {

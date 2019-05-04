@@ -1451,7 +1451,7 @@ gf100_grctx_generate(struct gf100_gr *gr)
 
 	/* NV_PGRAPH_FE_PWR_MODE_FORCE_ON. */
 	nvkm_wr32(device, 0x404170, 0x00000012);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x404170) & 0x00000010))
 			break;
 	);
@@ -1537,7 +1537,7 @@ gf100_grctx_generate(struct gf100_gr *gr)
 		nvkm_wr32(device, 0x409840, 0x80000000);
 		nvkm_wr32(device, 0x409500, 0x80000000 | addr);
 		nvkm_wr32(device, 0x409504, 0x00000001);
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			if (nvkm_rd32(device, 0x409800) & 0x80000000)
 				break;
 		);
@@ -1550,7 +1550,7 @@ gf100_grctx_generate(struct gf100_gr *gr)
 	 */
 	nvkm_mask(device, 0x409b04, 0x80000000, 0x00000000);
 	nvkm_wr32(device, 0x409000, 0x00000100);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x409b00) & 0x80000000))
 			break;
 	) < 0) {

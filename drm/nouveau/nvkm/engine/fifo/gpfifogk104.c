@@ -48,7 +48,7 @@ gk104_fifo_gpfifo_kick_locked(struct gk104_fifo_chan *chan)
 		nvkm_wr32(device, 0x002634, cgrp->id | 0x01000000);
 	else
 		nvkm_wr32(device, 0x002634, chan->base.chid);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x002634) & 0x00100000))
 			break;
 	) < 0) {

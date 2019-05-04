@@ -58,7 +58,7 @@ gk20a_ibus_intr(struct nvkm_subdev *ibus)
 
 	/* Acknowledge interrupt */
 	nvkm_mask(device, 0x12004c, 0x2, 0x2);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x12004c) & 0x0000003f))
 			break;
 	);

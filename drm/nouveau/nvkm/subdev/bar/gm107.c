@@ -27,7 +27,7 @@ void
 gm107_bar_bar1_wait(struct nvkm_bar *bar)
 {
 	struct nvkm_device *device = bar->subdev.device;
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x001710) & 0x00000003))
 			break;
 	);
@@ -37,7 +37,7 @@ static void
 gm107_bar_bar2_wait(struct nvkm_bar *bar)
 {
 	struct nvkm_device *device = bar->subdev.device;
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x001710) & 0x0000000c))
 			break;
 	);

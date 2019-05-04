@@ -730,7 +730,7 @@ gf100_gr_fecs_ctrl_ctxsw(struct gf100_gr *gr, u32 mthd)
 	nvkm_wr32(device, 0x409840, 0xffffffff);
 	nvkm_wr32(device, 0x409500, 0xffffffff);
 	nvkm_wr32(device, 0x409504, mthd);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		u32 stat = nvkm_rd32(device, 0x409804);
 		if (stat == 0x00000002)
 			return -EIO;
@@ -779,7 +779,7 @@ gf100_gr_fecs_bind_pointer(struct gf100_gr *gr, u32 inst)
 	nvkm_wr32(device, 0x409840, 0x00000030);
 	nvkm_wr32(device, 0x409500, inst);
 	nvkm_wr32(device, 0x409504, 0x00000003);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		u32 stat = nvkm_rd32(device, 0x409800);
 		if (stat & 0x00000020)
 			return -EIO;
@@ -799,7 +799,7 @@ gf100_gr_fecs_set_reglist_virtual_address(struct gf100_gr *gr, u64 addr)
 	nvkm_wr32(device, 0x409800, 0x00000000);
 	nvkm_wr32(device, 0x409500, 0x00000001);
 	nvkm_wr32(device, 0x409504, 0x00000032);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x409800) == 0x00000001)
 			return 0;
 	);
@@ -816,7 +816,7 @@ gf100_gr_fecs_set_reglist_bind_instance(struct gf100_gr *gr, u32 inst)
 	nvkm_wr32(device, 0x409800, 0x00000000);
 	nvkm_wr32(device, 0x409500, 0x00000001);
 	nvkm_wr32(device, 0x409504, 0x00000031);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x409800) == 0x00000001)
 			return 0;
 	);
@@ -832,7 +832,7 @@ gf100_gr_fecs_discover_reglist_image_size(struct gf100_gr *gr, u32 *psize)
 	nvkm_wr32(device, 0x409800, 0x00000000);
 	nvkm_wr32(device, 0x409500, 0x00000001);
 	nvkm_wr32(device, 0x409504, 0x00000030);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if ((*psize = nvkm_rd32(device, 0x409800)))
 			return 0;
 	);
@@ -870,7 +870,7 @@ gf100_gr_fecs_discover_pm_image_size(struct gf100_gr *gr, u32 *psize)
 	nvkm_wr32(device, 0x409840, 0xffffffff);
 	nvkm_wr32(device, 0x409500, 0x00000000);
 	nvkm_wr32(device, 0x409504, 0x00000025);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if ((*psize = nvkm_rd32(device, 0x409800)))
 			return 0;
 	);
@@ -886,7 +886,7 @@ gf100_gr_fecs_discover_zcull_image_size(struct gf100_gr *gr, u32 *psize)
 	nvkm_wr32(device, 0x409840, 0xffffffff);
 	nvkm_wr32(device, 0x409500, 0x00000000);
 	nvkm_wr32(device, 0x409504, 0x00000016);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if ((*psize = nvkm_rd32(device, 0x409800)))
 			return 0;
 	);
@@ -902,7 +902,7 @@ gf100_gr_fecs_discover_image_size(struct gf100_gr *gr, u32 *psize)
 	nvkm_wr32(device, 0x409840, 0xffffffff);
 	nvkm_wr32(device, 0x409500, 0x00000000);
 	nvkm_wr32(device, 0x409504, 0x00000010);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if ((*psize = nvkm_rd32(device, 0x409800)))
 			return 0;
 	);
@@ -1060,7 +1060,7 @@ gf100_gr_icmd(struct gf100_gr *gr, const struct gf100_gr_pack *p)
 			 */
 			if ((addr & 0xffff) == 0xe100)
 				gf100_gr_wait_idle(gr);
-			nvkm_msec(device, 2000,
+			nvkm_msec(device, 200,
 				if (!(nvkm_rd32(device, 0x400700) & 0x00000004))
 					break;
 			);
@@ -1724,7 +1724,7 @@ gf100_gr_init_ctxctl_ext(struct gf100_gr *gr)
 	nvkm_falcon_start(gr->gpccs.falcon);
 	nvkm_falcon_start(gr->fecs.falcon);
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x409800) & 0x00000001)
 			break;
 	) < 0)
@@ -1810,7 +1810,7 @@ gf100_gr_init_ctxctl_int(struct gf100_gr *gr)
 	/* start HUB ucode running, it'll init the GPCs */
 	nvkm_wr32(device, 0x40910c, 0x00000000);
 	nvkm_wr32(device, 0x409100, 0x00000002);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x409800) & 0x80000000)
 			break;
 	) < 0) {

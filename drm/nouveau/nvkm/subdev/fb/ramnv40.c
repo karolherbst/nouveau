@@ -96,13 +96,13 @@ nv40_ram_prog(struct nvkm_ram *base)
 		if (!(crtc_mask & (1 << i)))
 			continue;
 
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
 			if (!(tmp & 0x00010000))
 				break;
 		);
 
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
 			if ( (tmp & 0x00010000))
 				break;
@@ -160,7 +160,7 @@ nv40_ram_prog(struct nvkm_ram *base)
 		if (!(crtc_mask & (1 << i)))
 			continue;
 
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
 			if ( (tmp & 0x00010000))
 				break;

@@ -213,7 +213,7 @@ nv50_vmm_flush(struct nvkm_vmm *vmm, int level)
 		}
 
 		nvkm_wr32(device, 0x100c80, (id << 16) | 1);
-		if (nvkm_msec(device, 2000,
+		if (nvkm_msec(device, 200,
 			if (!(nvkm_rd32(device, 0x100c80) & 0x00000001))
 				break;
 		) < 0)

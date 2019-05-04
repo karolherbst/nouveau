@@ -1217,7 +1217,7 @@ nv04_gr_idle(struct nvkm_gr *gr)
 	if (device->card_type == NV_40)
 		mask &= ~NV40_PGRAPH_STATUS_SYNC_STALL;
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, NV04_PGRAPH_STATUS) & mask))
 			break;
 	) < 0) {

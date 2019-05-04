@@ -136,7 +136,7 @@ static int
 gv100_disp_core_idle(struct nv50_disp_chan *chan)
 {
 	struct nvkm_device *device = chan->disp->base.engine.subdev.device;
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		u32 stat = nvkm_rd32(device, 0x610630);
 		if ((stat & 0x001f0000) == 0x000b0000)
 			return 0;

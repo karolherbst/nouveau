@@ -106,7 +106,7 @@ nv40_gr_chan_fini(struct nvkm_object *object, bool suspend)
 			nvkm_wr32(device, 0x400784, inst);
 			nvkm_mask(device, 0x400310, 0x00000020, 0x00000020);
 			nvkm_mask(device, 0x400304, 0x00000001, 0x00000001);
-			if (nvkm_msec(device, 2000,
+			if (nvkm_msec(device, 200,
 				if (!(nvkm_rd32(device, 0x400300) & 0x00000001))
 					break;
 			) < 0) {

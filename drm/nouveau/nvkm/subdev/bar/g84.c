@@ -32,7 +32,7 @@ g84_bar_flush(struct nvkm_bar *bar)
 	unsigned long flags;
 	spin_lock_irqsave(&bar->lock, flags);
 	nvkm_wr32(device, 0x070000, 0x00000001);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x070000) & 0x00000002))
 			break;
 	);

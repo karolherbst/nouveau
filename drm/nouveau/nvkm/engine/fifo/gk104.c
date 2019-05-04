@@ -168,7 +168,7 @@ gk104_fifo_runlist_commit(struct gk104_fifo *fifo, int runl,
 				    (target << 28));
 	nvkm_wr32(device, 0x002274, (runl << 20) | nr);
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x002284 + (runl * 0x08)) & 0x00100000))
 			break;
 	) < 0)
@@ -444,7 +444,7 @@ gk104_fifo_recover_engn(struct gk104_fifo *fifo, int engn)
 		nvkm_wr32(device, 0x002a30 + (engn * 0x04), 0x00000100 | mmui);
 
 		/* Wait for fault to trigger. */
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			gk104_fifo_engine_status(fifo, engn, &status);
 			if (status.faulted)
 				break;

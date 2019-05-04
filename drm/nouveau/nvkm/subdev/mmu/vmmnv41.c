@@ -85,7 +85,7 @@ nv41_vmm_flush(struct nvkm_vmm *vmm, int level)
 
 	mutex_lock(&subdev->mutex);
 	nvkm_wr32(device, 0x100810, 0x00000022);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x100810) & 0x00000020)
 			break;
 	);

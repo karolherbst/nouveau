@@ -73,7 +73,7 @@ nv50_fifo_chan_engine_fini(struct nvkm_fifo_chan *base,
 
 	/* do the kickoff... */
 	nvkm_wr32(device, 0x0032fc, chan->base.inst->addr >> 12);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x0032fc) != 0xffffffff)
 			break;
 	) < 0) {

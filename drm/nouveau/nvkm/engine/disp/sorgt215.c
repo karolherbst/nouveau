@@ -31,7 +31,7 @@ gt215_sor_dp_audio(struct nvkm_ior *sor, int head, bool enable)
 	const u32 data = 0x80000000 | (0x00000001 * enable);
 	const u32 mask = 0x8000000d;
 	nvkm_mask(device, 0x61c1e0 + soff, mask, data);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x61c1e0 + soff) & 0x80000000))
 			break;
 	);

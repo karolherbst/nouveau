@@ -44,7 +44,7 @@ gf100_ltc_cbc_wait(struct nvkm_ltc *ltc)
 	for (c = 0; c < ltc->ltc_nr; c++) {
 		for (s = 0; s < ltc->lts_nr; s++) {
 			const u32 addr = 0x1410c8 + (c * 0x2000) + (s * 0x400);
-			nvkm_msec(device, 2000,
+			nvkm_msec(device, 200,
 				if (!nvkm_rd32(device, addr))
 					break;
 			);

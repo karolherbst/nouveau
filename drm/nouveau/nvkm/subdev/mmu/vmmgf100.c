@@ -196,7 +196,7 @@ gf100_vmm_invalidate(struct nvkm_vmm *vmm, u32 type)
 	/* Looks like maybe a "free flush slots" counter, the
 	 * faster you write to 0x100cbc to more it decreases.
 	 */
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x100c80) & 0x00ff0000)
 			break;
 	);
@@ -218,7 +218,7 @@ gf100_vmm_invalidate(struct nvkm_vmm *vmm, u32 type)
 	nvkm_wr32(device, 0x100cbc, 0x80000000 | type);
 
 	/* Wait for flush to be queued? */
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x100c80) & 0x00008000)
 			break;
 	);

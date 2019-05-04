@@ -313,7 +313,7 @@ gt215_clk_pre(struct nvkm_clk *clk, unsigned long *flags)
 	nvkm_mask(device, 0x020060, 0x00070000, 0x00000000);
 	nvkm_mask(device, 0x002504, 0x00000001, 0x00000001);
 	/* Wait until the interrupt handler is finished */
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (!nvkm_rd32(device, 0x000100))
 			break;
 	) < 0)
@@ -322,13 +322,13 @@ gt215_clk_pre(struct nvkm_clk *clk, unsigned long *flags)
 	if (fifo)
 		nvkm_fifo_pause(fifo, flags);
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x002504) & 0x00000010)
 			break;
 	) < 0)
 		return -EIO;
 
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		u32 tmp = nvkm_rd32(device, 0x00251c) & 0x0000003f;
 		if (tmp == 0x0000003f)
 			break;
@@ -383,7 +383,7 @@ prog_pll(struct gt215_clk *clk, int idx, u32 pll, int dom)
 		nvkm_wr32(device, coef, info->pll);
 		nvkm_mask(device, ctrl, 0x00000015, 0x00000015);
 		nvkm_mask(device, ctrl, 0x00000010, 0x00000000);
-		if (nvkm_msec(device, 2000,
+		if (nvkm_msec(device, 200,
 			if (nvkm_rd32(device, ctrl) & 0x00020000)
 				break;
 		) < 0) {

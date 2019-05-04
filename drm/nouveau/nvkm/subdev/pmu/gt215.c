@@ -37,7 +37,7 @@ gt215_pmu_send(struct nvkm_pmu *pmu, u32 reply[2],
 	mutex_lock(&subdev->mutex);
 	/* wait for a free slot in the fifo */
 	addr  = nvkm_rd32(device, 0x10a4a0);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		u32 tmp = nvkm_rd32(device, 0x10a4b0);
 		if (tmp != (addr ^ 8))
 			break;
@@ -220,7 +220,7 @@ gt215_pmu_init(struct nvkm_pmu *pmu)
 	nvkm_wr32(device, 0x10a100, 0x00000002);
 
 	/* wait for valid host->pmu ring configuration */
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x10a4d0))
 			break;
 	) < 0)
@@ -229,7 +229,7 @@ gt215_pmu_init(struct nvkm_pmu *pmu)
 	pmu->send.size = nvkm_rd32(device, 0x10a4d0) >> 16;
 
 	/* wait for valid pmu->host ring configuration */
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x10a4dc))
 			break;
 	) < 0)

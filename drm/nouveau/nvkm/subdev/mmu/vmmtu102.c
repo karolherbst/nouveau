@@ -41,7 +41,7 @@ tu102_vmm_flush(struct nvkm_vmm *vmm, int depth)
 	nvkm_wr32(device, 0x100e68, 0x00000000);
 	nvkm_wr32(device, 0xb830b0, 0x80000000 | type);
 
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0xb830b0) & 0x80000000))
 			break;
 	);

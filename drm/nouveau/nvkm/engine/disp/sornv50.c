@@ -37,7 +37,7 @@ nv50_sor_clock(struct nvkm_ior *sor)
 static void
 nv50_sor_power_wait(struct nvkm_device *device, u32 soff)
 {
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x61c004 + soff) & 0x80000000))
 			break;
 	);
@@ -57,7 +57,7 @@ nv50_sor_power(struct nvkm_ior *sor, bool normal, bool pu,
 	nvkm_mask(device, 0x61c004 + soff, field, state);
 	nv50_sor_power_wait(device, soff);
 
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x61c030 + soff) & 0x10000000))
 			break;
 	);

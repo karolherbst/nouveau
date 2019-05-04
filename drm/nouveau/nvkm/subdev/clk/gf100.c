@@ -356,7 +356,7 @@ gf100_clk_prog_1(struct gf100_clk *clk, int idx)
 {
 	struct nvkm_device *device = clk->base.subdev.device;
 	nvkm_mask(device, 0x137100, (1 << idx), 0x00000000);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (!(nvkm_rd32(device, 0x137100) & (1 << idx)))
 			break;
 	);
@@ -377,7 +377,7 @@ gf100_clk_prog_2(struct gf100_clk *clk, int idx)
 
 			/* Test PLL lock */
 			nvkm_mask(device, addr + 0x00, 0x00000010, 0x00000000);
-			nvkm_msec(device, 2000,
+			nvkm_msec(device, 200,
 				if (nvkm_rd32(device, addr + 0x00) & 0x00020000)
 					break;
 			);
@@ -396,7 +396,7 @@ gf100_clk_prog_3(struct gf100_clk *clk, int idx)
 	struct nvkm_device *device = clk->base.subdev.device;
 	if (info->ssel) {
 		nvkm_mask(device, 0x137100, (1 << idx), info->ssel);
-		nvkm_msec(device, 2000,
+		nvkm_msec(device, 200,
 			u32 tmp = nvkm_rd32(device, 0x137100) & (1 << idx);
 			if (tmp == info->ssel)
 				break;

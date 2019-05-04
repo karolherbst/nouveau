@@ -187,7 +187,7 @@ nv44_vmm_flush(struct nvkm_vmm *vmm, int level)
 	struct nvkm_device *device = vmm->mmu->subdev.device;
 	nvkm_wr32(device, 0x100814, vmm->limit - 4096);
 	nvkm_wr32(device, 0x100808, 0x000000020);
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x100808) & 0x00000001)
 			break;
 	);

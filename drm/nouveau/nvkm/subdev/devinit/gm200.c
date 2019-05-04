@@ -158,7 +158,7 @@ gm200_devinit_post(struct nvkm_devinit *base, bool post)
 	if (post) {
 		nvkm_wr32(device, 0x10a040, 0x00005000);
 		pmu_exec(init, exec);
-		if (nvkm_msec(device, 2000,
+		if (nvkm_msec(device, 200,
 			if (nvkm_rd32(device, 0x10a040) & 0x00002000)
 				break;
 		) < 0)

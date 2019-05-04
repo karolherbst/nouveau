@@ -67,7 +67,7 @@ __acquires(fifo->base.lock)
 	 * to avoid this, we invalidate the most recently calculated
 	 * instance.
 	 */
-	nvkm_msec(device, 2000,
+	nvkm_msec(device, 200,
 		u32 tmp = nvkm_rd32(device, NV04_PFIFO_CACHE1_PULL0);
 		if (!(tmp & NV04_PFIFO_CACHE1_PULL0_HASH_BUSY))
 			break;

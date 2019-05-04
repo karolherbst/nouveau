@@ -79,7 +79,7 @@ gf100_fifo_gpfifo_engine_fini(struct nvkm_fifo_chan *base,
 
 	mutex_lock(&subdev->mutex);
 	nvkm_wr32(device, 0x002634, chan->base.chid);
-	if (nvkm_msec(device, 2000,
+	if (nvkm_msec(device, 200,
 		if (nvkm_rd32(device, 0x002634) == chan->base.chid)
 			break;
 	) < 0) {
