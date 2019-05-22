@@ -1329,6 +1329,7 @@ struct firmware {
 
 int request_firmware(const struct firmware **, const char *, struct device *);
 void release_firmware(const struct firmware *);
+#define firmware_request_nowarn request_firmware
 
 #define MODULE_FIRMWARE(a)
 
