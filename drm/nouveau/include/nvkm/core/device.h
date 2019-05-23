@@ -129,6 +129,11 @@ struct nvkm_device {
 		struct notifier_block nb;
 	} acpi;
 
+	/* if this flag is set, every attempt to communicate with the hardware
+         * will fail. For cleanup functions that means that memory can be fred
+         * but gpu resources can be assumed to be gone */
+	bool is_dead;
+
 	struct nvkm_bar *bar;
 	struct nvkm_bios *bios;
 	struct nvkm_bus *bus;

@@ -49,7 +49,7 @@ nvkm_fifo_chan_child_fini(struct nvkm_oproxy *base, bool suspend)
 	if (--engn->usecount)
 		return 0;
 
-	if (chan->func->engine_fini) {
+	if (chan->func->engine_fini && !engine->subdev.device->is_dead) {
 		ret = chan->func->engine_fini(chan, engine, suspend);
 		if (ret) {
 			nvif_error(&chan->object,

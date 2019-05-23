@@ -44,6 +44,9 @@ gk104_fifo_gpfifo_kick_locked(struct gk104_fifo_chan *chan)
 	struct nvkm_fifo_cgrp *cgrp = chan->cgrp;
 	int ret = 0;
 
+	if (device->is_dead)
+		return 0;
+
 	if (cgrp)
 		nvkm_wr32(device, 0x002634, cgrp->id | 0x01000000);
 	else
