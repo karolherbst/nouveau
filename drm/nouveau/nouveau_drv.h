@@ -132,7 +132,6 @@ nouveau_cli(struct drm_file *fpriv)
 }
 
 #include <nvif/object.h>
-#include <nvif/device.h>
 
 struct nouveau_drm {
 	struct nouveau_cli master;
