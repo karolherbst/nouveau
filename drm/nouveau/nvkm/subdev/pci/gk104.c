@@ -23,6 +23,8 @@
  */
 #include "priv.h"
 
+#include <subdev/timer.h>
+
 static int
 gk104_pcie_version_supported(struct nvkm_pci *pci)
 {
@@ -123,7 +125,7 @@ gk104_pcie_max_speed(struct nvkm_pci *pci)
 	return NVKM_PCIE_SPEED_2_5;
 }
 
-static void
+static int
 gk104_pcie_set_link_speed(struct nvkm_pci *pci, enum nvkm_pcie_speed speed)
 {
 	struct nvkm_device *device = pci->subdev.device;
@@ -142,8 +144,16 @@ gk104_pcie_set_link_speed(struct nvkm_pci *pci, enum nvkm_pcie_speed speed)
 		break;
 	}
 
+	/* wait for ltssm idle */
+	if (nvkm_msec(device, 200,
+		if ((nvkm_rd32(device, 0x8c040) & 0x1f) == 0)
+			break;
+	) < 0) {
+		return -EBUSY;
+	}
 	nvkm_mask(device, 0x8c040, 0xc0000, mask_value);
 	nvkm_mask(device, 0x8c040, 0x1, 0x1);
+	return 0;
 }
 
 static int
@@ -185,6 +195,7 @@ gk104_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 	enum nvkm_pcie_speed lnk_ctl_speed = gk104_pcie_lnkctl_speed(pci);
 	enum nvkm_pcie_speed lnk_cap_speed = gk104_pcie_cap_speed(pci);
 	u32 old_dl_mgr;
+	int ret;
 
 	if (speed > lnk_cap_speed) {
 		speed = lnk_cap_speed;
@@ -199,9 +210,9 @@ gk104_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 	}
 
 	old_dl_mgr = nvkm_mask(subdev->device, 0x8b8c0, 0x4, 0x4);
-	gk104_pcie_set_link_speed(pci, speed);
+	ret = gk104_pcie_set_link_speed(pci, speed);
 	nvkm_wr32(subdev->device, 0x8b8c0, old_dl_mgr);
-	return 0;
+	return ret;
 }
 
 
