@@ -111,6 +111,14 @@ nvkm_pcie_init(struct nvkm_pci *pci)
 	return 0;
 }
 
+void
+nvkm_pcie_force_aspm_off(struct nvkm_pci *pci, bool status)
+{
+	if (!pci->func->pcie.force_aspm_off)
+		return;
+	pci->func->pcie.force_aspm_off(pci, status);
+}
+
 int
 nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 {
@@ -157,9 +165,15 @@ nvkm_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 	nvkm_debug(subdev, "set link to %s x%i\n",
 		   nvkm_pcie_speeds[speed], width);
 
+	/* force disable ASPM */
+	nvkm_pcie_force_aspm_off(pci, true);
+
 	ret = pci->func->pcie.set_link(pci, speed, width);
 	if (ret < 0)
 		nvkm_error(subdev, "setting link failed: %i\n", ret);
+
+	/* lift force disable ASPM */
+	nvkm_pcie_force_aspm_off(pci, false);
 
 	return ret;
 }

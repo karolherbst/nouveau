@@ -48,6 +48,7 @@ g92_pci_func = {
 	.pcie.set_version = g84_pcie_set_version,
 	.pcie.version = g84_pcie_version,
 	.pcie.version_supported = g92_pcie_version_supported,
+	.pcie.force_aspm_off = g84_pcie_force_aspm_off,
 };
 
 int
