@@ -23,6 +23,8 @@
  */
 #include "priv.h"
 
+#include <subdev/timer.h>
+
 static int
 gk104_pcie_version_supported(struct nvkm_pci *pci)
 {
@@ -142,6 +144,11 @@ gk104_pcie_set_link_speed(struct nvkm_pci *pci, enum nvkm_pcie_speed speed)
 		break;
 	}
 
+	/* wait for ltssm idle */
+	nvkm_msec(device, 200,
+		if ((nvkm_rd32(device, 0x8c040) & 0x1f) == 0)
+			break;
+	);
 	nvkm_mask(device, 0x8c040, 0xc0000, mask_value);
 	nvkm_mask(device, 0x8c040, 0x1, 0x1);
 }
