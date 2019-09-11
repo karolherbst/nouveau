@@ -184,6 +184,7 @@ gk104_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 	struct nvkm_subdev *subdev = &pci->subdev;
 	enum nvkm_pcie_speed lnk_ctl_speed = gk104_pcie_lnkctl_speed(pci);
 	enum nvkm_pcie_speed lnk_cap_speed = gk104_pcie_cap_speed(pci);
+	u32 old_dl_mgr;
 
 	if (speed > lnk_cap_speed) {
 		speed = lnk_cap_speed;
@@ -197,7 +198,9 @@ gk104_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 			  " lnkctl speed\n");
 	}
 
+	old_dl_mgr = nvkm_mask(subdev->device, 0x8b8c0, 0x4, 0x4);
 	gk104_pcie_set_link_speed(pci, speed);
+	nvkm_wr32(subdev->device, 0x8b8c0, old_dl_mgr);
 	return 0;
 }
 
