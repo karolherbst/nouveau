@@ -122,6 +122,14 @@ g84_pci_init(struct nvkm_pci *pci)
 		nvkm_pci_mask(pci, 0x041c, 0x00000060, 0x00000000);
 }
 
+enum nvkm_pci_aspm
+g84_pcie_aspm_off(struct nvkm_pci *pci, enum nvkm_pci_aspm states)
+{
+	u32 value = states << 7;
+
+	return (nvkm_pci_mask(pci, 0x150, 0x180, value) & 0x180) >> 7;
+}
+
 int
 g84_pcie_init(struct nvkm_pci *pci)
 {
@@ -147,6 +155,7 @@ g84_pci_func = {
 	.pcie.set_version = g84_pcie_set_version,
 	.pcie.version = g84_pcie_version,
 	.pcie.version_supported = g84_pcie_version_supported,
+	.pcie.aspm_off = g84_pcie_aspm_off,
 };
 
 int

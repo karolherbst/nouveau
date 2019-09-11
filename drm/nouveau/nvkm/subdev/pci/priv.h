@@ -7,6 +7,13 @@
 int nvkm_pci_new_(const struct nvkm_pci_func *, struct nvkm_device *,
 		  int index, struct nvkm_pci **);
 
+enum nvkm_pci_aspm {
+	NVKM_PCI_ASPM_NONE = 0,
+	NVKM_PCI_ASPM_L0S = 1,
+	NVKM_PCI_ASPM_L1 = 2,
+	NVKM_PCI_ASPM_L0S_L1 = 3,
+};
+
 struct nvkm_pci_func {
 	void (*init)(struct nvkm_pci *);
 	u32 (*rd32)(struct nvkm_pci *, u16 addr);
@@ -24,6 +31,8 @@ struct nvkm_pci_func {
 		void (*set_version)(struct nvkm_pci *, u8);
 		int (*version)(struct nvkm_pci *);
 		int (*version_supported)(struct nvkm_pci *);
+		enum nvkm_pci_aspm (*aspm_off)(struct nvkm_pci *,
+					       enum nvkm_pci_aspm);
 	} pcie;
 };
 
@@ -42,6 +51,7 @@ int g84_pcie_version(struct nvkm_pci *);
 void g84_pcie_set_link_speed(struct nvkm_pci *, enum nvkm_pcie_speed);
 enum nvkm_pcie_speed g84_pcie_cur_speed(struct nvkm_pci *);
 enum nvkm_pcie_speed g84_pcie_max_speed(struct nvkm_pci *);
+enum nvkm_pci_aspm g84_pcie_aspm_off(struct nvkm_pci *, enum nvkm_pci_aspm);
 int g84_pcie_init(struct nvkm_pci *);
 int g84_pcie_set_link(struct nvkm_pci *, enum nvkm_pcie_speed, u8);
 
