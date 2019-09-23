@@ -135,7 +135,7 @@ nvkm_ioctl_new(struct nvkm_client *client,
 			}
 			ret = -EEXIST;
 		}
-		nvkm_object_fini(object, false);
+		nvkm_object_fini(object, NVKM_SUSPEND_NONE);
 	}
 
 	nvkm_object_del(&object);
@@ -154,7 +154,7 @@ nvkm_ioctl_del(struct nvkm_client *client,
 	nvif_ioctl(object, "delete size %d\n", size);
 	if (!(ret = nvif_unvers(ret, &data, &size, args->none))) {
 		nvif_ioctl(object, "delete\n");
-		nvkm_object_fini(object, false);
+		nvkm_object_fini(object, NVKM_SUSPEND_NONE);
 		nvkm_object_del(&object);
 	}
 

@@ -107,10 +107,10 @@ nvkm_subdev_info(struct nvkm_subdev *subdev, u64 mthd, u64 *data)
 }
 
 int
-nvkm_subdev_fini(struct nvkm_subdev *subdev, bool suspend)
+nvkm_subdev_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_device *device = subdev->device;
-	const char *action = suspend ? "suspend" : "fini";
+	const char *action = nvkm_suspend_type_str(suspend);
 	s64 time;
 
 	nvkm_trace(subdev, "%s running...\n", action);

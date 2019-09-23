@@ -175,7 +175,7 @@ nvkm_mc_enabled(struct nvkm_device *device, enum nvkm_devidx devidx)
 
 
 static int
-nvkm_mc_fini(struct nvkm_subdev *subdev, bool suspend)
+nvkm_mc_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type type)
 {
 	nvkm_mc_intr_unarm(subdev->device);
 	return 0;

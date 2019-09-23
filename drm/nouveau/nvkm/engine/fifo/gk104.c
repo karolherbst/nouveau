@@ -292,7 +292,7 @@ gk104_fifo_recover_work(struct work_struct *w)
 
 	for (todo = engm; engn = __ffs(todo), todo; todo &= ~BIT(engn)) {
 		if ((engine = fifo->engine[engn].engine)) {
-			nvkm_subdev_fini(&engine->subdev, false);
+			nvkm_subdev_fini(&engine->subdev, NVKM_SUSPEND_NONE);
 			WARN_ON(nvkm_subdev_init(&engine->subdev));
 		}
 	}

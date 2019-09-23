@@ -89,7 +89,7 @@ nv40_gr_chan_bind(struct nvkm_object *object, struct nvkm_gpuobj *parent,
 }
 
 static int
-nv40_gr_chan_fini(struct nvkm_object *object, bool suspend)
+nv40_gr_chan_fini(struct nvkm_object *object, enum nvkm_suspend_type suspend)
 {
 	struct nv40_gr_chan *chan = nv40_gr_chan(object);
 	struct nv40_gr *gr = chan->gr;

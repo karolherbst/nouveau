@@ -2,6 +2,7 @@
 #ifndef __NVKM_SUBDEV_H__
 #define __NVKM_SUBDEV_H__
 #include <core/device.h>
+#include <core/object.h>
 
 struct nvkm_subdev {
 	const struct nvkm_subdev_func *func;
@@ -19,7 +20,7 @@ struct nvkm_subdev_func {
 	int (*oneinit)(struct nvkm_subdev *);
 	int (*info)(struct nvkm_subdev *, u64 mthd, u64 *data);
 	int (*init)(struct nvkm_subdev *);
-	int (*fini)(struct nvkm_subdev *, bool suspend);
+	int (*fini)(struct nvkm_subdev *, enum nvkm_suspend_type);
 	void (*intr)(struct nvkm_subdev *);
 };
 
@@ -29,7 +30,7 @@ void nvkm_subdev_ctor(const struct nvkm_subdev_func *, struct nvkm_device *,
 void nvkm_subdev_del(struct nvkm_subdev **);
 int  nvkm_subdev_preinit(struct nvkm_subdev *);
 int  nvkm_subdev_init(struct nvkm_subdev *);
-int  nvkm_subdev_fini(struct nvkm_subdev *, bool suspend);
+int  nvkm_subdev_fini(struct nvkm_subdev *, enum nvkm_suspend_type);
 int  nvkm_subdev_info(struct nvkm_subdev *, u64, u64 *);
 void nvkm_subdev_intr(struct nvkm_subdev *);
 

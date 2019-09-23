@@ -106,7 +106,7 @@ nvkm_oproxy_sclass(struct nvkm_object *object, int index,
 }
 
 static int
-nvkm_oproxy_fini(struct nvkm_object *object, bool suspend)
+nvkm_oproxy_fini(struct nvkm_object *object, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_oproxy *oproxy = nvkm_oproxy(object);
 	int ret;

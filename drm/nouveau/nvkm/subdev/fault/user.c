@@ -52,7 +52,7 @@ nvkm_ufault_ntfy(struct nvkm_object *object, u32 type,
 }
 
 static int
-nvkm_ufault_fini(struct nvkm_object *object, bool suspend)
+nvkm_ufault_fini(struct nvkm_object *object, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_fault_buffer *buffer = nvkm_fault_buffer(object);
 	buffer->fault->func->buffer.fini(buffer);

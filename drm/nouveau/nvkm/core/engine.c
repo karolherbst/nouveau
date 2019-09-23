@@ -42,7 +42,7 @@ nvkm_engine_unref(struct nvkm_engine **pengine)
 	if (engine) {
 		mutex_lock(&engine->subdev.mutex);
 		if (--engine->usecount == 0)
-			nvkm_subdev_fini(&engine->subdev, false);
+			nvkm_subdev_fini(&engine->subdev, NVKM_SUSPEND_NONE);
 		mutex_unlock(&engine->subdev.mutex);
 		*pengine = NULL;
 	}
@@ -98,7 +98,7 @@ nvkm_engine_info(struct nvkm_subdev *subdev, u64 mthd, u64 *data)
 }
 
 static int
-nvkm_engine_fini(struct nvkm_subdev *subdev, bool suspend)
+nvkm_engine_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_engine *engine = nvkm_engine(subdev);
 	if (engine->func->fini)

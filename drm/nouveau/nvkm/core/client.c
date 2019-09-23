@@ -253,12 +253,11 @@ nvkm_client_child_get(struct nvkm_object *object, int index,
 }
 
 static int
-nvkm_client_fini(struct nvkm_object *object, bool suspend)
+nvkm_client_fini(struct nvkm_object *object, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_client *client = nvkm_client(object);
-	const char *name[2] = { "fini", "suspend" };
 	int i;
-	nvif_debug(object, "%s notify\n", name[suspend]);
+	nvif_debug(object, "%s notify\n", nvkm_suspend_type_str(suspend));
 	for (i = 0; i < ARRAY_SIZE(client->notify); i++)
 		nvkm_client_notify_put(client, i);
 	return 0;

@@ -36,7 +36,8 @@ struct nvkm_fifo_chan_object {
 };
 
 static int
-nvkm_fifo_chan_child_fini(struct nvkm_oproxy *base, bool suspend)
+nvkm_fifo_chan_child_fini(struct nvkm_oproxy *base,
+			  enum nvkm_suspend_type suspend)
 {
 	struct nvkm_fifo_chan_object *object =
 		container_of(base, typeof(*object), oproxy);
@@ -294,7 +295,7 @@ nvkm_fifo_chan_wr32(struct nvkm_object *object, u64 addr, u32 data)
 }
 
 static int
-nvkm_fifo_chan_fini(struct nvkm_object *object, bool suspend)
+nvkm_fifo_chan_fini(struct nvkm_object *object, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_fifo_chan *chan = nvkm_fifo_chan(object);
 	chan->func->fini(chan);

@@ -25,10 +25,19 @@ enum nvkm_object_map {
 	NVKM_OBJECT_MAP_VA
 };
 
+enum nvkm_suspend_type {
+	NVKM_SUSPEND_NONE = 0,
+	NVKM_SUSPEND_SYSTEM = 1,
+	NVKM_SUSPEND_RUNTIME = 2,
+};
+
+const char*
+nvkm_suspend_type_str(enum nvkm_suspend_type);
+
 struct nvkm_object_func {
 	void *(*dtor)(struct nvkm_object *);
 	int (*init)(struct nvkm_object *);
-	int (*fini)(struct nvkm_object *, bool suspend);
+	int (*fini)(struct nvkm_object *, enum nvkm_suspend_type);
 	int (*mthd)(struct nvkm_object *, u32 mthd, void *data, u32 size);
 	int (*ntfy)(struct nvkm_object *, u32 mthd, struct nvkm_event **);
 	int (*map)(struct nvkm_object *, void *argv, u32 argc,
@@ -55,7 +64,7 @@ int nvkm_object_new(const struct nvkm_oclass *, void *data, u32 size,
 void nvkm_object_del(struct nvkm_object **);
 void *nvkm_object_dtor(struct nvkm_object *);
 int nvkm_object_init(struct nvkm_object *);
-int nvkm_object_fini(struct nvkm_object *, bool suspend);
+int nvkm_object_fini(struct nvkm_object *, enum nvkm_suspend_type);
 int nvkm_object_mthd(struct nvkm_object *, u32 mthd, void *data, u32 size);
 int nvkm_object_ntfy(struct nvkm_object *, u32 mthd, struct nvkm_event **);
 int nvkm_object_map(struct nvkm_object *, void *argv, u32 argc,

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 #ifndef __NVKM_DEVICE_H__
 #define __NVKM_DEVICE_H__
+#include <core/object.h>
 #include <core/oclass.h>
 #include <core/event.h>
 
@@ -188,7 +189,7 @@ struct nvkm_device_func {
 	void *(*dtor)(struct nvkm_device *);
 	int (*preinit)(struct nvkm_device *);
 	int (*init)(struct nvkm_device *);
-	void (*fini)(struct nvkm_device *, bool suspend);
+	void (*fini)(struct nvkm_device *, enum nvkm_suspend_type);
 	resource_size_t (*resource_addr)(struct nvkm_device *, unsigned bar);
 	resource_size_t (*resource_size)(struct nvkm_device *, unsigned bar);
 	bool cpu_coherent;

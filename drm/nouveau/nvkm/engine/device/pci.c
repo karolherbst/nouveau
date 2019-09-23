@@ -1575,7 +1575,7 @@ nvkm_device_pci_resource_size(struct nvkm_device *device, unsigned bar)
 }
 
 static void
-nvkm_device_pci_fini(struct nvkm_device *device, bool suspend)
+nvkm_device_pci_fini(struct nvkm_device *device, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_device_pci *pdev = nvkm_device_pci(device);
 	if (suspend) {

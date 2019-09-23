@@ -162,7 +162,7 @@ gf100_fifo_recover_work(struct work_struct *w)
 
 	for (todo = mask; engn = __ffs64(todo), todo; todo &= ~BIT_ULL(engn)) {
 		if ((engine = nvkm_device_engine(device, engn))) {
-			nvkm_subdev_fini(&engine->subdev, false);
+			nvkm_subdev_fini(&engine->subdev, NVKM_SUSPEND_NONE);
 			WARN_ON(nvkm_subdev_init(&engine->subdev));
 		}
 	}

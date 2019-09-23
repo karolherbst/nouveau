@@ -214,7 +214,7 @@ nvkm_disp_intr(struct nvkm_engine *engine)
 }
 
 static int
-nvkm_disp_fini(struct nvkm_engine *engine, bool suspend)
+nvkm_disp_fini(struct nvkm_engine *engine, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_disp *disp = nvkm_disp(engine);
 	struct nvkm_conn *conn;

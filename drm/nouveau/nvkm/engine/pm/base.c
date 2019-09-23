@@ -820,7 +820,7 @@ nvkm_perfdom_new(struct nvkm_pm *pm, const char *name, u32 mask,
 }
 
 static int
-nvkm_pm_fini(struct nvkm_engine *engine, bool suspend)
+nvkm_pm_fini(struct nvkm_engine *engine, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_pm *pm = nvkm_pm(engine);
 	if (pm->func->fini)

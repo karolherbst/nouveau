@@ -36,9 +36,9 @@ nvif_client_ioctl(struct nvif_client *client, void *data, u32 size)
 }
 
 int
-nvif_client_suspend(struct nvif_client *client)
+nvif_client_suspend(struct nvif_client *client, bool runtime)
 {
-	return client->driver->suspend(client->object.priv);
+	return client->driver->suspend(client->object.priv, runtime);
 }
 
 int

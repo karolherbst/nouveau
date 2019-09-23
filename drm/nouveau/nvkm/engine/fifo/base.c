@@ -279,7 +279,7 @@ nvkm_fifo_intr(struct nvkm_engine *engine)
 }
 
 static int
-nvkm_fifo_fini(struct nvkm_engine *engine, bool suspend)
+nvkm_fifo_fini(struct nvkm_engine *engine, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_fifo *fifo = nvkm_fifo(engine);
 	if (fifo->func->fini)

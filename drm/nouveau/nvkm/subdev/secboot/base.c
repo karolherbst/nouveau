@@ -161,7 +161,7 @@ nvkm_secboot_oneinit(struct nvkm_subdev *subdev)
 }
 
 static int
-nvkm_secboot_fini(struct nvkm_subdev *subdev, bool suspend)
+nvkm_secboot_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_secboot *sb = nvkm_secboot(subdev);
 	int ret = 0;

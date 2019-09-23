@@ -84,7 +84,7 @@ nvkm_pci_intr(int irq, void *arg)
 }
 
 static int
-nvkm_pci_fini(struct nvkm_subdev *subdev, bool suspend)
+nvkm_pci_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_pci *pci = nvkm_pci(subdev);
 

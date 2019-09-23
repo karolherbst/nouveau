@@ -74,7 +74,7 @@ drm_client_resume(void *priv)
 }
 
 static int
-drm_client_suspend(void *priv)
+drm_client_suspend(void *priv, bool runtime)
 {
 	return -ENOSYS;
 }

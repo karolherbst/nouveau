@@ -93,7 +93,7 @@ nvkm_falcon_intr(struct nvkm_engine *engine)
 }
 
 static int
-nvkm_falcon_fini(struct nvkm_engine *engine, bool suspend)
+nvkm_falcon_fini(struct nvkm_engine *engine, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_falcon *falcon = nvkm_falcon(engine);
 	struct nvkm_device *device = falcon->engine.subdev.device;

@@ -20,7 +20,7 @@ struct nvkm_engine_func {
 	int (*oneinit)(struct nvkm_engine *);
 	int (*info)(struct nvkm_engine *, u64 mthd, u64 *data);
 	int (*init)(struct nvkm_engine *);
-	int (*fini)(struct nvkm_engine *, bool suspend);
+	int (*fini)(struct nvkm_engine *, enum nvkm_suspend_type);
 	void (*intr)(struct nvkm_engine *);
 	void (*tile)(struct nvkm_engine *, int region, struct nvkm_fb_tile *);
 	bool (*chsw_load)(struct nvkm_engine *);

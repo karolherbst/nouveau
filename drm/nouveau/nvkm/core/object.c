@@ -175,10 +175,24 @@ nvkm_object_bind(struct nvkm_object *object, struct nvkm_gpuobj *gpuobj,
 	return -ENODEV;
 }
 
-int
-nvkm_object_fini(struct nvkm_object *object, bool suspend)
+const char *
+nvkm_suspend_type_str(enum nvkm_suspend_type type)
 {
-	const char *action = suspend ? "suspend" : "fini";
+	switch (type) {
+	case NVKM_SUSPEND_NONE:
+		return "fini";
+	case NVKM_SUSPEND_SYSTEM:
+		return "suspend";
+	case NVKM_SUSPEND_RUNTIME:
+		return "runtime suspend";
+	}
+	return "";
+}
+
+int
+nvkm_object_fini(struct nvkm_object *object, enum nvkm_suspend_type suspend)
+{
+	const char *action = nvkm_suspend_type_str(suspend);
 	struct nvkm_object *child;
 	s64 time;
 	int ret;
@@ -246,11 +260,11 @@ nvkm_object_init(struct nvkm_object *object)
 
 fail_child:
 	list_for_each_entry_continue_reverse(child, &object->tree, head)
-		nvkm_object_fini(child, false);
+		nvkm_object_fini(child, NVKM_SUSPEND_NONE);
 fail:
 	nvif_error(object, "init failed with %d\n", ret);
 	if (object->func->fini)
-		object->func->fini(object, false);
+		object->func->fini(object, NVKM_SUSPEND_NONE);
 	return ret;
 }
 

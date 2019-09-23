@@ -2724,12 +2724,13 @@ nvkm_device_engine(struct nvkm_device *device, int index)
 }
 
 int
-nvkm_device_fini(struct nvkm_device *device, bool suspend)
+nvkm_device_fini(struct nvkm_device *device, enum nvkm_suspend_type suspend)
 {
-	const char *action = suspend ? "suspend" : "fini";
 	struct nvkm_subdev *subdev;
 	int ret, i;
 	s64 time;
+
+	const char *action = nvkm_suspend_type_str(suspend);
 
 	nvdev_trace(device, "%s running...\n", action);
 	time = ktime_to_us(ktime_get());
@@ -2814,7 +2815,7 @@ nvkm_device_init(struct nvkm_device *device)
 	if (ret)
 		return ret;
 
-	nvkm_device_fini(device, false);
+	nvkm_device_fini(device, NVKM_SUSPEND_NONE);
 
 	nvdev_trace(device, "init running...\n");
 	time = ktime_to_us(ktime_get());
@@ -2843,11 +2844,11 @@ nvkm_device_init(struct nvkm_device *device)
 fail_subdev:
 	do {
 		if ((subdev = nvkm_device_subdev(device, i)))
-			nvkm_subdev_fini(subdev, false);
+			nvkm_subdev_fini(subdev, NVKM_SUSPEND_NONE);
 	} while (--i >= 0);
 
 fail:
-	nvkm_device_fini(device, false);
+	nvkm_device_fini(device, NVKM_SUSPEND_NONE);
 
 	nvdev_error(device, "init failed with %d\n", ret);
 	return ret;

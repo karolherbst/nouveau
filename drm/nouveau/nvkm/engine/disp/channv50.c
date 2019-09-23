@@ -293,7 +293,7 @@ nv50_disp_chan_child_get(struct nvkm_object *object, int index,
 }
 
 static int
-nv50_disp_chan_fini(struct nvkm_object *object, bool suspend)
+nv50_disp_chan_fini(struct nvkm_object *object, enum nvkm_suspend_type suspend)
 {
 	struct nv50_disp_chan *chan = nv50_disp_chan(object);
 	chan->func->fini(chan);

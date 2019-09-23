@@ -341,7 +341,7 @@ nvkm_therm_intr(struct nvkm_subdev *subdev)
 }
 
 static int
-nvkm_therm_fini(struct nvkm_subdev *subdev, bool suspend)
+nvkm_therm_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_therm *therm = nvkm_therm(subdev);
 

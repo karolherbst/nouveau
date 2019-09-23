@@ -9,7 +9,7 @@ struct nvif_driver {
 	int (*init)(const char *name, u64 device, const char *cfg,
 		    const char *dbg, void **priv);
 	void (*fini)(void *priv);
-	int (*suspend)(void *priv);
+	int (*suspend)(void *priv, bool runtime);
 	int (*resume)(void *priv);
 	int (*ioctl)(void *priv, bool super, void *data, u32 size, void **hack);
 	void __iomem *(*map)(void *priv, u64 handle, u32 size);

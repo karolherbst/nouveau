@@ -67,7 +67,7 @@ nvkm_fault_intr(struct nvkm_subdev *subdev)
 }
 
 static int
-nvkm_fault_fini(struct nvkm_subdev *subdev, bool suspend)
+nvkm_fault_fini(struct nvkm_subdev *subdev, enum nvkm_suspend_type type)
 {
 	struct nvkm_fault *fault = nvkm_fault(subdev);
 	if (fault->func->fini)

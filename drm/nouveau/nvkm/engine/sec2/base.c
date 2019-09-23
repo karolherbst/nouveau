@@ -87,7 +87,7 @@ nvkm_sec2_oneinit(struct nvkm_engine *engine)
 }
 
 static int
-nvkm_sec2_fini(struct nvkm_engine *engine, bool suspend)
+nvkm_sec2_fini(struct nvkm_engine *engine, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_sec2 *sec2 = nvkm_sec2(engine);
 	flush_work(&sec2->work);

@@ -783,7 +783,7 @@ nouveau_do_suspend(struct drm_device *dev, bool runtime)
 	}
 
 	NV_DEBUG(drm, "suspending object tree...\n");
-	ret = nvif_client_suspend(&drm->master.base);
+	ret = nvif_client_suspend(&drm->master.base, runtime);
 	if (ret)
 		goto fail_client;
 

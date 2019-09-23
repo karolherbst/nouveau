@@ -38,7 +38,7 @@ main(int argc, char **argv)
 		return ret;
 
 	if (suspend) {
-		nvif_client_suspend(&client);
+		nvif_client_suspend(&client, false);
 		nvif_client_resume(&client);
 	}
 

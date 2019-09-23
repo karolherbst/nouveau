@@ -76,7 +76,7 @@ nvkm_xtensa_intr(struct nvkm_engine *engine)
 }
 
 static int
-nvkm_xtensa_fini(struct nvkm_engine *engine, bool suspend)
+nvkm_xtensa_fini(struct nvkm_engine *engine, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_xtensa *xtensa = nvkm_xtensa(engine);
 	struct nvkm_device *device = xtensa->engine.subdev.device;

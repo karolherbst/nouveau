@@ -143,7 +143,7 @@ nvkm_gr_init(struct nvkm_engine *engine)
 }
 
 static int
-nvkm_gr_fini(struct nvkm_engine *engine, bool suspend)
+nvkm_gr_fini(struct nvkm_engine *engine, enum nvkm_suspend_type suspend)
 {
 	struct nvkm_gr *gr = nvkm_gr(engine);
 	if (gr->func->fini)

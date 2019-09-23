@@ -88,10 +88,12 @@ null_client_resume(void *priv)
 }
 
 static int
-null_client_suspend(void *priv)
+null_client_suspend(void *priv, bool runtime)
 {
 	struct nvkm_client *client = priv;
-	return nvkm_object_fini(&client->object, true);
+	enum nvkm_suspend_type suspend =
+		runtime ? NVKM_SUSPEND_RUNTIME : NVKM_SUSPEND_SYSTEM;
+	return nvkm_object_fini(&client->object, suspend);
 }
 
 static void

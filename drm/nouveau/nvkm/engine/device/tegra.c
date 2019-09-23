@@ -223,7 +223,8 @@ nvkm_device_tegra_intr(int irq, void *arg)
 }
 
 static void
-nvkm_device_tegra_fini(struct nvkm_device *device, bool suspend)
+nvkm_device_tegra_fini(struct nvkm_device *device,
+		       enum nvkm_suspend_type suspend)
 {
 	struct nvkm_device_tegra *tdev = nvkm_device_tegra(device);
 	if (tdev->irq) {
