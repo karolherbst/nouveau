@@ -1436,6 +1436,7 @@ init_completion(struct completion *c)
 static inline void
 reinit_completion(struct completion *c)
 {
+	init_completion(c);
 }
 
 static inline unsigned long
