@@ -1758,4 +1758,9 @@ tegra_fuse_readl(unsigned long offset, u32 *value)
 #undef __BIG_ENDIAN
 #endif
 
+/******************************************************************************
+ * ACPI
+ *****************************************************************************/
+typedef void *acpi_handle;
+
 #endif
