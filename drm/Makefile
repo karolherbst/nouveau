@@ -9,7 +9,7 @@ LINUXDIR := $(shell if [ -e /lib/modules/$(LINUXVER)/source ]; \
 	     )
 endif
 
-KBUILD_OPTS := M=$(CURDIR)/nouveau
+KBUILD_OPTS := M=$(CURDIR)/nouveau NOUVEAU_PATH=
 KBUILD_OPTS += KCPPFLAGS="-Iinclude/uapi/drm"
 
 all: modules
