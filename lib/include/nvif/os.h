@@ -759,6 +759,13 @@ struct lock_class_key {
  *****************************************************************************/
 #include "list.h"
 
+static inline void
+list_move(struct list_head *list, struct list_head *head)
+{
+	__list_del(list->prev, list->next);
+	list_add(list, head);
+}
+
 #define list_first_entry_or_null(a,b,c) \
 	(list_empty(a) ? NULL : list_first_entry((a),b,c))
 #define list_for_each_entry_from_reverse(a,b,c) \
