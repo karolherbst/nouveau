@@ -10,7 +10,7 @@ drm := $(top)/drm/nouveau
 lib := $(top)/lib
 bin := $(top)/bin
 
-CFLAGS  ?= -O0 -ggdb3
+CFLAGS  ?= -O0 -ggdb3 -fsanitize=address
 CFLAGS  += -I$(lib)/include -I$(drm)/include -I$(drm)/include/nvkm \
 	   -I$(drm)/nvkm -I/usr/include/libdrm \
 	   -fno-strict-aliasing -Wall -Wundef -Wstrict-prototypes \
