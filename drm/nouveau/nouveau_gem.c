@@ -484,9 +484,12 @@ retry:
 
 static int
 validate_list(struct nouveau_channel *chan, struct nouveau_cli *cli,
-	      struct list_head *list, struct drm_nouveau_gem_pushbuf_bo *pbbo)
+	      struct list_head *list, struct drm_nouveau_gem_pushbuf_bo *pbbo,
+	      uint64_t user_pbbo_ptr)
 {
 	struct nouveau_drm *drm = chan->drm;
+	struct drm_nouveau_gem_pushbuf_bo __user *upbbo =
+				(void __force __user *)(uintptr_t)user_pbbo_ptr;
 	struct nouveau_bo *nvbo;
 	int ret, relocs = 0;
 
@@ -530,6 +533,10 @@ validate_list(struct nouveau_channel *chan, struct nouveau_cli *cli,
 			b->presumed.offset = nvbo->bo.offset;
 			b->presumed.valid = 0;
 			relocs++;
+
+			if (copy_to_user(&upbbo[nvbo->pbbo_index].presumed,
+					     &b->presumed, sizeof(b->presumed)))
+				return -EFAULT;
 		}
 	}
 
@@ -540,8 +547,8 @@ static int
 nouveau_gem_pushbuf_validate(struct nouveau_channel *chan,
 			     struct drm_file *file_priv,
 			     struct drm_nouveau_gem_pushbuf_bo *pbbo,
-			     int nr_buffers,
-			     struct validate_op *op, bool *apply_relocs)
+			     uint64_t user_buffers, int nr_buffers,
+			     struct validate_op *op, int *apply_relocs)
 {
 	struct nouveau_cli *cli = nouveau_cli(file_priv);
 	int ret;
@@ -558,7 +565,7 @@ nouveau_gem_pushbuf_validate(struct nouveau_channel *chan,
 		return ret;
 	}
 
-	ret = validate_list(chan, cli, &op->list, pbbo);
+	ret = validate_list(chan, cli, &op->list, pbbo, user_buffers);
 	if (unlikely(ret < 0)) {
 		if (ret != -ERESTARTSYS)
 			NV_PRINTK(err, cli, "validating bo list\n");
@@ -598,11 +605,15 @@ u_memcpya(uint64_t user, unsigned nmemb, unsigned size)
 static int
 nouveau_gem_pushbuf_reloc_apply(struct nouveau_cli *cli,
 				struct drm_nouveau_gem_pushbuf *req,
-				struct drm_nouveau_gem_pushbuf_reloc *reloc,
 				struct drm_nouveau_gem_pushbuf_bo *bo)
 {
+	struct drm_nouveau_gem_pushbuf_reloc *reloc = NULL;
 	int ret = 0;
 	unsigned i;
+
+	reloc = u_memcpya(req->relocs, req->nr_relocs, sizeof(*reloc));
+	if (IS_ERR(reloc))
+		return PTR_ERR(reloc);
 
 	for (i = 0; i < req->nr_relocs; i++) {
 		struct drm_nouveau_gem_pushbuf_reloc *r = &reloc[i];
@@ -682,13 +693,11 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct drm_nouveau_gem_pushbuf *req = data;
 	struct drm_nouveau_gem_pushbuf_push *push;
-	struct drm_nouveau_gem_pushbuf_reloc *reloc = NULL;
 	struct drm_nouveau_gem_pushbuf_bo *bo;
 	struct nouveau_channel *chan = NULL;
 	struct validate_op op;
 	struct nouveau_fence *fence = NULL;
-	int i, j, ret = 0;
-	bool do_reloc = false;
+	int i, j, ret = 0, do_reloc = 0;
 
 	if (unlikely(!abi16))
 		return -ENOMEM;
@@ -746,8 +755,7 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 	}
 
 	/* Validate buffer list */
-revalidate:
-	ret = nouveau_gem_pushbuf_validate(chan, file_priv, bo,
+	ret = nouveau_gem_pushbuf_validate(chan, file_priv, bo, req->buffers,
 					   req->nr_buffers, &op, &do_reloc);
 	if (ret) {
 		if (ret != -ERESTARTSYS)
@@ -757,18 +765,7 @@ revalidate:
 
 	/* Apply any relocations that are required */
 	if (do_reloc) {
-		if (!reloc) {
-			validate_fini(&op, chan, NULL, bo);
-			reloc = u_memcpya(req->relocs, req->nr_relocs, sizeof(*reloc));
-			if (IS_ERR(reloc)) {
-				ret = PTR_ERR(reloc);
-				goto out_prevalid;
-			}
-
-			goto revalidate;
-		}
-
-		ret = nouveau_gem_pushbuf_reloc_apply(cli, req, reloc, bo);
+		ret = nouveau_gem_pushbuf_reloc_apply(cli, req, bo);
 		if (ret) {
 			NV_PRINTK(err, cli, "reloc apply: %d\n", ret);
 			goto out;
@@ -854,22 +851,6 @@ out:
 	validate_fini(&op, chan, fence, bo);
 	nouveau_fence_unref(&fence);
 
-	if (do_reloc) {
-		struct drm_nouveau_gem_pushbuf_bo __user *upbbo =
-			u64_to_user_ptr(req->buffers);
-
-		for (i = 0; i < req->nr_buffers; i++) {
-			if (bo[i].presumed.valid)
-				continue;
-
-			if (copy_to_user(&upbbo[i].presumed, &bo[i].presumed,
-					 sizeof(bo[i].presumed))) {
-				ret = -EFAULT;
-				break;
-			}
-		}
-		u_free(reloc);
-	}
 out_prevalid:
 	u_free(bo);
 	u_free(push);
