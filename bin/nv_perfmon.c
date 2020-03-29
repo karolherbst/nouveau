@@ -405,7 +405,7 @@ ui_perfmon_init(void)
 {
 	int ret;
 
-	ret = nvif_object_init(&device->object, 0xdeadbeef,
+	ret = nvif_object_ctor(&device->object, NULL, 0xdeadbeef,
 			       NVIF_CLASS_PERFMON, NULL, 0, &perfmon);
 	assert(ret == 0);
 
@@ -431,7 +431,7 @@ ui_perfmon_free_perfdoms(struct ui_perfmon_dom *dom)
 	struct ui_perfdom *perfdom, *next;
 
 	list_for_each_entry_safe(perfdom, next, &dom->perfdoms, head) {
-		nvif_object_fini(&perfdom->object);
+		nvif_object_dtor(&perfdom->object);
 		list_del(&perfdom->head);
 		free(perfdom);
 	}
@@ -449,7 +449,7 @@ ui_perfmon_fini(void)
 		free(dom);
 	}
 
-	nvif_object_fini(&perfmon);
+	nvif_object_dtor(&perfmon);
 }
 
 static void
@@ -508,7 +508,7 @@ ui_main_select(void)
 				args.ctr[i].logic_op  = 0xaaaa;
 			}
 
-			ret = nvif_object_init(&perfmon, perfdom->handle,
+			ret = nvif_object_ctor(&perfmon, NULL, perfdom->handle,
 					       NVIF_CLASS_PERFDOM,
 					       &args, sizeof(args),
 					       &perfdom->object);
