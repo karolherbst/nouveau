@@ -91,6 +91,6 @@ MAIN(int argc, char **argv)
 	}
 
 	nvif_device_fini(device);
-	nvif_client_fini(&client);
+	nvif_client_dtor(&client);
 	return 0;
 }

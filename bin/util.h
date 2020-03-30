@@ -106,7 +106,7 @@ u_device(const char *drv, const char *name, const char *dbg,
 				       }, sizeof(struct nv_device_v0),
 				       pdevice);
 		if (ret)
-			nvif_client_fini(client);
+			nvif_client_dtor(client);
 	}
 	return ret;
 }
