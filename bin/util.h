@@ -100,7 +100,8 @@ u_device(const char *drv, const char *name, const char *dbg,
 {
 	int ret = u_client(drv, name, dbg, detect, mmio, subdev, client);
 	if (ret == 0) {
-		ret = nvif_device_init(&client->object, handle, NV_DEVICE,
+		ret = nvif_device_ctor(&client->object, "utilDevice", handle,
+				       NV_DEVICE,
 				       &(struct nv_device_v0) {
 					.device = u_device_name(client, u_dev),
 				       }, sizeof(struct nv_device_v0),

@@ -875,7 +875,7 @@ main(int argc, char **argv)
 	endwin();
 	ui_perfmon_fini();
 
-	nvif_device_fini(device);
+	nvif_device_dtor(device);
 	nvif_client_dtor(&client);
 	return 0;
 }

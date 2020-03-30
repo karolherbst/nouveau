@@ -47,7 +47,7 @@ main(int argc, char **argv)
 	}
 
 	printf("shutting down...\n");
-	nvif_device_fini(&device);
+	nvif_device_dtor(&device);
 	nvif_client_dtor(&client);
 	printf("done!\n");
 	return ret;

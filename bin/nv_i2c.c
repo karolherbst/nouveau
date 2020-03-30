@@ -156,7 +156,7 @@ main(int argc, char **argv)
 	}
 
 done:
-	nvif_device_fini(&device);
+	nvif_device_dtor(&device);
 	nvif_client_dtor(&client);
 	return ret;
 }
