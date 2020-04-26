@@ -238,6 +238,7 @@ nouveau_svmm_invalidate(struct nouveau_svmm *svmm, u64 start, u64 limit)
 					.addr = start,
 					.size = limit - start,
 				 }, sizeof(struct nvif_vmm_pfnclr_v0));
+		WARN_ON(!svmm->vmm->vmm.object.client->super);
 		svmm->vmm->vmm.object.client->super = super;
 	}
 }
@@ -599,6 +600,7 @@ static int nouveau_range_fault(struct nouveau_svmm *svmm,
 
 	svmm->vmm->vmm.object.client->super = true;
 	ret = nvif_object_ioctl(&svmm->vmm->vmm.object, args, size, NULL);
+	WARN_ON(!svmm->vmm->vmm.object.client->super);
 	svmm->vmm->vmm.object.client->super = false;
 	mutex_unlock(&svmm->mutex);
 
@@ -817,6 +819,7 @@ nouveau_pfns_map(struct nouveau_svmm *svmm, struct mm_struct *mm,
 	svmm->vmm->vmm.object.client->super = true;
 	ret = nvif_object_ioctl(&svmm->vmm->vmm.object, args, sizeof(*args) +
 				npages * sizeof(args->p.phys[0]), NULL);
+	WARN_ON(!svmm->vmm->vmm.object.client->super);
 	svmm->vmm->vmm.object.client->super = false;
 
 	mutex_unlock(&svmm->mutex);

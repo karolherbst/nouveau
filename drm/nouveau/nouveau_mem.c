@@ -77,6 +77,7 @@ nouveau_mem_map(struct nouveau_mem *mem,
 	vmm->object.client->super = true;
 	ret = nvif_vmm_map(vmm, vma->addr, mem->mem.size, &args, argc,
 			   &mem->mem, 0);
+	WARN_ON(!vmm->object.client->super);
 	vmm->object.client->super = super;
 	return ret;
 }

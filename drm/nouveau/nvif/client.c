@@ -90,5 +90,6 @@ nvif_client_ctor(struct nvif_client *parent, const char *name, u64 device,
 
 	if (ret)
 		nvif_client_dtor(client);
+	WARN_ON(!client->super);
 	return ret;
 }
