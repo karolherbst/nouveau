@@ -694,7 +694,7 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 	struct validate_op op;
 	struct nouveau_fence *fence = NULL;
 	int i, j, ret = 0;
-	bool do_reloc = false, sync = false;
+	bool do_reloc = false, sync = true;
 
 	if (unlikely(!abi16))
 		return -ENOMEM;
@@ -711,7 +711,7 @@ nouveau_gem_ioctl_pushbuf(struct drm_device *dev, void *data,
 	if (unlikely(atomic_read(&chan->killed)))
 		return nouveau_abi16_put(abi16, -ENODEV);
 
-	sync = req->vram_available & NOUVEAU_GEM_PUSHBUF_SYNC;
+	//sync = req->vram_available & NOUVEAU_GEM_PUSHBUF_SYNC;
 
 	req->vram_available = drm->gem.vram_available;
 	req->gart_available = drm->gem.gart_available;
