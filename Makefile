@@ -14,6 +14,7 @@ CFLAGS  ?= -O0 -ggdb3 -fsanitize=address
 CFLAGS  += -I$(lib)/include -I$(drm)/include -I$(drm)/include/nvkm \
 	   -I$(drm)/nvkm -I/usr/include/libdrm \
 	   -fno-strict-aliasing -Wall -Wundef -Wstrict-prototypes \
+	   -Wmissing-prototypes \
 	   -DCONFIG_NOUVEAU_DEBUG=7 \
 	   -DCONFIG_NOUVEAU_DEBUG_DEFAULT=3 \
 	   -DCONFIG_NOUVEAU_DEBUG_MMU=y \

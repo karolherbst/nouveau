@@ -152,6 +152,18 @@ typedef dma_addr_t resource_size_t;
 #define IS_ENABLED_CONFIG_ARCH_TEGRA 0
 #endif
 
+#if defined(CONFIG_ARCH_TEGRA_124_SOC)
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_124_SOC 1
+#else
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_124_SOC 0
+#endif
+
+#if defined(CONFIG_ARCH_TEGRA_132_SOC)
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_132_SOC 1
+#else
+#define IS_ENABLED_CONFIG_ARCH_TEGRA_132_SOC 0
+#endif
+
 #if defined(CONFIG_ARCH_TEGRA_186_SOC)
 #define IS_ENABLED_CONFIG_ARCH_TEGRA_186_SOC 1
 #else
@@ -1124,6 +1136,8 @@ struct pci_dev {
 	struct pci_bus _bus;
 	struct pci_bus *bus;
 	u8 devfn;
+	phys_addr_t rom;
+	size_t romlen;
 };
 
 static inline void
@@ -1208,12 +1222,6 @@ static inline void
 pci_unmap_rom(struct pci_dev *pdev, void __iomem *rom)
 {
 	free(rom);
-}
-
-static inline void __iomem *
-pci_platform_rom(struct pci_dev *pdev, size_t *size)
-{
-	return NULL;
 }
 
 static inline void *
@@ -1520,9 +1528,9 @@ to_i2c_driver(struct device_driver *driver)
 }
 
 static inline struct i2c_client *
-i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
+i2c_new_client_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
 {
-	return NULL;
+	return ERR_PTR(-ENOSYS);
 }
 
 static inline void
