@@ -3,8 +3,12 @@
 #include <nvif/client.h>
 #include <nvif/device.h>
 #include <nvif/driver.h>
+#include <nvif/parent.h>
+
+#include <nvif/class.h>
 #include <nvif/if0000.h>
 
+#include <stdarg.h>
 #include <unistd.h>
 
 #include "../lib/priv.h"
@@ -30,15 +34,41 @@ u_option(int c)
 	return true;
 }
 
+static void __printf(2, 3)
+u_printf(struct nvif_object *object, const char *fmt, ...)
+{
+	va_list va;
+	va_start(va, fmt);
+	vfprintf(stderr, fmt, va);
+	va_end(va);
+}
+
+static const struct nvif_parent_func
+u_parent_func = {
+	.debugf = u_printf,
+	.errorf = u_printf,
+};
+
+static struct nvif_parent u_parent;
+
 static inline int
 u_client(const char *drv, const char *name, const char *dbg,
 	 bool detect, bool mmio, u64 subdev, struct nvif_client *client)
 {
+	int ret;
+
 	os_device_detect = detect;
 	os_device_mmio = mmio;
 	os_device_subdev = subdev;
-	return nvif_driver_init(u_drv ? u_drv : drv, u_cfg,
-				u_dbg ? u_dbg : dbg, name, ~0ULL, client);
+
+	ret = nvif_driver_init(u_drv ? u_drv : drv, u_cfg,
+			       u_dbg ? u_dbg : dbg, name, ~0ULL, client);
+	if (ret)
+		return ret;
+
+	nvif_parent_ctor(&u_parent_func, &u_parent);
+	client->object.parent = &u_parent;
+	return 0;
 }
 
 static inline struct nvif_client_devlist_v0 *
