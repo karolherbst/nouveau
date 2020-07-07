@@ -62,6 +62,7 @@ typedef dma_addr_t resource_size_t;
 /******************************************************************************
  * various random macros
  *****************************************************************************/
+#define fallthrough __attribute__((__fallthrough__))
 #define noinline __attribute__ ((noinline))
 #define __packed __attribute__ ((packed))
 #define __aligned(a) __attribute__((aligned(a)))
