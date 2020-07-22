@@ -1141,13 +1141,13 @@ gk104_fifo_fault_hubclient[] = {
 	{ 0x16, "SEC" },
 	{ 0x17, "SSYNC" },
 	{ 0x18, "GR_CE" },
-	{ 0x19, "CE2" },
-	{ 0x1a, "XV" },
-	{ 0x1b, "MMU_NB" },
-	{ 0x1c, "MSENC" },
-	{ 0x1d, "DFALCON" },
-	{ 0x1e, "SKED" },
-	{ 0x1f, "AFALCON" },
+	{ 0x19, "XV" },
+	{ 0x1a, "MMU_NB" },
+	{ 0x1b, "MSENC" },
+	{ 0x1c, "DFALCON" },
+	{ 0x1d, "SKED" },
+	{ 0x1e, "AFALCON" },
+	{ 0x1f, "N/A" },
 	{}
 };
 
