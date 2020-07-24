@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+/* SPDX-License-Identifier: MIT */
 #ifndef __NV50_KMS_HANDLES_H__
 #define __NV50_KMS_HANDLES_H__
 
