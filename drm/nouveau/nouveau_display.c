@@ -444,7 +444,7 @@ nouveau_display_hpd_work(struct work_struct *work)
 	drm_helper_hpd_irq_event(drm->dev);
 
 	pm_runtime_mark_last_busy(drm->dev->dev);
-	pm_runtime_put_sync(drm->dev->dev);
+	pm_runtime_put_autosuspend(drm->dev->dev);
 }
 
 #ifdef CONFIG_ACPI
