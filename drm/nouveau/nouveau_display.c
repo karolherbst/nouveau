@@ -462,10 +462,10 @@ nouveau_display_acpi_ntfy(struct notifier_block *nb, unsigned long val,
 		return NOTIFY_DONE;
 
 	ret = pm_runtime_get(drm->dev->dev);
-	if (ret == 1 || ret == -EACCES) {
-		/* If the GPU is already awake, or in a state
-		 * where we can't wake it up, it can handle
-		 * it's own hotplug events.
+	if (ret == 1 || ret == -EACCES || ret == -EINPROGRESS) {
+		/* If the GPU is already awake, is waking up, or is in a state
+		 * where we can't wake it up, it can handle its own hotplug
+		 * events.
 		 */
 		pm_runtime_put_autosuspend(drm->dev->dev);
 	} else if (ret == 0) {
