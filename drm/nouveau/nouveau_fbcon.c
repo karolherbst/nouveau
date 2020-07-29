@@ -503,10 +503,7 @@ nouveau_fbcon_output_poll_changed(struct drm_device *dev)
 	ret = pm_runtime_get(dev->dev);
 	if (ret == 1 || ret == -EACCES) {
 		drm_fb_helper_hotplug_event(&fbcon->helper);
-
-		pm_runtime_mark_last_busy(dev->dev);
-		pm_runtime_put_autosuspend(dev->dev);
-	} else if (ret == 0) {
+	} else if (ret == 0 || ret == -EINPROGRESS) {
 		/* If the GPU was already in the process of suspending before
 		 * this event happened, then we can't block here as we'll
 		 * deadlock the runtime pmops since they wait for us to
@@ -516,11 +513,15 @@ nouveau_fbcon_output_poll_changed(struct drm_device *dev)
 		NV_DEBUG(drm, "fbcon HPD event deferred until runtime resume\n");
 		fbcon->hotplug_waiting = true;
 		pm_runtime_put_noidle(drm->dev->dev);
+		goto out;
 	} else {
 		DRM_WARN("fbcon HPD event lost due to RPM failure: %d\n",
 			 ret);
 	}
 
+	pm_runtime_mark_last_busy(dev->dev);
+	pm_runtime_put_autosuspend(dev->dev);
+out:
 	mutex_unlock(&fbcon->hotplug_lock);
 }
 
