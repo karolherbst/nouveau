@@ -92,6 +92,7 @@ struct nvkm_therm_func {
 	int (*pwm_clock)(struct nvkm_therm *, int line);
 
 	int (*temp_get)(struct nvkm_therm *);
+	int (*temp_millidegree_get)(struct nvkm_therm *);
 
 	int (*fan_sense)(struct nvkm_therm *);
 

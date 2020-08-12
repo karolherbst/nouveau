@@ -24,7 +24,7 @@
 #include "priv.h"
 
 static int
-gp100_temp_get(struct nvkm_therm *therm)
+gp100_temp_get_raw(struct nvkm_therm *therm)
 {
 	struct nvkm_device *device = therm->subdev.device;
 	struct nvkm_subdev *subdev = &therm->subdev;
@@ -37,14 +37,33 @@ gp100_temp_get(struct nvkm_therm *therm)
 
 	/* device valid */
 	if (tsensor & 0x20000000)
-		return (inttemp >> 8);
+		return inttemp;
 	else
 		return -ENODEV;
+}
+
+static int
+gp100_temp_millidegree_get(struct nvkm_therm *therm)
+{
+	int raw_temp = gp100_temp_get_raw(therm);
+	if (raw_temp < 0)
+		return raw_temp;
+	return raw_temp * 1000 >> 8;
+}
+
+static int
+gp100_temp_get(struct nvkm_therm *therm)
+{
+	int raw_temp = gp100_temp_get_raw(therm);
+	if (raw_temp < 0)
+		return raw_temp;
+	return raw_temp >> 8;
 }
 
 static const struct nvkm_therm_func
 gp100_therm = {
 	.temp_get = gp100_temp_get,
+	.temp_millidegree_get = gp100_temp_millidegree_get,
 	.program_alarms = nvkm_therm_program_alarms_polling,
 };
 

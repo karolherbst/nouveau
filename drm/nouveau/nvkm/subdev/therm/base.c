@@ -34,6 +34,22 @@ nvkm_therm_temp_get(struct nvkm_therm *therm)
 	return -ENODEV;
 }
 
+int
+nvkm_therm_temp_millidegree_get(struct nvkm_therm *therm)
+{
+	int ret = -ENODEV;
+
+	if (therm->func->temp_millidegree_get)
+		return therm->func->temp_millidegree_get(therm);
+
+	if (therm->func->temp_get) {
+		ret = therm->func->temp_get(therm);
+		if (ret > 0)
+			ret *= 1000;
+	}
+	return ret;
+}
+
 static int
 nvkm_therm_update_trip(struct nvkm_therm *therm)
 {

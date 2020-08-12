@@ -100,6 +100,24 @@ struct nvkm_therm {
 };
 
 int nvkm_therm_temp_get(struct nvkm_therm *);
+
+/**
+ * nvkm_therm_temp_millidegree_get() - get the temperature in millidegrees
+ * @therm: The thermal device to read from.
+ *
+ * This interface reports temperatures in units of millidegree Celsius to
+ * align with the hwmon API. Some cards may only be capable of reporting in
+ * units of Celsius, and those that report finer grain temperatures may not be
+ * capable of millidegree Celsius accuracy,
+ *
+ * For cases where millidegree temperature is too fine-grain, the
+ * nvkm_therm_temp_get() interface reports temperatures in one degree Celsius
+ * increments.
+ *
+ * Return: The temperature in millidegrees Celsius, or -ENODEV if temperature
+ *         reporting is not supported.
+ */
+int nvkm_therm_temp_millidegree_get(struct nvkm_therm *therm);
 int nvkm_therm_fan_sense(struct nvkm_therm *);
 int nvkm_therm_cstate(struct nvkm_therm *, int, int);
 void nvkm_therm_clkgate_init(struct nvkm_therm *,
