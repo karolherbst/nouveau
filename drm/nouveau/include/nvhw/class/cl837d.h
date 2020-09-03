@@ -99,4 +99,3 @@
 #define NV837D_PIOR_SET_CONTROL_PIXEL_DEPTH_BPP_36_444                          (0x00000008)
 #define NV837D_PIOR_SET_CONTROL_PIXEL_DEPTH_BPP_48_444                          (0x00000009)
 #endif // _cl837d_h
-
