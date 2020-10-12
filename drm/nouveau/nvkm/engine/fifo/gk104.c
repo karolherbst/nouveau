@@ -292,12 +292,8 @@ gk104_fifo_recover_work(struct work_struct *w)
 
 	for (todo = engm; engn = __ffs(todo), todo; todo &= ~BIT(engn)) {
 		if ((engine = fifo->engine[engn].engine)) {
-			mutex_lock(&engine->subdev.mutex);
-			if (engine->usecount) {
-				nvkm_subdev_fini(&engine->subdev, false);
-				WARN_ON(nvkm_subdev_init(&engine->subdev));
-			}
-			mutex_unlock(&engine->subdev.mutex);
+			nvkm_subdev_fini(&engine->subdev, false);
+			WARN_ON(nvkm_subdev_init(&engine->subdev));
 		}
 	}
 
